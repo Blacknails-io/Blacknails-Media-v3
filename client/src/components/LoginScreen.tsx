@@ -18,8 +18,7 @@ export const LoginScreen: React.FC = () => {
     e.preventDefault();
     if (!username || !password) {
       setHasError(true);
-      setErrorMessage('Por favor, introduce el usuario y la contraseña.');
-      setTimeout(() => setHasError(false), 3000);
+      setErrorMessage('Introduce usuario y contraseña.');
       return;
     }
 
@@ -28,10 +27,9 @@ export const LoginScreen: React.FC = () => {
     try {
       await login(username, password, rememberMe);
     } catch (err: any) {
-      setErrorMessage(err.message || 'Error al iniciar sesión. Acceso denegado.');
+      setErrorMessage(err.message || 'Credenciales incorrectas.');
       setIsLoading(false);
       setHasError(true);
-      setTimeout(() => setHasError(false), 8000);
     }
   };
 
@@ -49,7 +47,7 @@ export const LoginScreen: React.FC = () => {
         <div className={`${styles.loginCard} ${hasError ? styles.cardError : ''}`} data-instance-id="login-card">
           
           {/* Custom vector Brand Logo */}
-          <BrandLogo variant={hasError ? 'red' : 'cyan'} />
+          <BrandLogo size={38} variant={hasError ? 'red' : 'cyan'} />
 
           {/* Subtitle */}
           <div className={styles.loginHeader}>
@@ -58,16 +56,16 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           {/* Error warning banner */}
-          {hasError && (
+          <div className={`${styles.loginErrorSlot} ${hasError ? styles.visible : ''}`} aria-live="polite">
             <div className={styles.loginErrorBanner}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              <span>ACCESO DENEGADO: {errorMessage}</span>
+              <span>{hasError ? errorMessage : ' '}</span>
             </div>
-          )}
+          </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -85,7 +83,10 @@ export const LoginScreen: React.FC = () => {
                   type="text"
                   placeholder="Escribe tu usuario o correo..."
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    if (hasError) setHasError(false);
+                  }}
                   disabled={isLoading}
                 />
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.loginInputIcon}>
@@ -108,7 +109,10 @@ export const LoginScreen: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Escribe tu contraseña..."
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (hasError) setHasError(false);
+                  }}
                   disabled={isLoading}
                 />
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={styles.loginInputIcon}>
