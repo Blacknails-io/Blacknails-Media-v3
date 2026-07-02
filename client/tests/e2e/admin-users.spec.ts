@@ -478,4 +478,12 @@ test('Gallery modal supports asset review navigation and selection', async ({ pa
 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  const bulkToolbar = page.locator('[data-instance-id="bulk-selection-toolbar"]');
+  await expect(bulkToolbar).toBeVisible();
+  await expect(bulkToolbar).toContainText('1 seleccionado');
+  await expect(bulkToolbar).toContainText('Review Video');
+
+  await page.locator('[data-instance-id="bulk-clear-selection"]').click();
+  await expect(bulkToolbar).toHaveCount(0);
 });

@@ -122,6 +122,7 @@ export default function App() {
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'PHOTO' | 'VIDEO'>('ALL');
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
+  const [bulkActionFeedback, setBulkActionFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAdmin && (activeTab === 'users' || activeTab === 'pipeline')) {
@@ -140,8 +141,15 @@ export default function App() {
 
   const handleToggleSelect = (id: string, e: MouseEvent) => {
     e.stopPropagation();
+    setBulkActionFeedback(null);
     toggleAssetSelection(id);
   };
+
+  useEffect(() => {
+    if (selectedAssets.size === 0) {
+      setBulkActionFeedback(null);
+    }
+  }, [selectedAssets.size]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -231,6 +239,36 @@ export default function App() {
 
   const selectedAssetList = filteredAssets.filter(asset => selectedAssets.has(asset.id));
   const inspectorAsset = selectedAssetList[0] ?? filteredAssets[0] ?? null;
+  const selectedCountLabel = selectedAssetList.length === 1 ? '1 seleccionado' : `${selectedAssetList.length} seleccionados`;
+
+  const handleOpenFirstSelected = () => {
+    if (selectedAssetList[0]) {
+      setPreviewAsset(selectedAssetList[0]);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedAssets(new Set());
+    setBulkActionFeedback(null);
+  };
+
+  const copyBulkText = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setBulkActionFeedback(`${label} copiados`);
+    } catch (error) {
+      console.error('Error copying bulk selection:', error);
+      setBulkActionFeedback('No se pudo copiar');
+    }
+  };
+
+  const handleCopySelectedIds = () => {
+    void copyBulkText('IDs', selectedAssetList.map(asset => asset.id).join('\n'));
+  };
+
+  const handleCopySelectedOriginalUrls = () => {
+    void copyBulkText('Rutas', selectedAssetList.map(asset => asset.originalUrl).join('\n'));
+  };
   const photoCount = assets.filter(asset => asset.type === 'PHOTO').length;
   const videoCount = assets.filter(asset => asset.type === 'VIDEO').length;
   const hasActiveFilters = activeFilter !== 'ALL' || searchQuery.trim().length > 0;
@@ -536,6 +574,22 @@ export default function App() {
                   </div>
                 </div>
 
+                {selectedAssetList.length > 0 && (
+                  <div className="app-bulk-toolbar" data-instance-id="bulk-selection-toolbar">
+                    <div className="app-bulk-summary">
+                      <strong>{selectedCountLabel}</strong>
+                      <span>{selectedAssetList[0]?.title}</span>
+                    </div>
+                    <div className="app-bulk-actions">
+                      <button type="button" onClick={handleOpenFirstSelected} data-instance-id="bulk-open-first">Abrir primero</button>
+                      <button type="button" onClick={handleCopySelectedIds} data-instance-id="bulk-copy-ids">Copiar IDs</button>
+                      <button type="button" onClick={handleCopySelectedOriginalUrls} data-instance-id="bulk-copy-paths">Copiar rutas</button>
+                      <button type="button" className="subtle" onClick={handleClearSelection} data-instance-id="bulk-clear-selection">Limpiar</button>
+                    </div>
+                    {bulkActionFeedback && <span className="app-bulk-feedback">{bulkActionFeedback}</span>}
+                  </div>
+                )}
+
                 <div className="app-gallery-grid">
                   {isLoadingAssets ? (
                     Array.from({ length: 8 }).map((_, index) => (
@@ -758,7 +812,10 @@ export default function App() {
         isSelected={previewAsset ? selectedAssets.has(previewAsset.id) : false}
         onClose={() => setPreviewAsset(null)}
         onNavigate={setPreviewAsset}
-        onToggleSelected={toggleAssetSelection}
+        onToggleSelected={(assetId) => {
+          setBulkActionFeedback(null);
+          toggleAssetSelection(assetId);
+        }}
       />
     </div>
   );

@@ -272,6 +272,80 @@ body {
   color: var(--bn-green);
 }
 
+.app-bulk-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  margin: -10px 0 22px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(6, 10, 16, 0.82);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24), inset 0 0 22px rgba(0, 243, 255, 0.035);
+  backdrop-filter: blur(14px);
+}
+
+.app-bulk-summary {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.app-bulk-summary strong {
+  flex-shrink: 0;
+  color: #f8fdff;
+  font-size: 0.86rem;
+  font-weight: 850;
+}
+
+.app-bulk-summary span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bn-muted);
+  font-size: 0.78rem;
+}
+
+.app-bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-bulk-actions button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 8px;
+  color: var(--bn-text);
+  background: rgba(9, 18, 27, 0.86);
+  font-size: 0.74rem;
+  font-weight: 800;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.app-bulk-actions button:hover {
+  color: var(--bn-cyan);
+  border-color: rgba(0, 243, 255, 0.42);
+  background: rgba(0, 243, 255, 0.08);
+}
+
+.app-bulk-actions button.subtle {
+  color: #c4ceda;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.app-bulk-feedback {
+  color: var(--bn-green);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
 .app-gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
@@ -573,6 +647,19 @@ body {
 
   .app-gallery-status-strip {
     justify-content: flex-start;
+  }
+
+  .app-bulk-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .app-bulk-actions {
+    flex-wrap: wrap;
+  }
+
+  .app-bulk-actions button {
+    flex: 1 1 120px;
   }
 
   .app-gallery-grid {
