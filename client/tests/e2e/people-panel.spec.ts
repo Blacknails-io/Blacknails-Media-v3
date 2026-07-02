@@ -46,6 +46,34 @@ const adaAsset: MediaAsset = {
   }
 };
 
+
+test('People person gallery can retry after asset load failure', async ({ page }) => {
+  await buildAdminMocks(page, { people });
+  let attempts = 0;
+  await page.route('**/api/people/person-bruno/assets', async (route) => {
+    attempts += 1;
+    if (attempts === 1) {
+      await route.fulfill({ status: 503, json: { error: 'Temporal people asset failure.' } });
+      return;
+    }
+    await route.fulfill({ json: [{ ...adaAsset, id: 'asset-bruno-1', title: 'Bruno portrait' }] });
+  });
+
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await page.getByRole('button', { name: 'Personas' }).click();
+  await page.getByRole('button', { name: 'Abrir Bruno' }).click();
+  await expect(page.locator('[data-instance-id="admin-person-gallery"]')).toContainText('Error 503');
+
+  await page.locator('[data-instance-id="person-assets-retry"]').click();
+  await expect(page.getByText('Bruno portrait')).toBeVisible();
+  await expect(page.locator('[data-instance-id="person-assets-retry"]')).toHaveCount(0);
+  expect(attempts).toBe(2);
+});
+
 test('People panel filters, sorts and opens person media', async ({ page }) => {
   await buildAdminMocks(page, {
     people,

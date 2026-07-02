@@ -25,7 +25,7 @@ Blacknails Media v3 is an AI-powered, self-hosted media gallery application. It 
 ### 3.2. Frontend Application (React 19)
 - **Gallery Grid**: Interfaz principal implementada como muro de media a ancho completo dentro del área principal, con visualización, filtrado con limpieza rápida, ordenación local, visor avanzado y selección masiva de assets. Los detalles profundos se consultan en el visor/modal, no en un inspector lateral fijo, para preservar densidad. `/api/assets`, `/api/media/originals`, `/api/media/storage` y `/static/users` requieren sesión válida. Los admins pueden reencolar análisis IA de la selección desde la toolbar masiva.
 - **Admin Console**: Panel de eventos en tiempo real para visualizar los logs del Pipeline vía SSE.
-- **Admin Users & Pipeline**: Paneles de administración para gestionar la importación y los usuarios, con acciones agrupadas del pipeline y señales visuales de recursos Ollama por tipo de modelo.
+- **Admin Users, Pipeline & People**: Paneles de administración para gestionar la importación, usuarios y personas detectadas. El panel de personas permite filtrar/ordenar identidades, abrir la media asociada y reintentar la carga de archivos si falla una consulta puntual; el pipeline mantiene acciones agrupadas y señales visuales de recursos Ollama por tipo de modelo.
 
 ### 3.3. Test Assets Sandbox
 A robust testing laboratory has been generated in `/srv/storage/ai-lab/Blacknails-Media-v3/test_assets/`, containing 25 edge-cases including perceptual hashes, face clustering subjects, and format variations.

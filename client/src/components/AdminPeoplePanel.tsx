@@ -214,7 +214,17 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
           {isLoadingAssets ? (
             <div className="py-20 text-center text-zinc-500">Cargando galería de la persona...</div>
           ) : personAssetsError ? (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">{personAssetsError}</div>
+            <div className="flex flex-col gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
+              <span>{personAssetsError}</span>
+              <button
+                type="button"
+                onClick={() => void fetchPersonAssets(selectedPerson)}
+                className="self-start rounded-lg border border-red-500/30 px-3 py-2 text-xs font-bold text-red-400 transition-colors hover:bg-red-500/10"
+                data-instance-id="person-assets-retry"
+              >
+                Reintentar
+              </button>
+            </div>
           ) : personAssets.length === 0 ? (
             <div className="py-20 text-center text-zinc-500">No se encontraron archivos para esta persona.</div>
           ) : (
