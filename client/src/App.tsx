@@ -16,6 +16,7 @@ import { MediaModal } from './components/MediaModal.js';
 import type { MouseEvent } from 'react';
 
 type ReprocessJob = 'description' | 'nsfw' | 'faces';
+type GallerySort = 'NEWEST' | 'OLDEST' | 'TITLE_ASC' | 'TYPE_ASC';
 
 export default function App() {
   const { token, isLoggedIn, user, isInitializing, logout, updateAvatar } = useAuth();
@@ -122,6 +123,7 @@ export default function App() {
   // Gallery Interactive States
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'PHOTO' | 'VIDEO'>('ALL');
+  const [gallerySort, setGallerySort] = useState<GallerySort>('NEWEST');
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
   const [bulkActionFeedback, setBulkActionFeedback] = useState<string | null>(null);
@@ -244,6 +246,15 @@ export default function App() {
       if (!tagsMatch && !descMatch && !titleMatch) return false;
     }
     return true;
+  }).sort((a, b) => {
+    if (gallerySort === 'TITLE_ASC') {
+      return a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
+    }
+    if (gallerySort === 'TYPE_ASC') {
+      const typeCompare = a.type.localeCompare(b.type, 'es', { sensitivity: 'base' });
+      return typeCompare || b.date.localeCompare(a.date) || a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
+    }
+    return gallerySort === 'OLDEST' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
   });
 
   const selectedAssetList = filteredAssets.filter(asset => selectedAssets.has(asset.id));
@@ -523,7 +534,7 @@ export default function App() {
                   </button>
                 ))}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 flex items-center gap-2 min-w-0">
                  <input 
                     type="text" 
                     className="w-full max-w-md bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100"
@@ -531,6 +542,18 @@ export default function App() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                  />
+                 <select
+                    className="bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+                    value={gallerySort}
+                    onChange={(e) => setGallerySort(e.target.value as GallerySort)}
+                    aria-label="Ordenar galería"
+                    data-instance-id="gallery-sort-select"
+                 >
+                    <option value="NEWEST">Recientes</option>
+                    <option value="OLDEST">Antiguos</option>
+                    <option value="TITLE_ASC">Título A-Z</option>
+                    <option value="TYPE_ASC">Tipo</option>
+                 </select>
               </div>
             </>
           ) : activeTab === 'console' ? (

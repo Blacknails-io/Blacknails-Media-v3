@@ -31,6 +31,65 @@ test('Gallery cards do not render tags', async ({ page }) => {
 });
 
 
+test('Gallery sorting changes the visible card order', async ({ page }) => {
+  const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%23b9ff21%22/%3E%3C/svg%3E';
+  const assets: MediaAsset[] = [
+    {
+      id: 'sort-old-zeta',
+      title: 'Zeta Old Photo',
+      type: 'PHOTO',
+      description: 'Old asset',
+      tags: [],
+      date: '2026-06-01T00:00:00.000Z',
+      imageUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: { fileSize: '2 MB', resolution: '800x600' }
+    },
+    {
+      id: 'sort-new-beta',
+      title: 'Beta New Video',
+      type: 'VIDEO',
+      description: 'New asset',
+      tags: [],
+      date: '2026-07-02T00:00:00.000Z',
+      imageUrl: previewSvg,
+      videoPreviewUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: { fileSize: '8 MB', resolution: '1920x1080', duration: '00:08' }
+    },
+    {
+      id: 'sort-alpha-mid',
+      title: 'Alpha Mid Photo',
+      type: 'PHOTO',
+      description: 'Middle asset',
+      tags: [],
+      date: '2026-06-15T00:00:00.000Z',
+      imageUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: { fileSize: '3 MB', resolution: '1024x768' }
+    }
+  ];
+
+  await buildAdminMocks(page, { assets });
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await expect(page.locator('[data-instance-id="sort-new-beta-gallery-card"]')).toBeVisible();
+  await expect(page.locator('.prosumer-card-wrapper').first()).toHaveAttribute('data-instance-id', 'sort-new-beta-gallery-card');
+
+  await page.locator('[data-instance-id="gallery-sort-select"]').selectOption('TITLE_ASC');
+  await expect(page.locator('.prosumer-card-wrapper').first()).toHaveAttribute('data-instance-id', 'sort-alpha-mid-gallery-card');
+
+  await page.locator('[data-instance-id="gallery-sort-select"]').selectOption('OLDEST');
+  await expect(page.locator('.prosumer-card-wrapper').first()).toHaveAttribute('data-instance-id', 'sort-old-zeta-gallery-card');
+});
+
+
 test('Gallery uses the full content width without the fixed inspector panel', async ({ page }) => {
   const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%2300f3ff%22/%3E%3C/svg%3E';
   const assets: MediaAsset[] = Array.from({ length: 6 }, (_, index) => ({
