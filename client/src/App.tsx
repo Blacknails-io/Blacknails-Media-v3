@@ -339,6 +339,10 @@ export default function App() {
   const photoCount = assets.filter(asset => asset.type === 'PHOTO').length;
   const videoCount = assets.filter(asset => asset.type === 'VIDEO').length;
   const hasActiveFilters = activeFilter !== 'ALL' || searchQuery.trim().length > 0;
+  const clearGalleryFilters = () => {
+    setSearchQuery('');
+    setActiveFilter('ALL');
+  };
 
 
   return (
@@ -554,6 +558,16 @@ export default function App() {
                     <option value="TITLE_ASC">Título A-Z</option>
                     <option value="TYPE_ASC">Tipo</option>
                  </select>
+                 {hasActiveFilters && (
+                    <button
+                      type="button"
+                      className="app-clear-filters-btn"
+                      onClick={clearGalleryFilters}
+                      data-instance-id="gallery-clear-filters"
+                    >
+                      Limpiar
+                    </button>
+                 )}
               </div>
             </>
           ) : activeTab === 'console' ? (
@@ -688,7 +702,7 @@ export default function App() {
                       <strong>{assets.length === 0 ? 'Biblioteca sin media indexada' : 'No hay resultados para este filtro'}</strong>
                       <span>{assets.length === 0 ? 'Cuando el pipeline importe e indexe archivos aparecerán aquí.' : 'Ajusta búsqueda o tipo de media para ampliar la vista.'}</span>
                       {hasActiveFilters && (
-                        <button type="button" onClick={() => { setSearchQuery(''); setActiveFilter('ALL'); }}>Limpiar filtros</button>
+                        <button type="button" onClick={clearGalleryFilters}>Limpiar filtros</button>
                       )}
                     </div>
                   ) : (

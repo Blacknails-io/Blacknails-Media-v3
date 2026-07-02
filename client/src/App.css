@@ -205,6 +205,21 @@ body {
   background: var(--bn-green);
 }
 
+.app-clear-filters-btn {
+  min-height: 38px;
+  flex-shrink: 0;
+  padding: 0 11px;
+  border-radius: 8px !important;
+  color: #cde4ef !important;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.app-clear-filters-btn:hover {
+  color: var(--bn-cyan) !important;
+  background: rgba(0, 243, 255, 0.08);
+}
+
 .app-topbar button:hover {
   color: var(--bn-cyan);
   border-color: rgba(0, 243, 255, 0.36);
@@ -567,6 +582,19 @@ body {
 
   .app-filter-pill {
     padding: 0 8px;
+  }
+
+  .app-topbar > .flex-1 {
+    flex-basis: 100%;
+  }
+
+  .app-topbar input {
+    min-width: 0;
+  }
+
+  .app-clear-filters-btn {
+    min-height: 36px;
+    padding: 0 9px;
   }
 
   .app-content {

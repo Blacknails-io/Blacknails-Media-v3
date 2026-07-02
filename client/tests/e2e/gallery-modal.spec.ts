@@ -90,6 +90,53 @@ test('Gallery sorting changes the visible card order', async ({ page }) => {
 });
 
 
+test('Gallery clear filters restores hidden results', async ({ page }) => {
+  const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%23ff00c8%22/%3E%3C/svg%3E';
+  const assets: MediaAsset[] = [
+    {
+      id: 'clear-photo-alpha',
+      title: 'Alpha Photo',
+      type: 'PHOTO',
+      description: 'Foto visible tras limpiar',
+      tags: ['alpha'],
+      date: '2026-07-02T00:00:00.000Z',
+      imageUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: { fileSize: '2 MB', resolution: '800x600' }
+    },
+    {
+      id: 'clear-video-beta',
+      title: 'Beta Video',
+      type: 'VIDEO',
+      description: 'Video filtrado',
+      tags: ['beta'],
+      date: '2026-07-01T00:00:00.000Z',
+      imageUrl: previewSvg,
+      videoPreviewUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: { fileSize: '8 MB', resolution: '1920x1080', duration: '00:08' }
+    }
+  ];
+
+  await buildAdminMocks(page, { assets });
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await page.getByRole('button', { name: /Vídeos/ }).click();
+  await page.getByPlaceholder('Buscar por título, tags o descripción...').fill('alpha');
+  await expect(page.getByText('No hay resultados para este filtro')).toBeVisible();
+
+  await page.locator('[data-instance-id="gallery-clear-filters"]').click();
+  await expect(page.locator('[data-instance-id="clear-photo-alpha-gallery-card"]')).toBeVisible();
+  await expect(page.locator('[data-instance-id="clear-video-beta-gallery-card"]')).toBeVisible();
+  await expect(page.locator('[data-instance-id="gallery-clear-filters"]')).toHaveCount(0);
+});
+
+
 test('Gallery uses the full content width without the fixed inspector panel', async ({ page }) => {
   const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%2300f3ff%22/%3E%3C/svg%3E';
   const assets: MediaAsset[] = Array.from({ length: 6 }, (_, index) => ({
