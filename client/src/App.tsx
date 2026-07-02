@@ -247,7 +247,6 @@ export default function App() {
   });
 
   const selectedAssetList = filteredAssets.filter(asset => selectedAssets.has(asset.id));
-  const inspectorAsset = selectedAssetList[0] ?? filteredAssets[0] ?? null;
   const selectedCountLabel = selectedAssetList.length === 1 ? '1 seleccionado' : `${selectedAssetList.length} seleccionados`;
 
   const handleOpenFirstSelected = () => {
@@ -683,55 +682,6 @@ export default function App() {
                 </div>
               </section>
 
-              <aside className="app-inspector-panel">
-                <div className="app-inspector-title">Inspector de Archivos</div>
-                {inspectorAsset ? (
-                  <>
-                    <button className="app-inspector-preview" onClick={() => setPreviewAsset(inspectorAsset)}>
-                      {inspectorAsset.type === 'VIDEO' ? (
-                        <video src={inspectorAsset.videoPreviewUrl || inspectorAsset.imageUrl} poster={inspectorAsset.imageUrl} muted playsInline />
-                      ) : (
-                        <img src={inspectorAsset.imageUrl} alt={inspectorAsset.title} />
-                      )}
-                      <span>{inspectorAsset.type}</span>
-                    </button>
-                    <button type="button" className="app-inspector-open" onClick={() => setPreviewAsset(inspectorAsset)}>Abrir en visor</button>
-                    <div className="app-inspector-block">
-                      <p>Metadata / File</p>
-                      <strong>{inspectorAsset.title}</strong>
-                      <span>ID: {inspectorAsset.id.slice(0, 12)}</span>
-                      <span>{inspectorAsset.metadata.resolution || 'Resolución pendiente'}</span>
-                      <span>{inspectorAsset.metadata.fileSize || 'Tamaño pendiente'}</span>
-                      {inspectorAsset.metadata.duration && <span>Duración: {inspectorAsset.metadata.duration}</span>}
-                      <span>{inspectorAsset.date}</span>
-                    </div>
-                    <div className="app-inspector-block">
-                      <p>Local AI / Sidecars</p>
-                      {inspectorAsset.description && <span className="app-inspector-description">{inspectorAsset.description}</span>}
-                      <div className="app-chip-row">
-                        {inspectorAsset.tags.length > 0 ? (
-                          inspectorAsset.tags.slice(0, 6).map(tag => (
-                            <span key={tag} className="app-neon-chip">{tag}</span>
-                          ))
-                        ) : (
-                          <span className="app-neon-chip">Sin tags</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="app-inspector-block">
-                      <p>People / Review</p>
-                      <div className="app-chip-row">
-                        <span className="app-neon-chip magenta">Personas</span>
-                        <span className="app-neon-chip red">NSFW</span>
-                        <span className="app-neon-chip green">{inspectorAsset.clearance}</span>
-                      </div>
-                    </div>
-                    <div className="app-pipeline-meter"><span /></div>
-                  </>
-                ) : (
-                  <div className="app-empty-state compact">Selecciona un asset para inspeccionarlo.</div>
-                )}
-              </aside>
             </div>
           )}
 

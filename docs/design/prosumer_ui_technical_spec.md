@@ -10,7 +10,7 @@ This document outlines the technical approach to implementing the new "Prosumer"
 
 ## 2. Layout Architecture
 
-The overall layout is built on a responsive, flexible shell that accommodates a left navigation sidebar, a central media grid, and an optional right-side details panel for deep metadata inspection.
+The overall layout is built on a responsive, flexible shell that accommodates a left navigation sidebar and a full-width central media grid. Deep metadata inspection happens in the asset viewer/modal so the grid keeps the density required by the prosumer gallery mockup.
 
 ```mermaid
 graph TD
@@ -28,10 +28,10 @@ graph TD
             
             subgraph Content Body
                 direction LR
-                Grid[Media Grid<br>grid | overflow-y-auto | flex-1]
-                Details[Right Details Panel<br>w-80 | border-l | Metadata & AI Tags]
-                Grid -.->|Selected Item| Details
+                Grid[Full-Width Media Grid<br>grid | overflow-y-auto | flex-1]
             end
+            Viewer[Asset Viewer Modal<br>Metadata | AI Tags | Review Actions]
+            Grid -.->|Open Item| Viewer
         end
     end
 ```
@@ -80,11 +80,14 @@ The photo grid uses CSS grid with auto-fill to seamlessly adapt to the container
 }
 ```
 
-### 3.5. Right Details Panel (Metadata & AI)
-When an item is selected, this panel provides deep access to EXIF data, AI-generated descriptions, and face clusters without leaving the grid view.
+### 3.5. Asset Viewer Modal (Metadata & AI)
+Opening a media item launches the viewer/modal for EXIF data, AI-generated descriptions, tags, review controls, and face-related context. The gallery must not reserve a fixed right-side inspector column; that space belongs to the media wall.
 ```css
-.details-panel {
-  @apply w-80 flex-shrink-0 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 overflow-y-auto flex flex-col;
+.asset-viewer-modal {
+  @apply fixed inset-0 z-50 flex bg-black/80 backdrop-blur-md;
+}
+.asset-viewer-metadata {
+  @apply w-full max-w-sm overflow-y-auto border-l border-white/10 bg-zinc-950/90 p-5;
 }
 .metadata-label {
   @apply text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-500 mt-4 mb-1;
@@ -117,21 +120,19 @@ Instead of simple CSS scaling, use Framer Motion for a spring-loaded zoom and ov
 </motion.div>
 ```
 
-### 4.2. Details Panel Reveal
-When sliding in the metadata panel, the media grid should gracefully resize, and the panel should slide in with a spring.
+### 4.2. Asset Viewer Reveal
+When opening media, the grid remains stable behind the overlay while the viewer/modal animates in with a spring.
 ```jsx
-<motion.aside
-  initial={{ width: 0, opacity: 0, borderLeftWidth: 0 }}
-  animate={{ 
-    width: selectedMedia ? 320 : 0, 
-    opacity: selectedMedia ? 1 : 0,
-    borderLeftWidth: selectedMedia ? 1 : 0 
-  }}
-  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-  className="details-panel"
+<motion.div
+  role="dialog"
+  initial={{ opacity: 0, scale: 0.98 }}
+  animate={{ opacity: 1, scale: 1 }}
+  exit={{ opacity: 0, scale: 0.98 }}
+  transition={{ type: "spring", bounce: 0, duration: 0.28 }}
+  className="asset-viewer-modal"
 >
-  {/* Metadata Content */}
-</motion.aside>
+  {/* Media Preview + Metadata Content */}
+</motion.div>
 ```
 
 ## 5. Data Density vs. Cleanliness Strategies
@@ -140,7 +141,7 @@ To achieve the "PhotoPrism" style data density without clutter:
 
 1. **Progressive Disclosure:** 
    - *Grid View:* Show only the image. On hover, reveal minimal badges (e.g., "RAW", "4K", Date, AI-Face-Count).
-   - *Details Panel:* Show exhaustive data (Camera Model, ISO, Aperture, detailed AI scene descriptions, exact file paths).
+   - *Asset Viewer:* Show exhaustive data (Camera Model, ISO, Aperture, detailed AI scene descriptions, exact file paths) in the modal opened from a card.
 2. **Visual Hierarchy via Opacity:** Use `text-zinc-500` or `opacity-60` for less important labels, keeping the value (the data itself) prominent.
 3. **Pill Badges for AI Tags:** Represent AI classifications as compact pills with neutral background colors (e.g., `bg-zinc-100 dark:bg-zinc-800 text-xs rounded-full px-2 py-1`) to keep them visually distinct but unobtrusive.
 4. **Iconography:** Use crisp, line-based monochrome icons (e.g., Lucide Icons) to represent metadata fields instead of repetitive text labels (e.g., an aperture icon next to "f/2.8" instead of "Aperture: f/2.8").

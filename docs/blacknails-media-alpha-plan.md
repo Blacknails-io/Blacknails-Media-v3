@@ -136,7 +136,7 @@ Objetivo: que entrar, navegar y ver media sea agradable y claro.
 Tareas:
 
 - Pulir login responsive desktop/mobile.
-- Pulir shell principal: sidebar, topbar, galeria, inspector.
+- Pulir shell principal: sidebar, topbar, galeria densa y visor/modal de asset.
 - Estados vacios: sin media, cargando, error, sin conexion.
 - Filtros visibles y utiles.
 - Acciones claras sobre assets: abrir, favoritos, tags, personas, borrar solo si esta bien protegido.
@@ -146,7 +146,7 @@ Primera prioridad visual:
 
 - Login final.
 - Dashboard/galeria inicial.
-- Inspector lateral del asset.
+- Galeria densa a ancho completo y visor/modal del asset.
 
 ### Fase 3 - Importacion y Biblioteca
 

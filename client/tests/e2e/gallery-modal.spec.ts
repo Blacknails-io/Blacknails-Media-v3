@@ -31,6 +31,47 @@ test('Gallery cards do not render tags', async ({ page }) => {
 });
 
 
+test('Gallery uses the full content width without the fixed inspector panel', async ({ page }) => {
+  const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%2300f3ff%22/%3E%3C/svg%3E';
+  const assets: MediaAsset[] = Array.from({ length: 6 }, (_, index) => ({
+    id: `density-asset-${index + 1}`,
+    title: `Density Asset ${index + 1}`,
+    type: index % 2 === 0 ? 'PHOTO' : 'VIDEO',
+    description: 'Descripción IA de prueba para densidad de galería.',
+    tags: ['density'],
+    date: '2026-07-02',
+    imageUrl: previewSvg,
+    originalUrl: previewSvg,
+    videoPreviewUrl: index % 2 === 0 ? undefined : previewSvg,
+    clearance: 'LEVEL_1',
+    metadata: {
+      fileSize: '2 MB',
+      resolution: '800x600'
+    }
+  }));
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await buildAdminMocks(page, { assets });
+
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await expect(page.locator('.app-inspector-panel')).toHaveCount(0);
+
+  const firstRowCards = await Promise.all(
+    assets.slice(0, 4).map(async (asset) => {
+      const box = await page.locator(`[data-instance-id="${asset.id}-gallery-card"]`).boundingBox();
+      if (!box) throw new Error(`Missing gallery card box for ${asset.id}`);
+      return box;
+    })
+  );
+  const firstY = firstRowCards[0].y;
+  expect(firstRowCards.every((box) => Math.abs(box.y - firstY) < 4)).toBe(true);
+});
+
+
 test('Gallery modal supports asset review navigation and selection', async ({ page }) => {
   const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%236366f1%22/%3E%3C/svg%3E';
   const assets: MediaAsset[] = [
