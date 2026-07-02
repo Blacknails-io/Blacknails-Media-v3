@@ -129,14 +129,18 @@ export default function App() {
     }
   }, [activeTab, isAdmin]);
 
-  const handleToggleSelect = (id: string, e: MouseEvent) => {
-    e.stopPropagation();
+  const toggleAssetSelection = useCallback((id: string) => {
     setSelectedAssets(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
+  }, []);
+
+  const handleToggleSelect = (id: string, e: MouseEvent) => {
+    e.stopPropagation();
+    toggleAssetSelection(id);
   };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -748,7 +752,14 @@ export default function App() {
       </div> {/* fin app-window */}
 
       {/* Modal / Sidebar derecho de imagen */}
-      <MediaModal asset={previewAsset} onClose={() => setPreviewAsset(null)} />
+      <MediaModal
+        asset={previewAsset}
+        assets={filteredAssets}
+        isSelected={previewAsset ? selectedAssets.has(previewAsset.id) : false}
+        onClose={() => setPreviewAsset(null)}
+        onNavigate={setPreviewAsset}
+        onToggleSelected={toggleAssetSelection}
+      />
     </div>
   );
 }

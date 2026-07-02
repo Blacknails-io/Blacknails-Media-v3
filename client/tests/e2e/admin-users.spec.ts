@@ -258,7 +258,7 @@ test('ADMIN can manage users from the sidebar', async ({ page }) => {
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
-  await page.getByLabel('CONTRASEÑA').fill('admin123');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
   await page.locator('[data-instance-id="login-submit-btn"]').click();
 
   await expect(page.locator('[data-instance-id="users-menu-item"]')).toBeVisible();
@@ -290,7 +290,7 @@ test('Last ADMIN stays protected in the UI', async ({ page }) => {
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
-  await page.getByLabel('CONTRASEÑA').fill('admin123');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
   await page.locator('[data-instance-id="login-submit-btn"]').click();
 
   await page.locator('[data-instance-id="users-menu-item"]').click();
@@ -324,7 +324,7 @@ test('Standard users do not see admin management', async ({ page }) => {
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('viewer');
-  await page.getByLabel('CONTRASEÑA').fill('viewer123');
+  await page.locator('[data-instance-id="password-input"]').fill('viewer123');
   await page.locator('[data-instance-id="login-submit-btn"]').click();
 
   await expect(page.locator('[data-instance-id="users-menu-item"]')).toHaveCount(0);
@@ -335,7 +335,7 @@ test('ADMIN can control the import pipeline', async ({ page }) => {
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
-  await page.getByLabel('CONTRASEÑA').fill('admin123');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
   await page.locator('[data-instance-id="login-submit-btn"]').click();
 
   await page.locator('[data-instance-id="pipeline-menu-item"]').click();
@@ -402,11 +402,80 @@ test('Gallery cards do not render tags', async ({ page }) => {
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
-  await page.getByLabel('CONTRASEÑA').fill('admin123');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
   await page.locator('[data-instance-id="login-submit-btn"]').click();
 
   const card = page.locator('[data-instance-id="asset-1-gallery-card"]');
   await expect(card).toBeVisible();
   await expect(card.locator('.card-tag-basic')).toHaveCount(0);
   await expect(card).not.toContainText('TAG_SHOULD_NOT_RENDER');
+});
+
+
+test('Gallery modal supports asset review navigation and selection', async ({ page }) => {
+  const previewSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%2327272a%22/%3E%3Ccircle cx=%22400%22 cy=%22300%22 r=%22160%22 fill=%22%236366f1%22/%3E%3C/svg%3E';
+  const assets: MediaAsset[] = [
+    {
+      id: 'asset-review-photo',
+      title: 'Review Photo',
+      type: 'PHOTO',
+      description: 'Descripción IA para revisar fotografía.',
+      tags: ['portrait', 'studio'],
+      date: '2026-07-02',
+      imageUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_1',
+      metadata: {
+        fileSize: '2.4 MB',
+        resolution: '800x600',
+        gpsCoords: '40.4168,-3.7038',
+        encryption: 'AES-256'
+      }
+    },
+    {
+      id: 'asset-review-video',
+      title: 'Review Video',
+      type: 'VIDEO',
+      description: 'Descripción IA para revisar vídeo.',
+      tags: ['clip', 'motion'],
+      date: '2026-07-02',
+      imageUrl: previewSvg,
+      videoPreviewUrl: previewSvg,
+      originalUrl: previewSvg,
+      clearance: 'LEVEL_2',
+      metadata: {
+        fileSize: '18 MB',
+        resolution: '1920x1080',
+        duration: '00:12'
+      }
+    }
+  ];
+
+  await buildAdminMocks(page, { assets });
+
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await page.locator('[data-instance-id="asset-review-photo-gallery-card"]').click();
+  const dialog = page.getByRole('dialog', { name: 'Review Photo' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('1 de 2');
+  await expect(dialog).toContainText('800x600');
+
+  await page.getByLabel('Asset siguiente').click();
+  await expect(page.getByRole('dialog', { name: 'Review Video' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toContainText('2 de 2');
+  await expect(page.getByRole('dialog')).toContainText('00:12');
+  await expect(page.getByRole('dialog')).toContainText('LEVEL_2');
+
+  await page.getByRole('button', { name: 'Seleccionar' }).click();
+  await expect(page.getByRole('button', { name: 'Seleccionado' })).toBeVisible();
+
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.getByRole('dialog', { name: 'Review Photo' })).toBeVisible();
+
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
 });
