@@ -19,7 +19,8 @@ Example input: 'A young tattooed woman is sitting on a big black leather sofa wh
 Example output: {"concepts": [{"tag": "YOUNG WOMAN"}, {"tag": "TATTOOED WOMAN"}, {"tag": "SIT"}, {"tag": "BIG SOFA"}, {"tag": "BLACK SOFA"}, {"tag": "LEATHER SOFA"}, {"tag": "COLD LIGHT"}, {"tag": "BLUE LIGHT"}]}
 
 Respond ONLY with valid JSON in exactly this format, no extra text, no markdown:
-{"concepts": [{"tag": "TAG ONE"}, {"tag": "TAG TWO"}]}`;
+{"concepts": [{"tag": "TAG ONE"}, {"tag": "TAG TWO"}]}
+The object key must be lowercase "tag". The tag values must be uppercase.`;
 
 export class TagsTaskRunner extends BaseAssetWorker {
   public readonly id = 'tags-worker';
@@ -51,7 +52,7 @@ export class TagsTaskRunner extends BaseAssetWorker {
 
   protected async processAsset(asset: Asset): Promise<void> {
     if (!asset.aiDescription) return;
-    const json = await this.ollama.extractJson(asset.aiDescription, TAG_PROMPT);
+    const json = await this.ollama.extractJson(asset.aiDescription, TAG_PROMPT, 'tags');
     const rawConcepts = Array.isArray(json.concepts)
       ? json.concepts
       : Array.isArray(json.tags)

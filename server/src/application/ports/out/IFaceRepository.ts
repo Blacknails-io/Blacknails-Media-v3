@@ -28,6 +28,7 @@ export interface IFaceRepository {
   getPersonById(personId: string): Promise<Person | null>;
   getPersonByName(name: string): Promise<Person | null>;
   mergePersons(sourcePersonId: string, targetPersonId: string): Promise<void>;
+  deletePersonAndFaces(personId: string): Promise<number>;
   deleteOrphanPersons(): Promise<number>;
 }
 

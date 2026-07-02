@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1120" viewBox="0 0 1800 1120">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#020407"/>
+      <stop offset="0.52" stop-color="#061018"/>
+      <stop offset="1" stop-color="#020407"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="0" x2="1">
+      <stop offset="0" stop-color="#00f3ff" stop-opacity="0.26"/>
+      <stop offset="1" stop-color="#00f3ff" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="magenta" x1="0" x2="1">
+      <stop offset="0" stop-color="#ff00c8" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#ff00c8" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" x2="1">
+      <stop offset="0" stop-color="#b9ff21" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#b9ff21" stop-opacity="0.06"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#86f7ff"/>
+    </marker>
+    <style>
+      .title{font:800 42px Inter,Segoe UI,Arial,sans-serif;fill:#f4fdff;letter-spacing:.02em}
+      .subtitle{font:600 20px Inter,Segoe UI,Arial,sans-serif;fill:#8da3b8}
+      .lane{fill:rgba(255,255,255,.025);stroke:rgba(255,255,255,.08);stroke-width:1.5}
+      .laneTitle{font:900 17px Inter,Segoe UI,Arial,sans-serif;fill:#00f3ff;letter-spacing:.14em;text-transform:uppercase}
+      .box{rx:18;stroke-width:2;filter:url(#glow)}
+      .boxText{font:850 23px Inter,Segoe UI,Arial,sans-serif;fill:#f4fdff}
+      .boxSub{font:600 15px Inter,Segoe UI,Arial,sans-serif;fill:#bfd2df}
+      .small{font:650 14px Inter,Segoe UI,Arial,sans-serif;fill:#8fa7b9}
+      .tag{font:850 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#071016}
+      .arrow{fill:none;stroke:#86f7ff;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#arrow)}
+      .softArrow{fill:none;stroke:#86f7ff;stroke-width:3;stroke-dasharray:10 10;stroke-linecap:round;marker-end:url(#arrow);opacity:.78}
+      .warn{fill:rgba(255,184,77,.12);stroke:#ffb84d;stroke-width:2}
+      .warnText{font:850 20px Inter,Segoe UI,Arial,sans-serif;fill:#ffd08a}
+      .note{font:600 16px Inter,Segoe UI,Arial,sans-serif;fill:#ffe6b8}
+    </style>
+  </defs>
+
+  <rect width="1800" height="1120" fill="url(#bg)"/>
+  <circle cx="230" cy="170" r="300" fill="#00f3ff" opacity=".07"/>
+  <circle cx="1470" cy="230" r="360" fill="#ff00c8" opacity=".06"/>
+  <circle cx="1040" cy="980" r="350" fill="#b9ff21" opacity=".045"/>
+
+  <text x="70" y="72" class="title">Blacknails Media v3 - Flujo de procesamiento</text>
+  <text x="72" y="108" class="subtitle">Desde la carpeta local hasta galería, IA, caras y personas. El flujo empieza a la izquierda y avanza por dependencias.</text>
+
+  <rect x="58" y="150" width="1684" height="140" rx="24" class="lane"/>
+  <text x="86" y="183" class="laneTitle">1. Entrada local</text>
+  <rect x="90" y="205" width="250" height="62" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="115" y="232" class="boxText">library/import</text>
+  <text x="115" y="254" class="boxSub">Archivos nuevos</text>
+  <rect x="440" y="205" width="250" height="62" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="465" y="232" class="boxText">import-worker</text>
+  <text x="465" y="254" class="boxSub">mueve/copia originales</text>
+  <rect x="790" y="205" width="270" height="62" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="815" y="232" class="boxText">media_files</text>
+  <text x="815" y="254" class="boxSub">SQLite + originals</text>
+  <rect x="1160" y="205" width="250" height="62" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="1185" y="232" class="boxText">original_files</text>
+  <text x="1185" y="254" class="boxSub">evento / capacidad</text>
+  <path d="M340 236 H430" class="arrow"/><path d="M690 236 H780" class="arrow"/><path d="M1060 236 H1150" class="arrow"/>
+
+  <rect x="58" y="325" width="1684" height="160" rx="24" class="lane"/>
+  <text x="86" y="358" class="laneTitle">2. Biblioteca usable</text>
+  <rect x="155" y="390" width="250" height="68" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="180" y="418" class="boxText">index-worker</text>
+  <text x="180" y="441" class="boxSub">crea Asset + metadata</text>
+  <rect x="560" y="390" width="250" height="68" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="585" y="418" class="boxText">assets</text>
+  <text x="585" y="441" class="boxSub">PHOTO / VIDEO en DB</text>
+  <rect x="965" y="390" width="280" height="68" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="990" y="418" class="boxText">thumbnail-worker</text>
+  <text x="990" y="441" class="boxSub">thumbnail / ai preview</text>
+  <rect x="1400" y="390" width="250" height="68" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="1425" y="418" class="boxText">thumbnails</text>
+  <text x="1425" y="441" class="boxSub">base para IA y faces</text>
+  <path d="M1410 236 C1510 270 280 310 280 380" class="softArrow"/>
+  <path d="M405 424 H550" class="arrow"/><path d="M810 424 H955" class="arrow"/><path d="M1245 424 H1390" class="arrow"/>
+
+  <rect x="58" y="520" width="1684" height="310" rx="24" class="lane"/>
+  <text x="86" y="553" class="laneTitle">3. Análisis después de thumbnails</text>
+  <rect x="120" y="600" width="265" height="76" class="box" fill="url(#magenta)" stroke="#ff00c8"/>
+  <text x="145" y="630" class="boxText">description-worker</text>
+  <text x="145" y="654" class="boxSub">Ollama vision: descripción</text>
+  <rect x="120" y="715" width="265" height="76" class="box" fill="url(#magenta)" stroke="#ff00c8"/>
+  <text x="145" y="745" class="boxText">nsfw-worker</text>
+  <text x="145" y="769" class="boxSub">Ollama vision: clasificación</text>
+  <rect x="520" y="600" width="265" height="76" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="545" y="630" class="boxText">face-worker</text>
+  <text x="545" y="654" class="boxSub">Python face detect</text>
+  <rect x="520" y="715" width="265" height="76" class="box" fill="url(#cyan)" stroke="#00f3ff"/>
+  <text x="545" y="745" class="boxText">video frame check</text>
+  <text x="545" y="769" class="boxSub">opcional: Ollama en vídeos</text>
+  <rect x="915" y="600" width="265" height="76" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="940" y="630" class="boxText">tags-worker</text>
+  <text x="940" y="654" class="boxSub">depende de description</text>
+  <rect x="915" y="715" width="265" height="76" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="940" y="745" class="boxText">title-worker</text>
+  <text x="940" y="769" class="boxSub">depende de description</text>
+  <rect x="1310" y="655" width="285" height="76" class="box" fill="url(#green)" stroke="#b9ff21"/>
+  <text x="1335" y="685" class="boxText">face-cluster-worker</text>
+  <text x="1335" y="709" class="boxSub">agrupa rostros en personas</text>
+
+  <path d="M1525 458 C1525 515 255 525 255 590" class="softArrow"/>
+  <path d="M1525 458 C1525 535 255 640 255 705" class="softArrow"/>
+  <path d="M1525 458 C1525 540 650 535 650 590" class="softArrow"/>
+  <path d="M385 638 H905" class="arrow"/>
+  <path d="M385 638 C650 665 780 753 905 753" class="softArrow"/>
+  <path d="M785 638 C1030 638 1140 693 1300 693" class="arrow"/>
+
+  <rect x="95" y="855" width="1620" height="115" rx="22" class="warn"/>
+  <text x="125" y="893" class="warnText">Cuello de botella actual</text>
+  <text x="125" y="925" class="note">Aunque hay varias ramas, el grupo “Ejecutar IA” dispara description → nsfw → face en serie.</text>
+  <text x="125" y="953" class="note">Además, face-worker usa lock de Ollama si recibe ollamaService; por eso puede esperar aunque Python ya podría procesar fotos con thumbnails.</text>
+
+  <rect x="58" y="1000" width="1684" height="82" rx="24" class="lane"/>
+  <text x="86" y="1033" class="laneTitle">4. Consumo en UI</text>
+  <rect x="390" y="1028" width="250" height="36" rx="12" fill="rgba(0,243,255,.14)" stroke="#00f3ff"/>
+  <text x="415" y="1052" class="boxSub">Galería: assets + thumbnails + metadata</text>
+  <rect x="760" y="1028" width="250" height="36" rx="12" fill="rgba(185,255,33,.14)" stroke="#b9ff21"/>
+  <text x="785" y="1052" class="boxSub">Personas: faces + clusters</text>
+  <rect x="1130" y="1028" width="290" height="36" rx="12" fill="rgba(255,0,200,.14)" stroke="#ff00c8"/>
+  <text x="1155" y="1052" class="boxSub">Modal: original + EXIF + IA</text>
+
+  <rect x="1458" y="70" width="250" height="70" rx="16" fill="rgba(0,0,0,.32)" stroke="rgba(255,255,255,.12)"/>
+  <text x="1480" y="98" class="small">Leyenda</text>
+  <circle cx="1485" cy="120" r="7" fill="#00f3ff"/><text x="1500" y="125" class="small">media / faces</text>
+  <circle cx="1600" cy="120" r="7" fill="#b9ff21"/><text x="1615" y="125" class="small">DB / derivados</text>
+</svg>

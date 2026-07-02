@@ -163,6 +163,15 @@ export class SqliteFaceRepository implements IFaceRepository {
     transaction();
   }
 
+  public async deletePersonAndFaces(personId: string): Promise<number> {
+    const transaction = this.db.transaction(() => {
+      const info = this.db.prepare('DELETE FROM faces WHERE person_id = ?').run(personId);
+      this.db.prepare('DELETE FROM persons WHERE id = ?').run(personId);
+      return info.changes;
+    });
+    return transaction();
+  }
+
   public async deleteOrphanPersons(): Promise<number> {
     const info = this.db.prepare(`
       DELETE FROM persons

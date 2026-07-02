@@ -17,6 +17,7 @@ export interface PersonDTO {
 export interface IPeopleUseCase {
   getPeople(): Promise<PersonDTO[]>;
   renamePerson(personId: string, name: string): Promise<void>;
+  dismissPerson(personId: string): Promise<number>;
   getPersonAssets(personId: string): Promise<AssetDto[]>;
   deleteOrphanPersons(): Promise<number>;
 }

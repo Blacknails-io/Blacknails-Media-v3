@@ -7,18 +7,22 @@ import { IUnitOfWork } from '../../src/application/ports/out/IUnitOfWork.js';
 import { IAssetRepository } from '../../src/application/ports/out/IAssetRepository.js';
 import { IMediaFileRepository } from '../../src/application/ports/out/IMediaFileRepository.js';
 import { IEventRepository } from '../../src/application/ports/out/IEventRepository.js';
+import { IWorkerExecutionRepository } from '../../src/application/ports/out/IWorkerExecutionRepository.js';
 import type { AppEvent } from '@blacknails/shared';
 
 class TestAssetWorker extends BaseAssetWorker {
   public readonly id = 'test-worker';
   public readonly label = 'Test Worker';
   public readonly intervalMs = 0;
+  public readonly processedAssetIds: string[] = [];
 
-  protected isPending(_asset: Asset): boolean {
-    return true;
+  protected isPending(asset: Asset): boolean {
+    return !this.processedAssetIds.includes(asset.id);
   }
 
-  protected async processAsset(_asset: Asset): Promise<void> {}
+  protected async processAsset(asset: Asset): Promise<void> {
+    this.processedAssetIds.push(asset.id);
+  }
 }
 
 function createNoopMediaRepo(): IMediaFileRepository {
@@ -42,6 +46,13 @@ function createNoopEventRepo(): IEventRepository {
   };
 }
 
+function createNoopWorkerExecutionRepo(): IWorkerExecutionRepository {
+  return {
+    save: async () => {},
+    getLatestByRunner: async () => undefined
+  };
+}
+
 function createUnitOfWorkForAssets(assets: Photo[]): IUnitOfWork {
   const repo: IAssetRepository = {
     save: async () => {},
@@ -56,13 +67,14 @@ function createUnitOfWorkForAssets(assets: Photo[]): IUnitOfWork {
     assets: repo,
     mediaFiles: createNoopMediaRepo(),
     events: createNoopEventRepo(),
+    workerExecutions: createNoopWorkerExecutionRepo(),
     runTransaction: async <T>(work: (u: IUnitOfWork) => Promise<T>): Promise<T> => work(uow)
   };
 
   return uow;
 }
 
-test('emits one PIPELINE event per processed asset', async () => {
+test('asset workers process one pending asset per trigger', async () => {
   const assets = [new Photo({}), new Photo({})];
   const published: AppEvent[] = [];
   const eventBus: IEventBus = {
@@ -73,14 +85,26 @@ test('emits one PIPELINE event per processed asset', async () => {
   };
 
   const worker = new TestAssetWorker(eventBus, createUnitOfWorkForAssets(assets));
-  await worker.trigger();
 
-  const perAssetMessages = published
+  await worker.trigger();
+  assert.deepEqual(worker.processedAssetIds, [assets[0].id]);
+
+  let perAssetMessages = published
+    .filter((event) => event.subsystem === 'AI' && event.source === 'test-worker')
+    .map((event) => event.message)
+    .filter((message) => /Processed item \d+\/\d+ \(.+\)/.test(message));
+
+  assert.equal(perAssetMessages.length, 1);
+  assert.ok(perAssetMessages[0].includes(assets[0].id));
+
+  await worker.trigger();
+  assert.deepEqual(worker.processedAssetIds, [assets[0].id, assets[1].id]);
+
+  perAssetMessages = published
     .filter((event) => event.subsystem === 'AI' && event.source === 'test-worker')
     .map((event) => event.message)
     .filter((message) => /Processed item \d+\/\d+ \(.+\)/.test(message));
 
   assert.equal(perAssetMessages.length, 2);
-  assert.ok(perAssetMessages.some((message) => message.includes(assets[0].id)));
-  assert.ok(perAssetMessages.some((message) => message.includes(assets[1].id)));
+  assert.ok(perAssetMessages[1].includes(assets[1].id));
 });

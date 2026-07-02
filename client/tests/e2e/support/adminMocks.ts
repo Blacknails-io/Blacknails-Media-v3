@@ -154,12 +154,19 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
   });
 
   await page.route('**/api/people/*', async (route) => {
-    if (route.request().method() !== 'PUT') {
+    const method = route.request().method();
+    if (method !== 'PUT' && method !== 'DELETE') {
       await route.fallback();
       return;
     }
 
     const personId = route.request().url().split('/').at(-1) as string;
+    if (method === 'DELETE') {
+      state.people = state.people.filter((person) => person.id !== personId);
+      await route.fulfill({ json: { deletedFaces: 1 } });
+      return;
+    }
+
     const body = route.request().postDataJSON() as { name: string };
     state.people = state.people.map((person) => (
       person.id === personId ? { ...person, name: body.name } : person

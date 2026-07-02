@@ -74,6 +74,27 @@ test('People person gallery can retry after asset load failure', async ({ page }
   expect(attempts).toBe(2);
 });
 
+test('People panel dismisses false-positive people', async ({ page }) => {
+  await buildAdminMocks(page, { people });
+
+  await page.goto('/');
+  await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
+  await page.locator('[data-instance-id="password-input"]').fill('admin123');
+  await page.locator('[data-instance-id="login-submit-btn"]').click();
+
+  await page.getByRole('button', { name: 'Personas' }).click();
+  await expect(page.locator('[data-instance-id="admin-people-panel"]')).toContainText('3');
+
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Bruno');
+    await dialog.accept();
+  });
+  await page.locator('[data-instance-id="person-dismiss-person-bruno"]').click();
+
+  await expect(page.locator('[data-instance-id="person-card-person-bruno"]')).toHaveCount(0);
+  await expect(page.locator('[data-instance-id="admin-people-panel"]')).toContainText('2');
+});
+
 test('People panel filters, sorts and opens person media', async ({ page }) => {
   await buildAdminMocks(page, {
     people,

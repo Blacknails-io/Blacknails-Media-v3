@@ -88,10 +88,11 @@ const FACE_CLUSTER_INTERVAL_MS = Number(process.env.FACE_CLUSTER_INTERVAL_MS || 
 const THUMBNAILS_DIR = process.env.THUMBNAILS_DIR || './library/storage/thumbnails';
 const SIDECARS_DIR = process.env.SIDECARS_DIR || './library/storage/sidecars';
 const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
-const OLLAMA_VISION_MODEL = process.env.OLLAMA_VISION_MODEL || 'llava:7b';
-const OLLAMA_TEXT_MODEL = process.env.OLLAMA_TEXT_MODEL || 'llama3.1:8b';
+const OLLAMA_VISION_MODEL = process.env.OLLAMA_VISION_MODEL || 'blacknails-vision';
+const OLLAMA_TEXT_MODEL = process.env.OLLAMA_TEXT_MODEL || 'blacknails-text';
 const OLLAMA_VISION_CONCURRENCY = Number(process.env.OLLAMA_VISION_CONCURRENCY || 2);
 const OLLAMA_TEXT_CONCURRENCY = Number(process.env.OLLAMA_TEXT_CONCURRENCY || 2);
+const OLLAMA_KEEP_ALIVE = process.env.OLLAMA_KEEP_ALIVE || '5m';
 const QDRANT_URL = process.env.QDRANT_URL;
 const NSFW_THRESHOLD = Number(process.env.NSFW_THRESHOLD || 0.6);
 const FACE_PYTHON_BIN = process.env.FACE_PYTHON_BIN || 'python3';
@@ -181,7 +182,7 @@ const reprocessAssetsUseCase = new ReprocessAssetsUseCase(assetRepository);
 const reprocessAssetsController = new ReprocessAssetsController(getSessionUserUseCase, reprocessAssetsUseCase);
 
 const processingService = new CommandLineMediaProcessingService(ARCHIVE_DIR);
-const ollamaService = new OllamaService(OLLAMA_URL, OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL, OLLAMA_VISION_CONCURRENCY, OLLAMA_TEXT_CONCURRENCY);
+const ollamaService = new OllamaService(OLLAMA_URL, OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL, OLLAMA_VISION_CONCURRENCY, OLLAMA_TEXT_CONCURRENCY, OLLAMA_KEEP_ALIVE);
 const sidecarService = new XmlSidecarService(SIDECARS_DIR);
 const faceDetectionService = new PythonFaceDetectionService(FACE_PYTHON_BIN);
 const faceRepository = new SqliteFaceRepository(db);
@@ -240,6 +241,10 @@ app.get('/api/people/:id/assets', async (req, res) => {
 app.delete('/api/people/orphans', async (req, res) => {
   if (!(await requireAdmin(req, res, getSessionUserUseCase))) return;
   await peopleController.deleteOrphanPersons(req, res);
+});
+app.delete('/api/people/:id', async (req, res) => {
+  if (!(await requireAdmin(req, res, getSessionUserUseCase))) return;
+  await peopleController.dismissPerson(req, res);
 });
 
 app.use('/api/media/originals', async (req, res, next) => {

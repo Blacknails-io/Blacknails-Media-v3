@@ -6,6 +6,7 @@ import { DaemonWorker } from '../services/DaemonWorker.js';
 export abstract class BaseAssetWorker extends DaemonWorker {
   public readonly subsystem = 'AI';
   protected timer?: NodeJS.Timeout;
+  protected readonly maxAssetsPerRun = 1;
   private isCatchingUp = false;
 
   constructor(
@@ -20,10 +21,12 @@ export abstract class BaseAssetWorker extends DaemonWorker {
     this.isCatchingUp = true;
     try {
       const assets = await this.uow.assets.getAll();
-      const pending = assets.filter((asset) => this.isPending(asset));
+      const pendingBacklog = assets.filter((asset) => this.isPending(asset));
+      const pending = pendingBacklog.slice(0, this.maxAssetsPerRun);
 
       const prefix = '[' + this.id.replace('-worker', '').replace('core-', '').toUpperCase() + ']';
       const total = pending.length;
+      const backlogTotal = pendingBacklog.length;
 
       if (total > 0) {
         if (!this.acquireResources()) {
@@ -31,7 +34,7 @@ export abstract class BaseAssetWorker extends DaemonWorker {
           return;
         }
         await this.startExecution(total);
-        await this.publishLifecycleEvent('STARTED', `${prefix} Comenzando procesamiento de ${total} elementos...`);
+        await this.publishLifecycleEvent('STARTED', `${prefix} Comenzando procesamiento de ${total} de ${backlogTotal} elementos pendientes...`);
       }
       let processed = 0;
       let failed = 0;
@@ -51,7 +54,7 @@ export abstract class BaseAssetWorker extends DaemonWorker {
       this.markRun();
       if (total > 0) {
         await this.finishExecution('COMPLETED');
-        await this.publishLifecycleEvent('COMPLETED', `${prefix} Done — processed=${total} | failed=0 | elapsed=0.0s`);
+        await this.publishLifecycleEvent('COMPLETED', `${prefix} Done — processed=${processed} | remaining=${Math.max(0, backlogTotal - processed)} | failed=${failed} | elapsed=0.0s`);
       }
     } catch (error) {
       const prefix = '[' + this.id.replace('-worker', '').replace('core-', '').toUpperCase() + ']';

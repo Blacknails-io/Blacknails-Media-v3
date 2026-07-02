@@ -122,6 +122,50 @@ describe('People and Face Clustering Endpoints', () => {
     }
   });
 
+  it('dismisses a false-positive person by deleting its faces and person row', async () => {
+    const env = await createPipelineTestEnvironment();
+    try {
+      const faceRepo = new SqliteFaceRepository(env.db);
+      const mediaRepo = new SqliteMediaFileRepository(env.db);
+      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, env.originalsDir, env.storageDir);
+      const peopleUseCase = new PeopleUseCase(faceRepo, env.assetRepo, getAssetsUseCase);
+
+      const asset = new MediaPhoto({
+        id: 'latex-jock-false-positive',
+        dateTaken: new Date().toISOString(),
+        timezoneOffset: '+00:00'
+      });
+      await env.assetRepo.save(asset);
+
+      await faceRepo.savePerson(new Person({
+        id: 'person-false-positive',
+        label: 'False Positive'
+      }));
+      await faceRepo.saveFace(new Face({
+        id: 'face-false-positive-1',
+        photoId: asset.id,
+        personId: 'person-false-positive',
+        embedding: Array(48).fill(0.2),
+        bbox: { x: 217, y: 120, width: 215, height: 215 }
+      }));
+      await faceRepo.saveFace(new Face({
+        id: 'face-false-positive-2',
+        photoId: asset.id,
+        personId: 'person-false-positive',
+        embedding: Array(48).fill(0.25),
+        bbox: { x: 205, y: 114, width: 233, height: 233 }
+      }));
+
+      const deletedFaces = await peopleUseCase.dismissPerson('person-false-positive');
+
+      assert.equal(deletedFaces, 2);
+      assert.equal(await faceRepo.getPersonById('person-false-positive'), null);
+      assert.deepEqual(await faceRepo.getFacesForPhoto(asset.id), []);
+    } finally {
+      await env.cleanup();
+    }
+  });
+
   it('should successfully delete orphan persons (persons without any faces)', async () => {
     const env = await createPipelineTestEnvironment();
     try {

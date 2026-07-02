@@ -37,7 +37,7 @@ export class TitleTaskRunner extends BaseAssetWorker {
 
   protected async processAsset(asset: Asset): Promise<void> {
     if (!asset.aiDescription) return;
-    const json = await this.ollama.extractJson(asset.aiDescription, TITLE_PROMPT);
+    const json = await this.ollama.extractJson(asset.aiDescription, TITLE_PROMPT, 'title');
     let title = typeof json.title === 'string' ? json.title.trim() : '';
     if (title.startsWith('"') && title.endsWith('"') && title.length >= 2) {
       title = title.slice(1, -1).trim();

@@ -6,7 +6,7 @@ import { createPipelineTestEnvironment } from '../helpers/test-environment.js';
 import { createVideoFixture } from '../helpers/media-fixtures.js';
 import { FaceTaskRunner, getVideoFaceSamplingTimestamps } from '../../src/application/workers/FaceTaskRunner.js';
 import { SqliteFaceRepository } from '../../src/adapters/out/database/SqliteFaceRepository.js';
-import { Video } from '../../src/domain/entities/Asset.js';
+import { Photo, Video } from '../../src/domain/entities/Asset.js';
 import { PipelineCoordinatorService } from '../../src/application/services/PipelineCoordinatorService.js';
 
 async function copyIntoImport(source: string, destination: string): Promise<void> {
@@ -144,6 +144,63 @@ test('extracts multiple frames and runs face detection for video assets', async 
     const faces = await faceRepo.getFacesForPhoto(videoAsset.id);
     assert.equal(faces.length, 5);
 
+  } finally {
+    await env.cleanup();
+  }
+});
+
+test('photo face detection does not acquire or call Ollama', async () => {
+  const env = await createPipelineTestEnvironment();
+  try {
+    const faceRepo = new SqliteFaceRepository(env.db);
+    let lockCalls = 0;
+    let describeCalls = 0;
+    let detectorCalls = 0;
+
+    const mockDetector = {
+      detect: async () => {
+        detectorCalls++;
+        return [];
+      }
+    };
+
+    const mockVectorMemory = {
+      upsert: async () => {},
+      search: async () => []
+    };
+
+    const mockOllama = {
+      describeImage: async () => {
+        describeCalls++;
+        return '{}';
+      },
+      extractJson: async () => ({}),
+      acquireLock: () => {
+        lockCalls++;
+        return true;
+      },
+      releaseLock: () => {}
+    };
+
+    const photo = new Photo({});
+    photo.thumbnailPath = join(env.storageDir, 'photo-face-thumb.webp');
+    await env.assetRepo.save(photo);
+
+    const faceTaskRunner = new FaceTaskRunner(
+      env.eventBus,
+      env.uow,
+      0,
+      faceRepo,
+      mockDetector,
+      mockVectorMemory as any,
+      mockOllama
+    );
+
+    await faceTaskRunner.trigger();
+
+    assert.equal(detectorCalls, 1);
+    assert.equal(lockCalls, 0);
+    assert.equal(describeCalls, 0);
   } finally {
     await env.cleanup();
   }

@@ -41,7 +41,7 @@ export class NsfwTaskRunner extends BaseAssetWorker {
     const imagePath = asset.aiThumbnailPath || asset.thumbnailPath;
     if (!imagePath) return;
 
-    const raw = await this.ollama.describeImage(imagePath, NSFW_PROMPT);
+    const raw = await this.ollama.describeImage(imagePath, NSFW_PROMPT, 'nsfw');
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) return;
 

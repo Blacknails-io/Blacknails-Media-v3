@@ -32,10 +32,11 @@ services:
       - THUMBNAILS_DIR=/home/node/app/library/storage/thumbnails
       - SIDECARS_DIR=/home/node/app/library/storage/sidecars
       - OLLAMA_URL=http://ollama-rocm:11434
-      - OLLAMA_VISION_MODEL=huihui_ai/qwen3-vl-abliterated:4b-instruct
-      - OLLAMA_TEXT_MODEL=qwen2.5:7b
+      - OLLAMA_VISION_MODEL=blacknails-vision
+      - OLLAMA_TEXT_MODEL=blacknails-text
       - OLLAMA_VISION_CONCURRENCY=2
       - OLLAMA_TEXT_CONCURRENCY=2
+      - OLLAMA_KEEP_ALIVE=5m
     restart: unless-stopped
     networks:
       - ai_network

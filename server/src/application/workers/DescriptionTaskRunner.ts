@@ -47,7 +47,7 @@ export class DescriptionTaskRunner extends BaseAssetWorker {
     const imagePath = asset.aiThumbnailPath || asset.thumbnailPath;
     if (!imagePath) return;
 
-    const description = (await this.ollama.describeImage(imagePath, DESCRIPTION_PROMPT)).trim();
+    const description = (await this.ollama.describeImage(imagePath, DESCRIPTION_PROMPT, 'description')).trim();
     if (!description) return;
 
     asset.aiDescription = description;

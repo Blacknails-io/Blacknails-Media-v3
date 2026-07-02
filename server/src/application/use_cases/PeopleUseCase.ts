@@ -40,6 +40,14 @@ export class PeopleUseCase implements IPeopleUseCase {
     }
   }
 
+  public async dismissPerson(personId: string): Promise<number> {
+    const person = await this.faceRepository.getPersonById(personId);
+    if (!person) {
+      throw new Error('Person not found.');
+    }
+    return this.faceRepository.deletePersonAndFaces(personId);
+  }
+
   public async getPersonAssets(personId: string): Promise<AssetDto[]> {
     const assets = await this.assetRepository.getAssetsByPersonId(personId);
     return Promise.all(assets.map(a => this.getAssetsUseCase.mapToDto(a)));

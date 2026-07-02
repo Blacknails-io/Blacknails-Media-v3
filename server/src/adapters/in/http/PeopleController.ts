@@ -41,6 +41,17 @@ export class PeopleController {
     }
   };
 
+  public dismissPerson = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const deletedFaces = await this.peopleUseCase.dismissPerson(id);
+      res.status(200).json({ deletedFaces });
+    } catch (error: any) {
+      console.error('Error dismissing person:', error);
+      res.status(500).json({ error: error?.message || 'Internal Server Error' });
+    }
+  };
+
   public deleteOrphanPersons = async (req: Request, res: Response): Promise<void> => {
     try {
       const deletedCount = await this.peopleUseCase.deleteOrphanPersons();

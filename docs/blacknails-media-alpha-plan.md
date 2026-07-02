@@ -1,10 +1,10 @@
-# Blacknails Media v3 - Plan Alpha Local-First
+# Blacknails Media v3 - Plan de Validacion Alpha Avanzada
 
-## Contexto
+## Contexto Real
 
 Proyecto: **Blacknails Media v3**
 
-Ruta remota:
+Ruta remota operativa:
 
 ```bash
 /srv/storage/ai-lab/Blacknails-Media-v3
@@ -16,48 +16,118 @@ Repositorio:
 https://github.com/Blacknails-io/Blacknails-Media-v3
 ```
 
-Tipo de app:
+Blacknails Media v3 no es una app desde cero. Es una biblioteca multimedia privada, autoalojada y local-first, inspirada en PhotoPrism, con una base tecnica ya avanzada:
 
-- Monorepo npm con workspaces: `shared`, `server`, `client`.
-- Biblioteca multimedia privada/local-first.
-- Importacion, indexado, thumbnails, sidecars, IA local/Ollama, NSFW, caras/personas y UI React.
-- Proyecto personal, pero expuesto detras de Nginx en `https://media.blacknails.io`, asi que la seguridad minima importa.
+- Monorepo npm con workspaces `shared`, `server`, `client`.
+- Backend Node/Express con arquitectura hexagonal.
+- SQLite con `better-sqlite3`.
+- Pipeline asyncrono de importacion, indexado, thumbnails e IA.
+- Integracion local con Ollama.
+- Flujo de personas/caras.
+- SSE protegido para eventos de pipeline.
+- UI React 19 con direccion prosumer/photo-centric.
+- Despliegue detras de Nginx en `https://media.blacknails.io`.
 
-## Estado Actual
+La meta no es "hacer una alpha", sino **validar, endurecer y pulir una alpha avanzada para uso personal real**.
 
-Ya se hizo una primera estabilizacion:
+## Documentacion Fuente
 
-- Git inicializado y subido a GitHub.
-- `.gitignore` separa codigo de datos/media/build deps.
-- Builds funcionando:
-
-```bash
-npm run build --workspace=@blacknails/shared
-npm run build --workspace=blacknails-media-v3-server
-npm run build --workspace=blacknails-media-v3-client
-```
-
-- Tests de servidor funcionando tras rebuild de `better-sqlite3`.
-- Seguridad minima aplicada:
-  - Registro publico bloqueado salvo `ALLOW_PUBLIC_REGISTRATION=true`.
-  - Registro ya no permite elegir rol desde el body.
-  - Seeds por defecto `admin/admin123` y `partner/partner123` eliminados.
-  - Rutas `/api/people` protegidas.
-  - Endpoint `/test/trigger-event` protegido/desactivable con `ENABLE_TEST_ENDPOINTS=true`.
-  - Tokens por query string eliminados.
-- UI inicial cambiada a estilo **neo glossy cyberpunk**.
-- Login compactado y estabilizado:
-  - No crece al fallar login.
-  - Boton `ACCEDER A LA RED` visible sin hover.
-
-Ultimos commits importantes:
+Antes de proponer cambios, leer:
 
 ```text
-f5c8f7f Initial alpha baseline
-6fa65f4 Stabilize login screen layout
+README.md
+docs/NORTH_STAR.md
+docs/FEATURES_AND_ARCHITECTURE.md
+docs/security.md
+docs/deployment.md
+docs/design/prosumer_ui_technical_spec.md
+docs/design/ux_design_proposal_v2.md
+docs/design/layout_specifications.md
 ```
 
-## Reglas de Trabajo
+Principios clave de `NORTH_STAR.md`:
+
+- Privacidad absoluta: todo local.
+- No SaaS generico.
+- No upload web principal: ingestion por filesystem en `library/import`.
+- UI prosumer tipo PhotoPrism: potente, limpia y centrada en la media.
+- IA local para tags, descripciones, NSFW y caras.
+
+## Estado Actual Confirmado
+
+### Backend
+
+Implementado:
+
+- Arquitectura hexagonal.
+- Event bus y outbox dispatcher.
+- Workers/task runners:
+  - Import
+  - Index
+  - Thumbnail
+  - Description
+  - Tags
+  - Title
+  - Nsfw
+  - Face
+  - FaceCluster
+- `OllamaService` con text/vision y concurrencia configurable.
+- `PythonFaceDetectionService`.
+- `QdrantVectorMemoryService`.
+- Auth con sesiones SQLite.
+- `Authorization: Bearer <token>` para APIs.
+- Cookie `bn_session` `HttpOnly`/`SameSite=Lax` para media, avatares y SSE.
+- Roles runtime:
+  - `ADMIN`
+  - `STANDARD`
+  - `VIEWER`
+- SSE protegido.
+- Reprocess API admin:
+  - `POST /api/admin/assets/reprocess`
+- People curation:
+  - `DELETE /api/people/:id`
+  - `DELETE /api/people/orphans`
+
+### Frontend
+
+Implementado:
+
+- Gallery grid.
+- Viewer/modal avanzado.
+- Filtros y ordenacion local.
+- Seleccion masiva.
+- Admin console con eventos SSE.
+- Admin users.
+- Admin pipeline.
+- Admin people.
+- Acciones de reencolado IA para admins.
+
+### Seguridad Ya Encarrilada
+
+Confirmado por documentacion:
+
+- `/health` publico.
+- `/api/auth/login` publico.
+- `/api/auth/register` bloqueado salvo `ALLOW_PUBLIC_REGISTRATION=true`.
+- Media/originals/storage/static users protegidos.
+- `/api/events/stream` protegido.
+- `/api/people*` protegido.
+- `/api/admin*` protegido.
+- No exponer `data/`, `library/`, thumbnails, sidecars ni originales directamente por Nginx.
+
+### Deployment
+
+Produccion:
+
+- El backend sirve API y `client/dist` desde el mismo origen si el cliente esta construido.
+- Docker compose expone:
+  - contenedor `blacknails-media-v3-api`
+  - container port `3000`
+  - host port `3003`
+- Nginx debe proxyar a `http://127.0.0.1:3003` o equivalente desde el host.
+- HTTPS recomendado con `COOKIE_SECURE=true`.
+
+## Reglas de Trabajo para Agentes
 
 Antes de editar:
 
@@ -68,221 +138,242 @@ git status --short --branch
 
 Normas:
 
-- No borrar datos, media, bases de datos, thumbnails, sidecars ni carpetas de libreria sin autorizacion explicita.
-- Mantener cambios pequenos y verificables.
-- Hacer build/test despues de cambios relevantes.
-- No hacer refactors grandes si no son necesarios para el objetivo inmediato.
-- No commitear sin mostrar antes `git diff`, salvo que Ivan lo pida claramente.
-- Si hay cambios ajenos en el working tree, no revertirlos.
+- No borrar datos, media, DBs, thumbnails, sidecars ni carpetas de libreria sin autorizacion explicita.
+- No revertir cambios ajenos.
+- Si el working tree esta sucio, asumir que hay trabajo en curso y pedir/mostrar contexto antes de tocar esas zonas.
+- Cambios pequenos, revisables y verificables.
+- No commitear sin mostrar `git diff`, salvo instruccion explicita.
+- Ejecutar build/test relevante al final.
+- Respetar la arquitectura hexagonal: dominio/aplicacion/adaptadores/puertos.
+- Respetar la vision PhotoPrism/prosumer: media primero, UI potente pero discreta.
 
-## Vision de Producto
+## Estado de Working Tree al Revisar
 
-Queremos una **alpha local-first estable**, no una demo bonita solamente.
+Se detectaron cambios en curso en remoto en multiples archivos:
 
-Prioridades:
+```text
+.env.example
+client/src/components/AdminPeoplePanel.tsx
+client/tests/e2e/people-panel.spec.ts
+client/tests/e2e/support/adminMocks.ts
+docker-compose.yml
+docs/FEATURES_AND_ARCHITECTURE.md
+server/src/adapters/in/http/PeopleController.ts
+server/src/adapters/out/database/SqliteFaceRepository.ts
+server/src/adapters/out/services/OllamaService.ts
+server/src/application/ports/in/IPeopleUseCase.ts
+server/src/application/ports/out/IFaceRepository.ts
+server/src/application/ports/out/IOllamaService.ts
+server/src/application/use_cases/PeopleUseCase.ts
+server/src/application/workers/BaseAssetWorker.ts
+server/src/application/workers/DescriptionTaskRunner.ts
+server/src/application/workers/FaceTaskRunner.ts
+server/src/application/workers/NsfwTaskRunner.ts
+server/src/application/workers/TagsTaskRunner.ts
+server/src/application/workers/TitleTaskRunner.ts
+server/src/index.ts
+server/tests/OllamaService.test.ts
+server/tests/integration/face-worker.test.ts
+server/tests/integration/people-endpoints.test.ts
+server/tests/integration/pipeline-per-item-events.test.ts
+```
 
-1. Segura para uso personal expuesto tras Nginx.
-2. Reproducible: arranque claro, env vars documentadas, estructura limpia.
-3. Visualmente potente: neo glossy cyberpunk, pero usable.
-4. Preparada para iterar: importacion, galeria, inspeccion, personas, IA local.
+Tambien habia sin trackear:
 
-## Direccion Visual
+```text
+docs/design/pipeline-flow-overview.svg
+ollama/
+outputs/
+```
 
-Estilo deseado:
+Antes de cualquier cambio nuevo, entender si estos cambios son del agente remoto, de Ivan o de una tarea activa.
 
-- Oscuro, premium, high contrast.
-- Neon cyan/magenta/verde acido con moderacion.
-- Cristal/gloss, paneles transluctidos, bordes finos, glow controlado.
-- Cyberpunk funcional, no decoracion que estorbe.
-- UI densa y practica: esto es una herramienta multimedia, no una landing page.
+## Plan Priorizado
 
-Evitar:
+### Fase 1 - Auditoria de Estado y No Regresion
 
-- Login enorme.
-- Botones que solo aparecen en hover.
-- Texto con poco contraste.
-- Layouts que saltan al mostrar errores.
-- Gradientes excesivos tipo plantilla generica.
-- Tarjetas dentro de tarjetas.
-
-## Plan por Fases
-
-### Fase 1 - Cierre de Alpha Tecnica
-
-Objetivo: que el proyecto sea seguro, arrancable y verificable.
+Objetivo: saber exactamente que funciona ahora.
 
 Tareas:
 
-- Revisar que no quedan endpoints sensibles sin auth.
-- Revisar roles `ADMIN`, `PARTNER`, `VIEWER` y permisos reales.
-- Documentar `.env` necesario.
-- Documentar arranque local/remoto.
-- Confirmar que tests y builds pasan en limpio.
-- Confirmar que Nginx apunta al backend/frontend correcto.
-
-Comandos de verificacion:
+- Revisar `git diff` actual por bloques.
+- Clasificar cambios actuales:
+  - UI
+  - backend
+  - Ollama/concurrencia
+  - people/faces
+  - tests
+  - docs/deployment
+- Ejecutar builds:
 
 ```bash
-npm run test --workspace=blacknails-media-v3-server
 npm run build --workspace=@blacknails/shared
 npm run build --workspace=blacknails-media-v3-server
 npm run build --workspace=blacknails-media-v3-client
 ```
 
-### Fase 2 - UX Principal
+- Ejecutar tests de servidor:
 
-Objetivo: que entrar, navegar y ver media sea agradable y claro.
+```bash
+npm run test --workspace=blacknails-media-v3-server
+```
+
+- Si hay E2E Playwright preparados y entorno disponible, ejecutar solo los relevantes a people/gallery/login.
+
+Criterio de salida:
+
+- Sabemos que cambios hay.
+- Sabemos que rompe y que no.
+- No se mezclan mejoras visuales con cambios de pipeline sin razon.
+
+### Fase 2 - Seguridad Operativa
+
+Objetivo: app personal expuesta con riesgos controlados.
+
+Checklist:
+
+- Confirmar `COOKIE_SECURE=true` en produccion tras Nginx HTTPS.
+- Confirmar `ALLOW_PUBLIC_REGISTRATION=false`.
+- Confirmar `ENABLE_TEST_ENDPOINTS=false`.
+- Confirmar que media/originals/storage/static users pasan por backend autenticado.
+- Confirmar que SSE no acepta token por query string.
+- Confirmar permisos `ADMIN` para mutaciones:
+  - users
+  - pipeline
+  - reprocess
+  - people mutations/delete/orphans
+- Confirmar que `VIEWER` solo ve/lee lo permitido.
+
+### Fase 3 - Validacion del Pipeline Real
+
+Objetivo: comprobar ingestion y procesamiento de assets reales/sandbox.
 
 Tareas:
 
-- Pulir login responsive desktop/mobile.
-- Pulir shell principal: sidebar, topbar, galeria densa y visor/modal de asset.
-- Estados vacios: sin media, cargando, error, sin conexion.
-- Filtros visibles y utiles.
-- Acciones claras sobre assets: abrir, favoritos, tags, personas, borrar solo si esta bien protegido.
-- Revisar que los thumbnails no rompen el layout.
+- Usar `test_assets/` si existe y esta documentado.
+- Verificar import desde `library/import`.
+- Confirmar que los workers procesan 1 asset por ejecucion y no bloquean la app.
+- Verificar eventos SSE durante pipeline.
+- Verificar thumbnails.
+- Verificar descriptions/tags/title/nsfw/faces segun Ollama disponible.
+- Verificar errores cuando Ollama no esta disponible.
 
-Primera prioridad visual:
+Criterio de salida:
 
-- Login final.
-- Dashboard/galeria inicial.
-- Galeria densa a ancho completo y visor/modal del asset.
+- Se puede meter media en `library/import`.
+- La UI muestra progreso/estado.
+- Los resultados aparecen en galeria/modal/people.
 
-### Fase 3 - Importacion y Biblioteca
+### Fase 4 - UX Prosumer y Login
 
-Objetivo: meter media sin miedo y saber que esta pasando.
+Objetivo: que la app se sienta premium y usable sin contradecir la documentacion.
+
+Linea visual:
+
+- PhotoPrism/prosumer, media protagonista.
+- Neon/gloss/cyberpunk solo como capa de identidad, sin teñir ni tapar las fotos.
+- Sidebar/admin presente pero discreta.
+- Grid denso, limpio, sin inspector lateral fijo si el spec dice que el modal lleva metadata profunda.
+- Modal/lightbox potente para EXIF, tags, descripcion IA, caras y acciones.
+
+Login:
+
+- Compacto.
+- Responsive.
+- Boton visible sin hover.
+- Errores sin saltos de layout.
+- Contraste claro.
+
+Gallery:
+
+- Sin "upload" principal.
+- Filtros utiles y claros.
+- Estados vacios/cargando/error.
+- Badges de IA y metadata solo donde ayuden.
+
+### Fase 5 - People/Faces
+
+Objetivo: validar una de las areas diferenciales del producto.
 
 Tareas:
 
-- Revisar flujo de importacion.
-- Mostrar progreso real de indexado.
-- Mostrar errores de importacion.
-- Evitar duplicados o documentar comportamiento.
-- Confirmar sidecars y thumbnails.
-- Separar claramente codigo, datos y media.
-
-### Fase 4 - IA Local
-
-Objetivo: integrar Ollama/IA local de forma util, no ornamental.
-
-Tareas:
-
-- Revisar conexion Ollama.
-- Estados claros si Ollama no esta disponible.
-- Jobs para tagging/descripcion/NSFW/personas.
-- Cola o pipeline visible.
-- No bloquear la UI si IA falla.
-
-### Fase 5 - Documentacion y Operacion
-
-Objetivo: que Ivan pueda recuperar el proyecto sin depender de memoria.
-
-Archivos recomendados:
-
-```text
-README.md
-docs/architecture.md
-docs/deployment.md
-docs/security.md
-docs/design/neo-glossy-cyberpunk-vault.html
-```
-
-README minimo:
-
-- Que es Blacknails Media.
-- Requisitos.
-- Instalacion.
-- Variables de entorno.
-- Comandos build/test/dev.
-- Como levantar en servidor.
-- Como acceder tras Nginx.
-- Como crear usuario admin.
-
-## Primer Encargo para el Codex Remoto
-
-Trabaja en:
+- Revisar endpoints people.
+- Revisar `AdminPeoplePanel`.
+- Verificar filtrado/ordenacion.
+- Verificar abrir media asociada.
+- Verificar descartar falso positivo.
+- Verificar orphan cleanup solo admin.
+- Verificar tests:
 
 ```bash
-cd /srv/storage/ai-lab/Blacknails-Media-v3
+server/tests/integration/people-endpoints.test.ts
+client/tests/e2e/people-panel.spec.ts
 ```
 
-Objetivo inmediato:
+### Fase 6 - Documentacion Final de Operacion
 
-**Auditar y pulir la experiencia de login sin tocar backend.**
+Objetivo: que Ivan pueda operar el proyecto sin depender de memoria.
 
-Pasos:
+Actualizar:
 
-1. Revisar estado:
+- `README.md`
+- `docs/deployment.md`
+- `docs/security.md`
+- `docs/FEATURES_AND_ARCHITECTURE.md`
 
-```bash
-git status --short --branch
-```
+Incluir:
 
-2. Revisar estos archivos:
+- Como arrancar.
+- Como reconstruir.
+- Como verificar Nginx.
+- Como crear admin.
+- Como importar media.
+- Que hace Ollama y como configurarlo.
+- Como diagnosticar pipeline.
 
-```text
-client/src/components/LoginScreen.tsx
-client/src/components/LoginScreen.module.css
-client/src/components/BrandLogo.module.css
-client/src/App.css
-```
-
-3. Comprobar login en desktop y mobile:
-
-- El panel no debe ser enorme.
-- El boton debe verse sin hover.
-- Los errores no deben cambiar el tamano de la tarjeta.
-- Inputs y textos deben tener contraste suficiente.
-- En pantallas bajas debe poder hacerse scroll.
-
-4. Si haces cambios, mantenerlos pequenos.
-
-5. Verificar:
-
-```bash
-npm run build --workspace=blacknails-media-v3-client
-```
-
-6. Mostrar:
-
-```bash
-git diff -- client/src/components/LoginScreen.tsx client/src/components/LoginScreen.module.css client/src/components/BrandLogo.module.css client/src/App.css
-```
-
-No hacer commit hasta que Ivan lo revise.
-
-## Prompt Corto para Pegar
+## Primer Encargo Recomendado para el Codex Remoto
 
 ```text
 Trabaja en /srv/storage/ai-lab/Blacknails-Media-v3.
-Proyecto personal: Blacknails Media v3, biblioteca multimedia local-first.
-Antes de editar ejecuta git status --short --branch.
+Lee primero:
+- README.md
+- docs/NORTH_STAR.md
+- docs/FEATURES_AND_ARCHITECTURE.md
+- docs/security.md
+- docs/deployment.md
+- docs/design/prosumer_ui_technical_spec.md
+- docs/design/ux_design_proposal_v2.md
+- docs/design/layout_specifications.md
+
+Antes de editar ejecuta:
+git status --short --branch
+
 No borres datos/media/DB/thumbnails/sidecars.
+No reviertas cambios ajenos.
 
-Objetivo ahora: auditar y pulir el login neo glossy cyberpunk.
-Debe ser compacto, responsive, con boton visible sin hover, errores sin saltos de layout y contraste correcto.
+Objetivo inmediato: auditar el estado actual avanzado.
+1. Resume que cambios hay ahora en git diff, agrupados por area.
+2. Ejecuta los builds de shared/server/client.
+3. Ejecuta tests de servidor si el entorno lo permite.
+4. Detecta riesgos o regresiones.
+5. No hagas cambios ni commits todavia.
 
-Revisa:
-- client/src/components/LoginScreen.tsx
-- client/src/components/LoginScreen.module.css
-- client/src/components/BrandLogo.module.css
-- client/src/App.css
-
-Si haces cambios, que sean pequenos. Al final ejecuta:
-npm run build --workspace=blacknails-media-v3-client
-
-Luego muestra git diff de los archivos tocados.
-No hagas commit hasta que lo revise.
+Entrega:
+- resumen corto
+- comandos ejecutados y resultado
+- riesgos encontrados
+- recomendacion del siguiente parche pequeno
 ```
 
-## Criterio de Aceptacion
+## Criterio de Aceptacion General
 
-Para considerar una tarea terminada:
+Una tarea solo esta lista si:
 
-- Build o tests relevantes pasan.
-- No quedan cambios accidentales.
-- El diff es entendible.
-- La app sigue arrancando.
-- La UI mejora sin romper funcionalidad.
-- Se documenta cualquier decision importante.
+- Respeta `NORTH_STAR.md`.
+- No rompe arquitectura hexagonal.
+- Build/test relevante pasa o se explica claramente por que no.
+- El diff es pequeño o esta bien separado.
+- No toca datos/media.
+- No degrada privacidad ni auth.
+- Mejora una experiencia real: importar, ver, organizar, procesar o administrar media.
 

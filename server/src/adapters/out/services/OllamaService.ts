@@ -1,4 +1,4 @@
-import { IOllamaService } from '../../../application/ports/out/IOllamaService.js';
+import { IOllamaService, OllamaTextTask, OllamaVisionTask } from '../../../application/ports/out/IOllamaService.js';
 import { promises as fs } from 'fs';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
@@ -10,12 +10,49 @@ import * as https from 'https';
 
 const execFileAsync = promisify(execFile);
 
+type OllamaFormat = 'json';
+
 interface OllamaChatResponse {
   message?: { content?: string };
 }
 
+interface OllamaTaskConfig {
+  format?: OllamaFormat;
+  options: Record<string, number>;
+  timeoutMs: number;
+}
+
+const VISION_TASK_CONFIG: Record<OllamaVisionTask, OllamaTaskConfig> = {
+  description: {
+    options: { temperature: 0.45, num_predict: 700, top_p: 0.9, top_k: 40 },
+    timeoutMs: 120000
+  },
+  nsfw: {
+    format: 'json',
+    options: { temperature: 0, num_predict: 96, top_p: 0.4, top_k: 10 },
+    timeoutMs: 60000
+  },
+  'face-validation': {
+    format: 'json',
+    options: { temperature: 0, num_predict: 80, top_p: 0.4, top_k: 10 },
+    timeoutMs: 60000
+  }
+};
+
+const TEXT_TASK_CONFIG: Record<OllamaTextTask, OllamaTaskConfig> = {
+  tags: {
+    format: 'json',
+    options: { temperature: 0.1, num_predict: 600, top_p: 0.7, top_k: 20 },
+    timeoutMs: 60000
+  },
+  title: {
+    format: 'json',
+    options: { temperature: 0.2, num_predict: 80, top_p: 0.75, top_k: 20 },
+    timeoutMs: 30000
+  }
+};
+
 export class OllamaService implements IOllamaService {
-  private readonly maxRetries = 2;
   private readonly activeWorkers = new Set<string>();
   private activeKind: 'text' | 'vision' | null = null;
 
@@ -24,7 +61,8 @@ export class OllamaService implements IOllamaService {
     private readonly visionModel: string,
     private readonly textModel: string,
     private readonly visionConcurrency = 2,
-    private readonly textConcurrency = 2
+    private readonly textConcurrency = 2,
+    private readonly keepAlive = '5m'
   ) {}
 
   /**
@@ -72,14 +110,16 @@ export class OllamaService implements IOllamaService {
     return workerId === 'tags-worker' || workerId === 'title-worker' ? 'text' : 'vision';
   }
 
-  public async describeImage(imagePath: string, prompt: string): Promise<string> {
+  public async describeImage(imagePath: string, prompt: string, task: OllamaVisionTask = 'description'): Promise<string> {
     const b64 = await this.toJpegBase64(imagePath);
-    const response = await this.chat(this.visionModel, prompt, [b64]);
-    return response;
+    return this.chat(this.visionModel, prompt, VISION_TASK_CONFIG[task], [b64]);
   }
 
-  public async extractJson(text: string, prompt: string): Promise<Record<string, any>> {
-    const content = await this.chat(this.textModel, `${prompt}\n\nTexto:\n${text}`);
+  public async extractJson(text: string, prompt: string, task: OllamaTextTask = 'tags'): Promise<Record<string, any>> {
+    const content = await this.chat(this.textModel, `${prompt}
+
+Texto:
+${text}`, TEXT_TASK_CONFIG[task]);
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return {};
@@ -92,12 +132,15 @@ export class OllamaService implements IOllamaService {
     }
   }
 
-  private async chat(model: string, prompt: string, images?: string[]): Promise<string> {
+  private async chat(model: string, prompt: string, config: OllamaTaskConfig, images?: string[]): Promise<string> {
     const url = new URL(`${this.baseUrl.replace(/\/$/, '')}/api/chat`);
     const payload = JSON.stringify({
       model,
       stream: false,
-      messages: [{ role: 'user', content: prompt, images }]
+      keep_alive: this.keepAlive,
+      ...(config.format ? { format: config.format } : {}),
+      options: config.options,
+      messages: [{ role: 'user', content: prompt, ...(images ? { images } : {}) }]
     });
 
     return new Promise((resolve, reject) => {
@@ -108,7 +151,7 @@ export class OllamaService implements IOllamaService {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 90000
+        timeout: config.timeoutMs
       }, (res) => {
         let body = '';
         res.on('data', chunk => body += chunk);
@@ -135,4 +178,3 @@ export class OllamaService implements IOllamaService {
     });
   }
 }
-

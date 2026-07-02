@@ -37,6 +37,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
+  const [dismissingId, setDismissingId] = useState<string | null>(null);
   const [dropdownIndex, setDropdownIndex] = useState(-1);
   const editingIdRef = useRef<string | null>(null);
   editingIdRef.current = editingId;
@@ -154,6 +155,33 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
       setIsSavingName(false);
     }
   }, [editingName, selectedPerson, token]);
+
+  const handleDismissPerson = useCallback(async (person: PersonData) => {
+    const label = person.name || person.label;
+    if (!window.confirm('Descartar ' + label + ' como falso positivo? Se borraran sus detecciones de rostro.')) {
+      return;
+    }
+
+    setDismissingId(person.id);
+    try {
+      const res = await fetch('/api/people/' + person.id, {
+        method: 'DELETE',
+        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+      });
+      if (!res.ok) {
+        throw new Error('No se pudo descartar la persona.');
+      }
+      setPeople(prev => prev.filter(p => p.id !== person.id));
+      if (selectedPerson?.id === person.id) {
+        setSelectedPerson(null);
+        setPersonAssets([]);
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error descartando la persona.');
+    } finally {
+      setDismissingId(null);
+    }
+  }, [selectedPerson, token]);
 
   const editingNameRef = useRef(editingName);
   editingNameRef.current = editingName;
@@ -317,9 +345,30 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
             {visiblePeople.map(person => (
               <article
                 key={person.id}
-                className="group flex flex-col items-center bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300"
+                className="group relative flex flex-col items-center bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300"
                 data-instance-id={`person-card-${person.id}`}
               >
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleDismissPerson(person);
+                  }}
+                  disabled={dismissingId === person.id}
+                  className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white/90 text-zinc-400 opacity-0 shadow-sm transition-all hover:border-red-300 hover:text-red-500 group-hover:opacity-100 disabled:cursor-wait disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-950/90 dark:hover:border-red-500/50"
+                  title="Descartar falso positivo"
+                  aria-label={'Descartar ' + (person.name || person.label) + ' como falso positivo'}
+                  data-instance-id={'person-dismiss-' + person.id}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 6h18" />
+                    <path d="M8 6V4h8v2" />
+                    <path d="M19 6l-1 14H6L5 6" />
+                    <path d="M10 11v5" />
+                    <path d="M14 11v5" />
+                  </svg>
+                </button>
+
                 {/* Face Crop Circular Avatar */}
                 <button
                   type="button"

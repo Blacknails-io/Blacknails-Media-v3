@@ -60,11 +60,10 @@ export class FaceTaskRunner extends BaseAssetWorker {
   }
 
   protected acquireResources(): boolean {
-    return this.ollama ? this.ollama.acquireLock(this.id) : true;
+    return true;
   }
 
   protected releaseResources(): void {
-    this.ollama?.releaseLock(this.id);
   }
 
   protected isPending(asset: Asset): boolean {
@@ -75,7 +74,7 @@ export class FaceTaskRunner extends BaseAssetWorker {
     if (!this.ollama) return true;
 
     try {
-      const raw = await this.ollama.describeImage(framePath, VIDEO_FACE_FRAME_VALIDATION_PROMPT);
+      const raw = await this.ollama.describeImage(framePath, VIDEO_FACE_FRAME_VALIDATION_PROMPT, 'face-validation');
       const match = raw.match(/\{[\s\S]*\}/);
       if (!match) return true;
 
