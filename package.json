@@ -1,0 +1,12 @@
+{
+  "name": "blacknails-media-v3",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "tsx": "^4.22.4"
+  }
+}

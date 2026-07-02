@@ -1,0 +1,160 @@
+@reference "../index.css";
+
+.prosumer-card-click-zone,
+.prosumer-card-atropos-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  outline: none;
+}
+
+.prosumer-card-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(0, 243, 255, 0.14);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(0, 243, 255, 0.12), transparent 28%),
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px),
+    #05080d;
+  cursor: pointer;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.34), inset 0 0 22px rgba(0, 243, 255, 0.035);
+  transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.prosumer-card-wrapper:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 243, 255, 0.56);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.42), 0 0 30px rgba(0, 243, 255, 0.14), inset 0 0 26px rgba(0, 243, 255, 0.05);
+}
+
+.prosumer-card-wrapper.selected {
+  border-color: rgba(255, 0, 200, 0.82);
+  box-shadow: 0 0 0 1px rgba(255, 0, 200, 0.25), 0 0 36px rgba(255, 0, 200, 0.22);
+}
+
+.prosumer-card-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+  transition: transform 700ms ease, opacity 220ms ease;
+}
+
+.prosumer-card-wrapper:hover .prosumer-card-image {
+  transform: scale(1.055);
+}
+
+.prosumer-card-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.94), rgba(0, 0, 0, 0.18) 58%, rgba(0,0,0,0.18)),
+    linear-gradient(135deg, rgba(0, 243, 255, 0.08), transparent 42%, rgba(255, 0, 200, 0.08));
+}
+
+.prosumer-card-content {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prosumer-card-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 760;
+  text-shadow: 0 0 18px rgba(0, 243, 255, 0.22);
+}
+
+.prosumer-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(222, 244, 255, 0.72);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.68rem;
+}
+
+.prosumer-card-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 243, 255, 0.38);
+  border-radius: 6px;
+  color: #dffcff;
+  background: rgba(0, 0, 0, 0.64);
+  backdrop-filter: blur(12px);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.prosumer-card-checkbox {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  color: transparent;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(12px);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.prosumer-card-checkbox:hover {
+  border-color: #fff;
+}
+
+.prosumer-card-checkbox.checked {
+  color: #05070a;
+  border-color: #ff00c8;
+  background: #ff00c8;
+  box-shadow: 0 0 18px rgba(255, 0, 200, 0.55);
+}
+
+.prosumer-card-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.prosumer-card-wrapper:hover .prosumer-card-play-overlay {
+  opacity: 1;
+}
+
+.prosumer-play-button {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 243, 255, 0.52);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 0 30px rgba(0, 243, 255, 0.25);
+}

@@ -1,0 +1,61 @@
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: server/Dockerfile
+    container_name: blacknails-media-v3-api
+    ports:
+      - "3003:3000"
+    volumes:
+      - ./data:/home/node/app/data
+      - ./library/import:/home/node/app/library/import
+      - ./library/originals:/home/node/app/library/originals
+      - ./library/archive:/home/node/app/library/archive
+      - ./library/storage:/home/node/app/library/storage
+      - ./server:/home/node/app/server
+      - ./shared:/home/node/app/shared
+      - ./client/dist:/home/node/app/client/dist
+    command: npm run dev --workspace=blacknails-media-v3-server
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/health" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DATABASE_PATH=/home/node/app/data/blacknails.db
+      - IMPORT_DIR=/home/node/app/library/import
+      - ORIGINALS_DIR=/home/node/app/library/originals
+      - ARCHIVE_DIR=/home/node/app/library/archive
+      - THUMBNAILS_DIR=/home/node/app/library/storage/thumbnails
+      - SIDECARS_DIR=/home/node/app/library/storage/sidecars
+      - OLLAMA_URL=http://ollama-rocm:11434
+      - OLLAMA_VISION_MODEL=huihui_ai/qwen3-vl-abliterated:4b-instruct
+      - OLLAMA_TEXT_MODEL=qwen2.5:7b
+      - OLLAMA_VISION_CONCURRENCY=2
+      - OLLAMA_TEXT_CONCURRENCY=2
+    restart: unless-stopped
+    networks:
+      - ai_network
+
+  client:
+    build:
+      context: ./
+      dockerfile: server/Dockerfile
+    container_name: blacknails-media-v3-client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./:/home/node/app
+    command: npm run dev --workspace=blacknails-media-v3-client
+    environment:
+      - API_URL=http://api:3000
+    restart: unless-stopped
+    networks:
+      - ai_network
+
+networks:
+  ai_network:
+    external: true

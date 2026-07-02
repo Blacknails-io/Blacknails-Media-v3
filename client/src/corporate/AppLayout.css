@@ -1,0 +1,200 @@
+/* ── LAYOUT GLOBAL CON LATERAL Y CABECERA SUPERIOR (AI OS style) ── */
+
+.app-layout {
+  display: flex;
+  flex-direction: column; /* Nuevo layout: Header arriba, cuerpo abajo */
+  width: 100vw;
+  height: 100vh;
+  /* El fondo se ha movido al body en index.css para que no rote en 3D y deje huecos */
+  
+  position: relative;
+}
+
+/* Focos de luz de ambiente Cyber-noir (Aumentados en intensidad) */
+.app-layout::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  left: -20%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(0, 255, 204, 0.15) 0%, transparent 65%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-layout::after {
+  content: '';
+  position: fixed;
+  bottom: -20%;
+  right: -20%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(255, 0, 127, 0.15) 0%, transparent 65%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* CONTENEDOR PRINCIPAL DERECHO */
+.app-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+/* CABECERA SUPERIOR PRINCIPAL (Header) */
+.app-header {
+  height: 48px; /* Altura más corporativa, no desaprovecha espacio */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background-color: rgba(20, 10, 45, 0.6); /* Violeta profundo translúcido */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(0, 255, 204, 0.4); /* Borde cyan más visible */
+  z-index: 20; /* Por encima del sidebar */
+  box-shadow:
+    inset 0 -1px 10px rgba(0, 255, 204, 0.2), /* Resplandor interno cyan */
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 2px 15px rgba(0, 255, 204, 0.3); /* Resplandor externo cyan */
+  position: relative;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.2rem;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  transition: text-shadow 0.2s ease;
+}
+
+.app-logo:hover {
+  /* Aberración cromática holográfica */
+  text-shadow: 2px 0 0 rgba(0,255,204,0.8), -2px 0 0 rgba(255,0,127,0.8);
+}
+
+.logo-highlight {
+  color: var(--color-accent-green);
+  text-shadow:
+    0 0 10px rgba(0, 255, 204, 0.8),
+    0 0 30px rgba(0, 255, 204, 0.3);
+}
+
+/* Contenedor Inferior (Sidebar + Main) */
+.app-body-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+}
+
+/* Área de Contenido Principal (Main) */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* Lienzo Genérico (SectionPanel) */
+.section-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(20, 10, 50, 0.45); /* Cristal violeta transparente */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(0, 255, 204, 0.4); /* Borde cyan vibrante */
+  box-shadow:
+    inset 0 0 20px rgba(255, 0, 127, 0.15), /* Resplandor interno magenta */
+    0 0 30px rgba(0, 255, 204, 0.15), /* Resplandor externo cyan */
+    0 40px 80px rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+  position: relative;
+  animation: panel-pulse 6s ease-in-out infinite;
+}
+
+@keyframes panel-pulse {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(255, 0, 127, 0.15), 0 0 30px rgba(0,255,204,0.15), 0 40px 80px rgba(0,0,0,0.6); }
+  50%       { box-shadow: inset 0 0 30px rgba(255, 0, 127, 0.25), 0 0 50px rgba(0,255,204,0.25), 0 40px 80px rgba(0,0,0,0.6); }
+}
+
+.panel-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.12rem;
+  text-transform: uppercase;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-shadow: 0 0 12px rgba(0,255,204,0.2);
+}
+
+.panel-body {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* Blobs animados que se mueven lentamente para revelar el glassmorphism */
+  background:
+    radial-gradient(ellipse 55% 45% at 15% 25%, rgba(0, 255, 204, 0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 45% 55% at 85% 75%, rgba(255, 0, 127, 0.18) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 60% 5%,  rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+    transparent;
+  animation: blob-drift 12s ease-in-out infinite alternate;
+}
+
+@keyframes blob-drift {
+  0%   {
+    background:
+      radial-gradient(ellipse 55% 45% at 15% 25%, rgba(0, 255, 204, 0.22) 0%, transparent 65%),
+      radial-gradient(ellipse 45% 55% at 85% 75%, rgba(255, 0, 127, 0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 50% 40% at 60% 5%,  rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+      transparent;
+  }
+  50%  {
+    background:
+      radial-gradient(ellipse 50% 55% at 25% 60%, rgba(0, 255, 204, 0.20) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 40% at 70% 20%, rgba(255, 0, 127, 0.18) 0%, transparent 65%),
+      radial-gradient(ellipse 45% 45% at 40% 80%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+      transparent;
+  }
+  100% {
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 40%, rgba(0, 255, 204, 0.20) 0%, transparent 65%),
+      radial-gradient(ellipse 40% 50% at 20% 80%, rgba(255, 0, 127, 0.16) 0%, transparent 65%),
+      radial-gradient(ellipse 55% 35% at 50% 50%, rgba(99, 102, 241, 0.18) 0%, transparent 60%),
+      transparent;
+  }
+}

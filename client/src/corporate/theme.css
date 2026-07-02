@@ -1,0 +1,46 @@
+:root {
+  /* ==========================================================================
+     COLORS
+     ========================================================================== */
+  
+  /* Brand Colors */
+  --color-brand-cyan: #00ffcc;
+  --color-brand-magenta: #ff007f;
+
+  /* Backgrounds */
+  --color-bg-base: #050507;
+  --color-bg-surface: #0e0e12;
+  --color-bg-panel: rgba(14, 14, 18, 0.7);
+  
+  /* Accents (Brighter for luminescence) */
+  --color-accent-green: #00ffcc;
+  --color-accent-pink: #ff007f;
+  --color-accent-blue: #0066ff;
+  --color-accent-yellow: #ffea00;
+  --color-accent-green-dim: rgba(0, 255, 204, 0.15);
+  --color-accent-pink-dim: rgba(255, 0, 127, 0.15);
+  
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #8c8c9e;
+  --color-text-neon: #00ffcc;
+  
+  /* Bordes y Luces */
+  --border-neon: 1px solid rgba(0, 255, 204, 0.25);
+  --border-dim: 1px solid rgba(140, 140, 158, 0.1);
+  --shadow-neon-glow: 0 0 20px rgba(0, 255, 204, 0.15);
+  --shadow-neon-glow-strong: 0 0 30px rgba(0, 255, 204, 0.35);
+
+  /* Efectos visuales */
+  --effect-blur: blur(16px);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Cyber-Noir Alertas y Fuentes */
+  --color-neon-red: #ff2a2a;
+  --color-neon-purple: #a855f7;
+  --font-heading: 'Outfit', 'Montserrat', sans-serif;
+  --transition-fast: 150ms;
+  --transition-slow: 400ms;
+  --ease-cyber: cubic-bezier(0.19, 1, 0.22, 1);
+  --border-radius-card: 12px;
+  --border-radius-input: 4px;
+}

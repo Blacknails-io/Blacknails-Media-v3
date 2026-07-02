@@ -1,0 +1,214 @@
+.import-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.import-panel-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.import-panel-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.import-panel-toolbar-actions .import-worker-button {
+  flex: 0 0 auto;
+  min-width: 8.25rem;
+  padding-inline: 0.85rem;
+}
+
+.import-panel-hint {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.import-panel-error {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 0, 127, 0.08);
+  color: #ff8abf;
+  border: 1px solid rgba(255, 0, 127, 0.2);
+}
+
+.import-panel-empty {
+  padding: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.import-worker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.import-worker-card {
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.import-worker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.import-worker-title {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.import-worker-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.import-worker-status {
+  font-size: 0.7rem;
+  letter-spacing: 0.12rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.import-worker-status.running {
+  color: #49f5b6;
+  border-color: rgba(73, 245, 182, 0.3);
+  background: rgba(73, 245, 182, 0.08);
+}
+
+.import-worker-status.idle {
+  color: #60a5fa;
+  border-color: rgba(96, 165, 250, 0.3);
+  background: rgba(96, 165, 250, 0.08);
+}
+
+.import-worker-status.stopped {
+  color: #ff9ac4;
+  border-color: rgba(255, 154, 196, 0.3);
+  background: rgba(255, 154, 196, 0.08);
+}
+
+.import-worker-stats {
+  margin: 0 0 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.import-worker-stats div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.import-worker-stats dt {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08rem;
+}
+
+.import-worker-stats dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.import-worker-pending-chip {
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+}
+
+.import-worker-pending-chip strong {
+  font-size: 0.82rem;
+}
+
+.import-worker-pending-chip.has-pending {
+  color: #ffd280;
+  background: rgba(255, 186, 73, 0.12);
+  border-color: rgba(255, 186, 73, 0.35);
+}
+
+.import-worker-pending-chip.clear {
+  color: #9db4d8;
+  background: rgba(116, 154, 214, 0.12);
+  border-color: rgba(116, 154, 214, 0.35);
+}
+
+.import-worker-error {
+  margin-bottom: 1rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(255, 0, 127, 0.07);
+  color: #ff8abf;
+  font-size: 0.85rem;
+}
+
+.import-worker-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+}
+
+.import-worker-button {
+  flex: 1 1 0;
+  min-width: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 0.5rem;
+  background: linear-gradient(135deg, rgba(0, 255, 204, 0.18), rgba(0, 102, 255, 0.18));
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.import-worker-button.secondary {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.import-worker-button.danger {
+  background: rgba(255, 0, 127, 0.14);
+  border: 1px solid rgba(255, 0, 127, 0.25);
+  color: #ffb3d6;
+}
+
+.import-worker-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .import-panel-toolbar {
+    flex-direction: column;
+  }
+
+  .import-panel-toolbar-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .import-panel-toolbar-actions .import-worker-button {
+    flex: 1 1 11rem;
+  }
+}

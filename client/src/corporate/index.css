@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+@import "./theme.css";
+
+/* Reset y Estilos Globales */
+:root {
+  --font-sans: 'Inter', 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Share Tech Mono', monospace;
+  font-size: 14px; /* Reducido de 16px para hacer todo más compacto y "CORP" */
+}
+
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Ocultar barras nativas, el 3D puede generar desbordes */
+  perspective: 2000px;
+  
+  /* Fondo rico y colorido (Púrpura Profundo y Azul) - Global y estático */
+  background: 
+    radial-gradient(ellipse at top left, rgba(0, 255, 204, 0.25), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(255, 0, 127, 0.25), transparent 60%),
+    linear-gradient(135deg, #0b021a 0%, #150935 50%, #0a1128 100%);
+  
+  /* Dot grid más suave y luminoso */
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    radial-gradient(ellipse at top left, rgba(0, 255, 204, 0.3), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(255, 0, 127, 0.3), transparent 60%),
+    linear-gradient(135deg, #0f0524 0%, #1a0b40 50%, #0d1636 100%);
+  background-size: 30px 30px, 100% 100%, 100% 100%, 100% 100%;
+}
+
+/* Scanlines globales desactivadas para mantener previews/media limpios. */
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 204, 0.15);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-green);
+  box-shadow: 0 0 8px var(--color-accent-green);
+}

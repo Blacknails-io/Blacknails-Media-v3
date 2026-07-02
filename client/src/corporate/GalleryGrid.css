@@ -1,0 +1,257 @@
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+/* ── Gallery Toolbar ── */
+.gallery-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(10, 5, 25, 0.4);
+  border: 1px solid rgba(0, 255, 204, 0.2);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.gallery-search-input {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 204, 0.5);
+  color: var(--color-accent-green);
+  font-family: 'Share Tech Mono', monospace;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  width: 250px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.gallery-search-input:focus {
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+  border-color: var(--color-accent-green);
+}
+.gallery-search-input::placeholder {
+  color: rgba(0, 255, 204, 0.4);
+}
+
+.gallery-filters {
+  display: flex;
+  gap: 0.5rem;
+}
+.filter-pill {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--color-text-secondary);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-pill:hover, .filter-pill.active {
+  background: rgba(255, 0, 127, 0.15);
+  border-color: var(--color-accent-pink);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+}
+
+/* ── Media Modal ── */
+.media-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  animation: modal-fade-in 0.3s ease;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.media-modal-container {
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  height: 80vh;
+  background: rgba(20, 10, 40, 0.6);
+  border: 1px solid rgba(0, 255, 204, 0.4);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 255, 204, 0.2);
+}
+
+.media-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--color-accent-pink);
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+.media-modal-close:hover {
+  text-shadow: 0 0 10px var(--color-accent-pink);
+  transform: scale(1.1);
+}
+
+.media-modal-visual {
+  flex: 2;
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+.media-modal-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.media-modal-play-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 255, 204, 0.15);
+  border: 1px solid var(--color-accent-green);
+  color: var(--color-accent-green);
+  font-family: 'Share Tech Mono', monospace;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+  font-size: 1.2rem;
+}
+
+.media-modal-sidebar {
+  flex: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(20, 10, 40, 0.4) 0%, rgba(10, 5, 20, 0.6) 100%);
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.modal-badge {
+  color: var(--color-accent-green);
+  border: 1px solid var(--color-accent-green);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  font-family: 'Share Tech Mono', monospace;
+  background: rgba(0, 255, 204, 0.1);
+}
+.modal-clearance {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+.modal-description {
+  color: #ccc;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+.modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+.modal-tag {
+  color: var(--color-accent-pink);
+  background: rgba(255, 0, 127, 0.1);
+  border: 1px solid rgba(255, 0, 127, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+}
+
+/* Modal Terminal */
+.modal-metadata-terminal {
+  margin-top: auto;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.modal-metadata-terminal .terminal-header {
+  background: rgba(20, 20, 30, 0.8);
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.modal-metadata-terminal .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #f59e0b; }
+.dot-green { background: #10b981; }
+.modal-metadata-terminal .terminal-title {
+  color: #888;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.7rem;
+  margin-left: 0.5rem;
+}
+.modal-metadata-terminal .terminal-body {
+  padding: 1rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+}
+.term-line {
+  margin-bottom: 0.4rem;
+  display: flex;
+}
+.term-key {
+  color: var(--color-accent-green);
+  width: 50px;
+  opacity: 0.8;
+}
+.term-val {
+  color: #ddd;
+}
+.term-sys {
+  color: var(--color-accent-pink);
+}
+.cursor-blink {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  background-color: var(--color-accent-pink);
+  animation: blink 1s step-end infinite;
+  margin-left: 4px;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.mt-2 { margin-top: 1rem; }
