@@ -3,8 +3,12 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  background: transparent !important; 
+  background: transparent !important;
+  box-sizing: border-box;
+  padding: 24px 14px;
+  overflow-y: auto;
   position: relative;
   z-index: 10;
 }
@@ -12,6 +16,7 @@
 /* Corner Brackets Wrapper */
 .loginCardWrapper {
   position: relative;
+  width: min(402px, 100%);
   padding: 6px;
 }
 
@@ -66,9 +71,9 @@
   border-radius: var(--border-radius-card);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8),
               inset 0 0 15px rgba(0, 255, 204, 0.05);
-  width: min(390px, calc(100vw - 28px));
+  width: 100%;
   min-height: 0;
-  padding: 28px;
+  padding: 26px 28px;
   display: flex;
   flex-direction: column;
   gap: 13px;
@@ -114,10 +119,16 @@
 .loginSubtitle {
   font-family: var(--font-sans);
   font-size: 0.6rem;
-  color: var(--color-text-secondary);
+  color: #aeb8c8;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.7;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 /* Input Fields Styling */
@@ -131,7 +142,7 @@
   font-family: var(--font-sans);
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: #b9c4d6;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -152,6 +163,7 @@
 
 .loginInput {
   width: 100%;
+  min-height: 44px;
   padding: 12px 14px 12px 40px;
   background: rgba(5, 5, 7, 0.75);
   border: 1px solid rgba(0, 255, 204, 0.15);
@@ -161,6 +173,14 @@
   font-size: 0.875rem;
   transition: border-color var(--transition-fast) var(--ease-cyber), box-shadow var(--transition-fast) var(--ease-cyber), background var(--transition-fast) var(--ease-cyber);
   box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.loginInputWrapper:has(.loginInputToggleBtn) .loginInput {
+  padding-right: 46px;
+}
+
+.loginInput::placeholder {
+  color: #718094;
 }
 
 .loginInput:focus {
@@ -177,10 +197,13 @@
 /* Toggle visibility password button */
 .loginInputToggleBtn {
   position: absolute;
-  right: 14px;
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #b9c4d6;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -188,8 +211,11 @@
   transition: all var(--transition-fast) var(--ease-cyber);
 }
 
-.loginInputToggleBtn:hover {
+.loginInputToggleBtn:hover,
+.loginInputToggleBtn:focus-visible {
   color: var(--color-text-primary);
+  border-color: rgba(0, 255, 204, 0.4);
+  outline: none;
 }
 
 /* Red error states for input wrappers */
@@ -232,6 +258,11 @@
   text-shadow: none;
 }
 
+.loginSubmitBtn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 3px;
+}
+
 .loginSubmitBtn:hover {
   filter: brightness(1.12) saturate(1.08);
   box-shadow: 0 0 18px rgba(0, 240, 255, 0.72), 0 0 36px rgba(255, 0, 200, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.65);
@@ -250,7 +281,7 @@
 
 /* Error Banner Card Alert */
 .loginErrorSlot {
-  height: 42px;
+  height: 44px;
   overflow: hidden;
 }
 
@@ -265,7 +296,7 @@
 }
 
 .loginErrorBanner {
-  min-height: 38px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -273,8 +304,8 @@
   border: 1px solid rgba(255, 42, 42, 0.25);
   border-radius: 8px;
   padding: 8px 10px;
-  color: var(--color-neon-red);
-  font-size: 0.68rem;
+  color: #ffc4d3;
+  font-size: 0.72rem;
   line-height: 1.3;
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
@@ -296,7 +327,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-text-secondary);
+  color: #aeb8c8;
   cursor: pointer;
   user-select: none;
   font-family: var(--font-sans);
@@ -313,6 +344,11 @@
   cursor: pointer;
   position: relative;
   transition: all var(--transition-fast) var(--ease-cyber);
+}
+
+.loginCheckbox:focus-visible {
+  outline: 2px solid rgba(0, 255, 204, 0.5);
+  outline-offset: 3px;
 }
 
 .loginCheckbox:checked {
@@ -338,6 +374,13 @@
   text-decoration: none;
   transition: all var(--transition-fast) var(--ease-cyber);
   font-family: var(--font-sans);
+}
+
+.loginOptionsLink:focus-visible,
+.loginFooterLink:focus-visible {
+  outline: 2px solid rgba(0, 255, 204, 0.38);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 .loginOptionsLink:hover {
@@ -400,18 +443,30 @@
 @media (max-height: 720px) {
   .loginWrapper {
     align-items: flex-start;
-    padding: 24px 0;
-    overflow-y: auto;
+    padding: 14px;
   }
 
   .loginCard {
     min-height: auto;
+    padding-top: 22px;
+    padding-bottom: 22px;
+    gap: 11px;
   }
 }
 
 @media (max-width: 520px) {
   .loginCard {
-    padding: 28px 22px;
+    padding: 24px 20px;
+  }
+
+  .loginCardWrapper::before {
+    width: 330px;
+    height: 330px;
+  }
+
+  .loginCardWrapper::after {
+    width: 292px;
+    height: 292px;
   }
 
   .loginOptionsRow {

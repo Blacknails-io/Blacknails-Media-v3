@@ -68,7 +68,7 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} className={styles.loginForm}>
             
             {/* Username Input */}
             <div className={styles.loginInputGroup}>
@@ -83,6 +83,8 @@ export const LoginScreen: React.FC = () => {
                   type="text"
                   placeholder="Escribe tu usuario o correo..."
                   value={username}
+                  autoComplete="username"
+                  aria-invalid={hasError}
                   onChange={(e) => {
                     setUsername(e.target.value);
                     if (hasError) setHasError(false);
@@ -109,6 +111,8 @@ export const LoginScreen: React.FC = () => {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Escribe tu contraseña..."
                   value={password}
+                  autoComplete="current-password"
+                  aria-invalid={hasError}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (hasError) setHasError(false);
@@ -125,6 +129,7 @@ export const LoginScreen: React.FC = () => {
                   data-instance-id="password-toggle-btn"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

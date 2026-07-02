@@ -72,11 +72,13 @@ export const GalleryCard = ({
               preload="metadata"
             />
           ) : (
-            <img 
-              src={asset.imageUrl} 
-              alt={asset.title} 
-              className="prosumer-card-image" 
-              data-atropos-offset="-2" 
+            <img
+              src={asset.imageUrl}
+              alt={asset.title}
+              className="prosumer-card-image"
+              data-atropos-offset="-2"
+              loading="lazy"
+              decoding="async"
             />
           )}
 
@@ -89,6 +91,9 @@ export const GalleryCard = ({
               className={`prosumer-card-checkbox ${isSelected ? 'checked' : ''}`}
               data-atropos-offset="6"
               onClick={(e) => onToggleSelect(asset.id, e)}
+              role="checkbox"
+              aria-checked={isSelected}
+              aria-label={`Seleccionar ${asset.title}`}
             >
               {isSelected && (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

@@ -13,7 +13,7 @@ import {
   UserDomainEvent,
   SessionDomainEvent
 } from '../../../application/events/SystemEvents.js';
-import { requireUser } from './auth.js';
+import { clearSessionCookie, createSessionCookie, requireUser } from './auth.js';
 
 export class AuthController {
   public readonly router: Router;
@@ -100,6 +100,7 @@ export class AuthController {
           `Sesión iniciada para el token '${result.token.substring(0, 8)}...'.`
         ));
 
+        res.setHeader('Set-Cookie', createSessionCookie(result.token, result.expiresAt));
         res.json(result);
       } catch (err: any) {
         console.error(`[AuthController] Login FALLIDO para '${username}':`, err.message);
@@ -112,6 +113,12 @@ export class AuthController {
 
         res.status(401).json({ error: err.message });
       }
+    });
+
+    // POST /api/auth/logout
+    this.router.post('/logout', async (_req: Request, res: Response) => {
+      res.setHeader('Set-Cookie', clearSessionCookie());
+      res.status(204).send();
     });
 
     // GET /api/auth/me

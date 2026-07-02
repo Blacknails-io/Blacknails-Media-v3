@@ -22,6 +22,7 @@ export interface IAuthService {
   login(username: string, passwordRaw: string, clientId: string): Promise<LoginResponse>;
   register(username: string, passwordRaw: string, role: 'ADMIN' | 'STANDARD' | 'VIEWER'): Promise<UserDTO>;
   getProfile(token: string): Promise<UserDTO>;
+  logout(token?: string): Promise<void>;
   listUsers(token: string): Promise<AdminUserDTO[]>;
   updateUserRole(token: string, userId: string, role: 'ADMIN' | 'STANDARD' | 'VIEWER'): Promise<AdminUserDTO>;
   updateUserActive(token: string, userId: string, isActive: boolean): Promise<AdminUserDTO>;

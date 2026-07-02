@@ -18,11 +18,11 @@ Blacknails Media v3 is an AI-powered, self-hosted media gallery application. It 
 - **Event-Driven Pipeline**: Implementado `InMemoryEventBus` con `OutboxDispatcher` para despachar eventos asíncronos transaccionales.
 - **Workers & Task Runners**: Cola de tareas asíncronas ya registradas: `Import`, `Index`, `Thumbnail`, `Description`, `Tags`, `Title`, `Nsfw`, `Face`, `FaceCluster`.
 - **AI & Integrations**: Integración lista con `OllamaService` (Text & Vision), `PythonFaceDetectionService`, y `QdrantVectorMemoryService`. Ollama usa un pool compartido de dos cupos con afinidad por tipo: mientras un tipo está activo, el otro queda bloqueado. La concurrencia sigue siendo configurable por `OLLAMA_VISION_CONCURRENCY` y `OLLAMA_TEXT_CONCURRENCY`, que por defecto arrancan en 2.
-- **Auth & IAM**: Sistema de Login, Roles (ADMIN/VIEWER) y JWT Session management con SQLite.
-- **Streaming (SSE)**: Eventos emitidos en tiempo real al frontend a través de Server-Sent Events.
+- **Auth & IAM**: Sistema de Login, Roles (`ADMIN`, `STANDARD`, `VIEWER`) y sesiones persistidas en SQLite. Las APIs aceptan `Authorization: Bearer <token>` y el login emite además una cookie `bn_session` `HttpOnly`/`SameSite=Lax` para que media, avatares y SSE puedan autenticarse sin exponer tokens en query string. `POST /api/auth/logout` limpia esa cookie. `PARTNER_USER` / `PARTNER_PASS` siembran una cuenta `VIEWER`; no existe rol runtime `PARTNER` en la alpha.
+- **Streaming (SSE)**: Eventos emitidos en tiempo real al frontend a través de Server-Sent Events protegidos por sesión.
 
 ### 3.2. Frontend Application (React 19)
-- **Gallery Grid**: Interfaz principal implementada con visualización y filtrado de assets.
+- **Gallery Grid**: Interfaz principal implementada con visualización y filtrado de assets. `/api/assets`, `/api/media/originals`, `/api/media/storage` y `/static/users` requieren sesión válida.
 - **Admin Console**: Panel de eventos en tiempo real para visualizar los logs del Pipeline vía SSE.
 - **Admin Users & Pipeline**: Paneles de administración para gestionar la importación y los usuarios, con acciones agrupadas del pipeline y señales visuales de recursos Ollama por tipo de modelo.
 
@@ -31,6 +31,11 @@ A robust testing laboratory has been generated in `/srv/storage/ai-lab/Blacknail
 
 ### 3.4. Agent Skills Framework
 Progressive Disclosure pattern applied to specialized agent skills (`frontend-ui-motion`, `server-architecture`, etc.).
+
+### 3.5. Operations Documentation
+- `README.md`: install, build/test, local run and first admin notes.
+- `docs/deployment.md`: local, Docker and Nginx deployment checklist.
+- `docs/security.md`: auth, roles, protected routes and safe operational defaults.
 
 ## 4. Pending Implementations & Next Steps
 - **Conectar el Sandbox**: Ejecutar la carpeta `test_assets` contra el `ImportMediaUseCase` y verificar que todos los workers reaccionan correctamente.

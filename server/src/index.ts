@@ -217,7 +217,10 @@ if (INDEX_SCHEDULER_ENABLED) {
   void indexWorker.start();
 }
 
-app.get('/api/assets', assetController.getAssets);
+app.get('/api/assets', async (req, res) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+  await assetController.getAssets(req, res);
+});
 app.get('/api/people', async (req, res) => {
   if (!(await requireUser(req, res, getSessionUserUseCase))) return;
   await peopleController.getPeople(req, res);
@@ -235,9 +238,18 @@ app.delete('/api/people/orphans', async (req, res) => {
   await peopleController.deleteOrphanPersons(req, res);
 });
 
-app.use('/api/media/originals', express.static(path.resolve(ORIGINALS_DIR)));
-app.use('/api/media/storage', express.static(path.resolve(STORAGE_DIR)));
-app.use('/static/users', express.static(path.resolve('./data/users')));
+app.use('/api/media/originals', async (req, res, next) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+  next();
+}, express.static(path.resolve(ORIGINALS_DIR)));
+app.use('/api/media/storage', async (req, res, next) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+  next();
+}, express.static(path.resolve(STORAGE_DIR)));
+app.use('/static/users', async (req, res, next) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+  next();
+}, express.static(path.resolve('./data/users')));
 app.use('/api/auth', authController.router);
 app.use('/api/admin', adminUsersController.router);
 app.use('/api/admin/pipeline', pipelineController.router);
@@ -347,6 +359,8 @@ app.post('/test/trigger-event', async (req, res) => {
 
 // Endpoint de Server-Sent Events (SSE) para streaming de eventos en tiempo real (Hito 4)
 app.get('/api/events/stream', async (req, res) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',

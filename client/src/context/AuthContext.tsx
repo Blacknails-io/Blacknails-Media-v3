@@ -96,7 +96,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    const currentToken = token;
     clearSession();
+    if (currentToken) {
+      void authService.logout(currentToken);
+    }
   };
 
   const updateAvatar = async (file: File) => {

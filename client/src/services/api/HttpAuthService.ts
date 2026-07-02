@@ -73,6 +73,13 @@ export class HttpAuthService implements IAuthService {
     return res.json();
   }
 
+  public async logout(token?: string): Promise<void> {
+    await fetch(`${this.baseUrl}/logout`, {
+      method: 'POST',
+      headers: this.getHeaders(token)
+    }).catch(() => undefined);
+  }
+
   public async getProfile(token: string): Promise<UserDTO> {
     if (!token) {
       throw new Error('No se proporcionó un token de sesión.');

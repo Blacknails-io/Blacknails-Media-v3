@@ -16,7 +16,7 @@ import { MediaModal } from './components/MediaModal.js';
 import type { MouseEvent } from 'react';
 
 export default function App() {
-  const { isLoggedIn, user, isInitializing, logout, updateAvatar } = useAuth();
+  const { token, isLoggedIn, user, isInitializing, logout, updateAvatar } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
 
   const [activeTab, setActiveTab] = useState<'gallery' | 'console' | 'users' | 'pipeline' | 'people'>('gallery');
@@ -68,19 +68,29 @@ export default function App() {
   // Fetch from API
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(true);
+  const [assetLoadError, setAssetLoadError] = useState<string | null>(null);
 
   const loadAssets = useCallback(async () => {
     setIsLoadingAssets(true);
+    setAssetLoadError(null);
     try {
-      const res = await fetch('/api/assets');
+      const res = await fetch('/api/assets', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) {
+        throw new Error(`Error ${res.status} al cargar la biblioteca.`);
+      }
       const data = await res.json();
-      setAssets(data);
+      setAssets(Array.isArray(data) ? data : []);
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'No se pudo cargar la biblioteca.';
       console.error('Error fetching assets:', err);
+      setAssetLoadError(message);
+      setAssets([]);
     } finally {
       setIsLoadingAssets(false);
     }
-  }, []);
+  }, [token]);
 
   const scheduleGalleryRefresh = useCallback(() => {
     if (galleryRefreshTimeoutRef.current !== null) {
@@ -94,6 +104,7 @@ export default function App() {
   useEffect(() => {
     if (!isLoggedIn) {
       setAssets([]);
+      setAssetLoadError(null);
       setIsLoadingAssets(false);
       return;
     }
@@ -216,6 +227,9 @@ export default function App() {
 
   const selectedAssetList = filteredAssets.filter(asset => selectedAssets.has(asset.id));
   const inspectorAsset = selectedAssetList[0] ?? filteredAssets[0] ?? null;
+  const photoCount = assets.filter(asset => asset.type === 'PHOTO').length;
+  const videoCount = assets.filter(asset => asset.type === 'VIDEO').length;
+  const hasActiveFilters = activeFilter !== 'ALL' || searchQuery.trim().length > 0;
 
 
   return (
@@ -396,13 +410,18 @@ export default function App() {
           {activeTab === 'gallery' ? (
             <>
               <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1">
-                {['ALL', 'PHOTO', 'VIDEO'].map(filter => (
-                  <button 
-                    key={filter} 
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${activeFilter === filter ? 'bg-white dark:bg-zinc-800 shadow-sm text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
-                    onClick={() => setActiveFilter(filter as any)}
+                {([
+                  { value: 'ALL', label: 'Todo', count: assets.length },
+                  { value: 'PHOTO', label: 'Fotos', count: photoCount },
+                  { value: 'VIDEO', label: 'Vídeos', count: videoCount }
+                ] as const).map(filter => (
+                  <button
+                    key={filter.value}
+                    className={`app-filter-pill ${activeFilter === filter.value ? 'active' : ''}`}
+                    onClick={() => setActiveFilter(filter.value)}
                   >
-                    {filter}
+                    <span>{filter.label}</span>
+                    <strong>{filter.count}</strong>
                   </button>
                 ))}
               </div>
@@ -410,7 +429,7 @@ export default function App() {
                  <input 
                     type="text" 
                     className="w-full max-w-md bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100"
-                    placeholder="Search archive, tags, sidecars..."
+                    placeholder="Buscar por título, tags o descripción..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                  />
@@ -502,11 +521,12 @@ export default function App() {
               <section className="app-gallery-stage">
                 <div className="app-gallery-heading">
                   <div>
-                    <p className="app-kicker">Library // {filteredAssets.length.toLocaleString()} items // Local DB connected</p>
+                    <p className="app-kicker">Library // {filteredAssets.length.toLocaleString()} visibles de {assets.length.toLocaleString()} // Local DB</p>
                     <h1>Cinematic Media Vault</h1>
                   </div>
                   <div className="app-gallery-status-strip">
-                    <span>Local AI <strong>[OK]</strong></span>
+                    <span>Fotos <strong>{photoCount}</strong></span>
+                    <span>Vídeos <strong>{videoCount}</strong></span>
                     <span>Pipeline: {sseStatus === 'CONNECTED' ? 'Idle' : 'Offline'}</span>
                     <span>{selectedAssets.size} selected</span>
                   </div>
@@ -514,9 +534,23 @@ export default function App() {
 
                 <div className="app-gallery-grid">
                   {isLoadingAssets ? (
-                    <div className="app-empty-state">Cargando medios...</div>
+                    Array.from({ length: 8 }).map((_, index) => (
+                      <div key={index} className="app-gallery-skeleton" />
+                    ))
+                  ) : assetLoadError ? (
+                    <div className="app-empty-state app-empty-state-rich">
+                      <strong>No se pudo cargar la biblioteca</strong>
+                      <span>{assetLoadError}</span>
+                      <button type="button" onClick={() => void loadAssets()}>Reintentar</button>
+                    </div>
                   ) : filteredAssets.length === 0 ? (
-                    <div className="app-empty-state">No se encontraron resultados.</div>
+                    <div className="app-empty-state app-empty-state-rich">
+                      <strong>{assets.length === 0 ? 'Biblioteca sin media indexada' : 'No hay resultados para este filtro'}</strong>
+                      <span>{assets.length === 0 ? 'Cuando el pipeline importe e indexe archivos aparecerán aquí.' : 'Ajusta búsqueda o tipo de media para ampliar la vista.'}</span>
+                      {hasActiveFilters && (
+                        <button type="button" onClick={() => { setSearchQuery(''); setActiveFilter('ALL'); }}>Limpiar filtros</button>
+                      )}
+                    </div>
                   ) : (
                     filteredAssets.map((asset) => (
                       <GalleryCard
@@ -543,19 +577,27 @@ export default function App() {
                       )}
                       <span>{inspectorAsset.type}</span>
                     </button>
+                    <button type="button" className="app-inspector-open" onClick={() => setPreviewAsset(inspectorAsset)}>Abrir en visor</button>
                     <div className="app-inspector-block">
                       <p>Metadata / File</p>
                       <strong>{inspectorAsset.title}</strong>
                       <span>ID: {inspectorAsset.id.slice(0, 12)}</span>
-                      <span>{inspectorAsset.metadata.resolution || inspectorAsset.metadata.fileSize || 'Pending metadata'}</span>
+                      <span>{inspectorAsset.metadata.resolution || 'Resolución pendiente'}</span>
+                      <span>{inspectorAsset.metadata.fileSize || 'Tamaño pendiente'}</span>
+                      {inspectorAsset.metadata.duration && <span>Duración: {inspectorAsset.metadata.duration}</span>}
                       <span>{inspectorAsset.date}</span>
                     </div>
                     <div className="app-inspector-block">
                       <p>Local AI / Sidecars</p>
+                      {inspectorAsset.description && <span className="app-inspector-description">{inspectorAsset.description}</span>}
                       <div className="app-chip-row">
-                        {(inspectorAsset.tags?.slice(0, 4) ?? ['Local AI', 'Sidecars']).map(tag => (
-                          <span key={tag} className="app-neon-chip">{tag}</span>
-                        ))}
+                        {inspectorAsset.tags.length > 0 ? (
+                          inspectorAsset.tags.slice(0, 6).map(tag => (
+                            <span key={tag} className="app-neon-chip">{tag}</span>
+                          ))
+                        ) : (
+                          <span className="app-neon-chip">Sin tags</span>
+                        )}
                       </div>
                     </div>
                     <div className="app-inspector-block">
@@ -563,13 +605,13 @@ export default function App() {
                       <div className="app-chip-row">
                         <span className="app-neon-chip magenta">Personas</span>
                         <span className="app-neon-chip red">NSFW</span>
-                        <span className="app-neon-chip green">Local Only</span>
+                        <span className="app-neon-chip green">{inspectorAsset.clearance}</span>
                       </div>
                     </div>
                     <div className="app-pipeline-meter"><span /></div>
                   </>
                 ) : (
-                  <div className="app-empty-state compact">Sin media indexada.</div>
+                  <div className="app-empty-state compact">Selecciona un asset para inspeccionarlo.</div>
                 )}
               </aside>
             </div>
