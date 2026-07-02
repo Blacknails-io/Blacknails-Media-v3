@@ -36,7 +36,7 @@ export const FaceAvatar = ({ thumbnailUrl, bbox, size = 64, className = '' }: Fa
     img.onerror = () => {
       setError(true);
     };
-  }, [thumbnailUrl, bbox?.x, bbox?.y, bbox?.width, bbox?.height, size]);
+  }, [thumbnailUrl, bbox, size]);
 
   return (
     <div 

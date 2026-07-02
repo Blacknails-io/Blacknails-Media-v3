@@ -3,13 +3,22 @@ import type { MediaAsset } from '../../../src/types/MediaAsset.js';
 
 export type UserRole = 'ADMIN' | 'STANDARD' | 'VIEWER';
 
+export interface PersonMock {
+  id: string;
+  label: string;
+  name?: string;
+  faceCount: number;
+  bbox: { x: number; y: number; width: number; height: number };
+  thumbnailUrl: string;
+}
+
 const initialUsers = [
   { id: 'admin-1', username: 'admin', role: 'ADMIN' as UserRole, isActive: true, createdAt: '2026-06-30T08:00:00.000Z' },
   { id: 'admin-2', username: 'backup', role: 'ADMIN' as UserRole, isActive: true, createdAt: '2026-06-30T08:02:00.000Z' },
   { id: 'viewer-1', username: 'viewer', role: 'VIEWER' as UserRole, isActive: true, createdAt: '2026-06-30T08:05:00.000Z' }
 ];
 
-export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsset[] }) => {
+export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsset[]; people?: PersonMock[]; personAssets?: Record<string, MediaAsset[]> }) => {
   const state = {
     users: structuredClone(initialUsers),
     workers: [
@@ -113,7 +122,8 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
         requires: ['faces']
       }
     ],
-    nextId: 1
+    nextId: 1,
+    people: structuredClone(options?.people ?? [])
   };
 
   await page.route('**/api/auth/login', async (route) => {
@@ -136,6 +146,29 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
 
   await page.route('**/api/assets', async (route) => {
     await route.fulfill({ json: options?.assets ?? [] });
+  });
+
+  await page.route('**/api/people/*/assets', async (route) => {
+    const personId = route.request().url().split('/').slice(-2, -1)[0];
+    await route.fulfill({ json: options?.personAssets?.[personId] ?? [] });
+  });
+
+  await page.route('**/api/people/*', async (route) => {
+    if (route.request().method() !== 'PUT') {
+      await route.fallback();
+      return;
+    }
+
+    const personId = route.request().url().split('/').at(-1) as string;
+    const body = route.request().postDataJSON() as { name: string };
+    state.people = state.people.map((person) => (
+      person.id === personId ? { ...person, name: body.name } : person
+    ));
+    await route.fulfill({ json: state.people.find((person) => person.id === personId) });
+  });
+
+  await page.route('**/api/people', async (route) => {
+    await route.fulfill({ json: state.people });
   });
 
   await page.route('**/api/auth/me', async (route) => {

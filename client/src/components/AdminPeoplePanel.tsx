@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext.js';
 import { FaceAvatar } from './FaceAvatar.js';
 import { SectionPanel } from './SectionPanel.js';
@@ -12,6 +12,8 @@ interface PersonData {
   bbox: { x: number; y: number; width: number; height: number };
   thumbnailUrl: string;
 }
+
+type PeopleSortMode = 'COUNT_DESC' | 'NAME_ASC' | 'UNNAMED_FIRST';
 
 interface AdminPeoplePanelProps {
   onSelectAsset: (asset: MediaAsset) => void;
@@ -27,8 +29,11 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
   const [selectedPerson, setSelectedPerson] = useState<PersonData | null>(null);
   const [personAssets, setPersonAssets] = useState<MediaAsset[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  const [personAssetsError, setPersonAssetsError] = useState<string | null>(null);
 
   // Inline editing state
+  const [peopleQuery, setPeopleQuery] = useState('');
+  const [sortMode, setSortMode] = useState<PeopleSortMode>('COUNT_DESC');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
@@ -53,7 +58,28 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
     return existingNames.filter((name) => name.toLowerCase().includes(query));
   }, [existingNames, editingName]);
 
-  const fetchPeople = async () => {
+  const visiblePeople = useMemo(() => {
+    const query = peopleQuery.trim().toLowerCase();
+    const matches = query
+      ? people.filter((person) => `${person.name || ''} ${person.label}`.toLowerCase().includes(query))
+      : people;
+
+    return [...matches].sort((a, b) => {
+      if (sortMode === 'NAME_ASC') {
+        return (a.name || a.label).localeCompare(b.name || b.label, undefined, { sensitivity: 'base' });
+      }
+      if (sortMode === 'UNNAMED_FIRST') {
+        const unnamedDelta = (a.name ? 1 : 0) - (b.name ? 1 : 0);
+        if (unnamedDelta !== 0) return unnamedDelta;
+      }
+      return b.faceCount - a.faceCount;
+    });
+  }, [people, peopleQuery, sortMode]);
+
+  const namedCount = people.filter((person) => Boolean(person.name)).length;
+  const totalFaces = people.reduce((sum, person) => sum + person.faceCount, 0);
+
+  const fetchPeople = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -64,19 +90,20 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
         throw new Error(`Error ${res.status}: No se pudo cargar la lista de personas.`);
       }
       const data = (await res.json()) as PersonData[];
-      setPeople(data);
-    } catch (err: any) {
+      setPeople(Array.isArray(data) ? data : []);
+    } catch (err) {
       console.error(err);
-      setError(err?.message || 'Error desconocido.');
+      setError(err instanceof Error ? err.message : 'Error desconocido.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token]);
 
-  const fetchPersonAssets = async (person: PersonData) => {
+  const fetchPersonAssets = useCallback(async (person: PersonData) => {
     setSelectedPerson(person);
     setIsLoadingAssets(true);
     setPersonAssets([]);
+    setPersonAssetsError(null);
     try {
       const res = await fetch(`/api/people/${person.id}/assets`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
@@ -85,15 +112,16 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
         throw new Error(`Error ${res.status}: No se pudieron cargar los archivos.`);
       }
       const data = (await res.json()) as MediaAsset[];
-      setPersonAssets(data);
+      setPersonAssets(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setPersonAssetsError(err instanceof Error ? err.message : 'No se pudieron cargar los archivos.');
     } finally {
       setIsLoadingAssets(false);
     }
-  };
+  }, [token]);
 
-  const handleSaveName = async (personId: string, nameToSave?: string) => {
+  const handleSaveName = useCallback(async (personId: string, nameToSave?: string) => {
     if (editingIdRef.current !== personId) return;
 
     const valueToSave = (nameToSave !== undefined ? nameToSave : editingName).trim();
@@ -120,12 +148,12 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
         setSelectedPerson(prev => prev ? { ...prev, name: valueToSave } : null);
       }
       setEditingId(null);
-    } catch (err: any) {
-      alert(err.message || 'Error guardando el nombre.');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error guardando el nombre.');
     } finally {
       setIsSavingName(false);
     }
-  };
+  }, [editingName, selectedPerson, token]);
 
   const editingNameRef = useRef(editingName);
   editingNameRef.current = editingName;
@@ -148,11 +176,11 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleOutsideClick);
     };
-  }, [editingId]);
+  }, [editingId, handleSaveName]);
 
   useEffect(() => {
-    fetchPeople();
-  }, [token]);
+    void fetchPeople();
+  }, [fetchPeople]);
 
   // Gallery render helpers
   const formatResolution = (asset: MediaAsset) => {
@@ -165,7 +193,10 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
         <div className="flex flex-col gap-4">
           <header className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-zinc-800">
             <button
-              onClick={() => setSelectedPerson(null)}
+              onClick={() => {
+                setSelectedPerson(null);
+                setPersonAssetsError(null);
+              }}
               className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -174,13 +205,16 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
               </svg>
               Volver al Directorio
             </button>
-            <div className="text-sm text-zinc-500">
-              {personAssets.length} {personAssets.length === 1 ? 'elemento encontrado' : 'elementos encontrados'}
+            <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
+              <span>{personAssets.length} {personAssets.length === 1 ? 'elemento encontrado' : 'elementos encontrados'}</span>
+              <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold dark:bg-zinc-900">{selectedPerson.faceCount} detecciones</span>
             </div>
           </header>
 
           {isLoadingAssets ? (
             <div className="py-20 text-center text-zinc-500">Cargando galería de la persona...</div>
+          ) : personAssetsError ? (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">{personAssetsError}</div>
           ) : personAssets.length === 0 ? (
             <div className="py-20 text-center text-zinc-500">No se encontraron archivos para esta persona.</div>
           ) : (
@@ -219,9 +253,42 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
   return (
     <SectionPanel title="Personas Detectadas" instanceId="admin-people-panel">
       <div className="flex flex-col gap-4">
-        <p className="text-zinc-500 text-sm">
-          A continuación se muestran los rostros agrupados automáticamente por la pipeline de Inteligencia Artificial. Haz clic en una persona para ver sus fotos o edita su nombre para identificarla.
-        </p>
+        <div className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30 md:grid-cols-[1fr_auto]">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Personas</p>
+              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{people.length}</strong>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Identificadas</p>
+              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{namedCount}</strong>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Detecciones</p>
+              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{totalFaces}</strong>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row md:items-center">
+            <input
+              type="search"
+              value={peopleQuery}
+              onChange={(event) => setPeopleQuery(event.target.value)}
+              placeholder="Buscar persona..."
+              className="min-h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              data-instance-id="people-search-input"
+            />
+            <select
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as PeopleSortMode)}
+              className="min-h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              data-instance-id="people-sort-select"
+            >
+              <option value="COUNT_DESC">Más apariciones</option>
+              <option value="NAME_ASC">Nombre A-Z</option>
+              <option value="UNNAMED_FIRST">Sin identificar primero</option>
+            </select>
+          </div>
+        </div>
 
         {isLoading ? (
           <div className="py-20 text-center text-zinc-500">Cargando directorio de rostros...</div>
@@ -231,17 +298,24 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
           <div className="py-20 text-center text-zinc-500 bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
             No se han agrupado rostros todavía. Asegúrate de ejecutar los workers <strong>Face Detection</strong> y <strong>Face Clustering</strong>.
           </div>
+        ) : visiblePeople.length === 0 ? (
+          <div className="py-20 text-center text-zinc-500 bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+            No hay personas que coincidan con la búsqueda.
+          </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {people.map(person => (
+            {visiblePeople.map(person => (
               <article
                 key={person.id}
                 className="group flex flex-col items-center bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300"
+                data-instance-id={`person-card-${person.id}`}
               >
                 {/* Face Crop Circular Avatar */}
-                <div 
+                <button
+                  type="button"
                   onClick={() => void fetchPersonAssets(person)}
                   className="cursor-pointer group-hover:scale-105 transition-transform duration-300"
+                  aria-label={`Abrir ${person.name || person.label}`}
                 >
                   <FaceAvatar 
                     thumbnailUrl={person.thumbnailUrl} 
@@ -249,7 +323,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                     size={110} 
                     className="shadow-md border-2 border-white dark:border-zinc-950" 
                   />
-                </div>
+                </button>
 
                 {/* Name Editing Area */}
                 <div className="mt-4 w-full text-center flex flex-col items-center min-h-[50px] justify-center relative">
@@ -325,13 +399,14 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5 justify-center w-full group/name">
-                      <span
+                      <button
+                        type="button"
                         onClick={() => void fetchPersonAssets(person)}
                         className="text-sm font-semibold truncate max-w-[130px] cursor-pointer hover:text-indigo-400 transition-colors"
                         title={person.name || person.label}
                       >
                         {person.name || person.label}
-                      </span>
+                      </button>
                       <button
                         onClick={() => {
                           setEditingId(person.id);

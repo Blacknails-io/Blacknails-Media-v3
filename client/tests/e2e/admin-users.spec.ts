@@ -69,6 +69,12 @@ test('Standard users do not see admin management', async ({ page }) => {
       }
     });
   });
+  await page.route('**/api/assets', async (route) => {
+    await route.fulfill({ json: [] });
+  });
+  await page.route('**/api/events/stream**', async (route) => {
+    await route.abort();
+  });
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('viewer');
