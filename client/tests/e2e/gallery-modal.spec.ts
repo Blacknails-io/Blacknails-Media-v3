@@ -71,6 +71,14 @@ test('Gallery modal supports asset review navigation and selection', async ({ pa
   ];
 
   await buildAdminMocks(page, { assets });
+  let reprocessPayload: unknown = null;
+  await page.route('**/api/admin/assets/reprocess', async (route) => {
+    reprocessPayload = route.request().postDataJSON();
+    await route.fulfill({
+      status: 202,
+      json: { requested: 1, accepted: 1, missing: [], jobs: ['description', 'nsfw'] }
+    });
+  });
 
   await page.goto('/');
   await page.getByLabel('USUARIO / CORREO ELECTRÓNICO').fill('admin');
@@ -102,6 +110,15 @@ test('Gallery modal supports asset review navigation and selection', async ({ pa
   await expect(bulkToolbar).toBeVisible();
   await expect(bulkToolbar).toContainText('1 seleccionado');
   await expect(bulkToolbar).toContainText('Review Video');
+
+  await page.locator('[data-instance-id="bulk-open-reprocess"]').click();
+  await expect(page.getByRole('dialog', { name: 'Reanalizar IA' })).toBeVisible();
+  await page.locator('[data-instance-id="bulk-submit-reprocess"]').click();
+  await expect(bulkToolbar).toContainText('1 reencolados');
+  expect(reprocessPayload).toEqual({
+    assetIds: ['asset-review-video'],
+    jobs: ['description', 'nsfw']
+  });
 
   await page.locator('[data-instance-id="bulk-clear-selection"]').click();
   await expect(bulkToolbar).toHaveCount(0);

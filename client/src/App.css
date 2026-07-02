@@ -216,6 +216,115 @@ body {
   padding: 28px 30px;
 }
 
+.app-reprocess-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(10px);
+}
+
+.app-reprocess-dialog {
+  width: min(460px, 100%);
+  border: 1px solid rgba(0, 243, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(5, 8, 13, 0.96);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.56);
+  overflow: hidden;
+}
+
+.app-reprocess-dialog header,
+.app-reprocess-dialog footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app-reprocess-dialog footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 0;
+}
+
+.app-reprocess-dialog h2 {
+  margin-top: 3px;
+  color: #f8fdff;
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.app-reprocess-dialog header button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: var(--bn-text);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 1.2rem;
+}
+
+.app-reprocess-copy {
+  padding: 16px 16px 0;
+  color: #8da0b6;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.app-reprocess-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.app-reprocess-options label {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--bn-text);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.app-reprocess-options input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--bn-cyan);
+}
+
+.app-reprocess-dialog footer button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(0, 243, 255, 0.2);
+  border-radius: 8px;
+  color: var(--bn-text);
+  background: rgba(9, 18, 27, 0.86);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.app-reprocess-dialog footer button.subtle {
+  color: #c4ceda;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.app-reprocess-dialog footer button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .app-gallery-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);

@@ -34,6 +34,8 @@ import { NoopVectorMemoryService } from './adapters/out/services/NoopVectorMemor
 import { QdrantVectorMemoryService } from './adapters/out/services/QdrantVectorMemoryService.js';
 import { PeopleUseCase } from './application/use_cases/PeopleUseCase.js';
 import { PeopleController } from './adapters/in/http/PeopleController.js';
+import { ReprocessAssetsUseCase } from './application/use_cases/ReprocessAssetsUseCase.js';
+import { ReprocessAssetsController } from './adapters/in/http/ReprocessAssetsController.js';
 import { requireAdmin, requireUser } from './adapters/in/http/auth.js';
 
 // Módulo de Autenticación
@@ -175,6 +177,8 @@ const assetRepository = new SqliteAssetRepository(db);
 const mediaRepository = sharedUow.mediaFiles;
 const getAssetsUseCase = new GetAssetsUseCase(assetRepository, mediaRepository, ORIGINALS_DIR, STORAGE_DIR);
 const assetController = new AssetController(getAssetsUseCase);
+const reprocessAssetsUseCase = new ReprocessAssetsUseCase(assetRepository);
+const reprocessAssetsController = new ReprocessAssetsController(getSessionUserUseCase, reprocessAssetsUseCase);
 
 const processingService = new CommandLineMediaProcessingService(ARCHIVE_DIR);
 const ollamaService = new OllamaService(OLLAMA_URL, OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL, OLLAMA_VISION_CONCURRENCY, OLLAMA_TEXT_CONCURRENCY);
@@ -252,6 +256,7 @@ app.use('/static/users', async (req, res, next) => {
 }, express.static(path.resolve('./data/users')));
 app.use('/api/auth', authController.router);
 app.use('/api/admin', adminUsersController.router);
+app.use('/api/admin', reprocessAssetsController.router);
 app.use('/api/admin/pipeline', pipelineController.router);
 
 // Endpoint de Health Check

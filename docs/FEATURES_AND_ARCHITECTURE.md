@@ -20,9 +20,10 @@ Blacknails Media v3 is an AI-powered, self-hosted media gallery application. It 
 - **AI & Integrations**: Integración lista con `OllamaService` (Text & Vision), `PythonFaceDetectionService`, y `QdrantVectorMemoryService`. Ollama usa un pool compartido de dos cupos con afinidad por tipo: mientras un tipo está activo, el otro queda bloqueado. La concurrencia sigue siendo configurable por `OLLAMA_VISION_CONCURRENCY` y `OLLAMA_TEXT_CONCURRENCY`, que por defecto arrancan en 2.
 - **Auth & IAM**: Sistema de Login, Roles (`ADMIN`, `STANDARD`, `VIEWER`) y sesiones persistidas en SQLite. Las APIs aceptan `Authorization: Bearer <token>` y el login emite además una cookie `bn_session` `HttpOnly`/`SameSite=Lax` para que media, avatares y SSE puedan autenticarse sin exponer tokens en query string. `POST /api/auth/logout` limpia esa cookie. `PARTNER_USER` / `PARTNER_PASS` siembran una cuenta `VIEWER`; no existe rol runtime `PARTNER` en la alpha.
 - **Streaming (SSE)**: Eventos emitidos en tiempo real al frontend a través de Server-Sent Events protegidos por sesión.
+- **Asset Reprocessing API**: `POST /api/admin/assets/reprocess` permite a usuarios `ADMIN` reencolar análisis para assets seleccionados enviando `{ assetIds, jobs }`, donde `jobs` acepta `description`, `nsfw` y `faces`. El endpoint usa IDs de base de datos, valida el payload y marca campos/timestamps como pendientes para que los workers existentes los recojan; no acepta rutas de archivos desde el cliente.
 
 ### 3.2. Frontend Application (React 19)
-- **Gallery Grid**: Interfaz principal implementada con visualización y filtrado de assets. `/api/assets`, `/api/media/originals`, `/api/media/storage` y `/static/users` requieren sesión válida.
+- **Gallery Grid**: Interfaz principal implementada con visualización, filtrado, visor avanzado y selección masiva de assets. `/api/assets`, `/api/media/originals`, `/api/media/storage` y `/static/users` requieren sesión válida. Los admins pueden reencolar análisis IA de la selección desde la toolbar masiva.
 - **Admin Console**: Panel de eventos en tiempo real para visualizar los logs del Pipeline vía SSE.
 - **Admin Users & Pipeline**: Paneles de administración para gestionar la importación y los usuarios, con acciones agrupadas del pipeline y señales visuales de recursos Ollama por tipo de modelo.
 

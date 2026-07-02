@@ -61,4 +61,42 @@ describe('SqliteAssetRepository Regression Tests', () => {
     assert.strictEqual(updatedAsset?.title, 'Updated Title');
     assert.strictEqual(updatedAsset?.isNsfw, true);
   });
+
+  it('marks selected assets for AI reprocessing without touching unknown ids', async () => {
+    const photo = new Photo({
+      dateTaken: new Date().toISOString(),
+      timezoneOffset: '+00:00'
+    });
+    photo.aiDescription = 'old description';
+    photo.describedAt = '2026-07-01T00:00:00.000Z';
+    photo.tags = ['OLD'];
+    photo.taggedAt = '2026-07-01T00:01:00.000Z';
+    photo.title = 'Old title';
+    photo.titledAt = '2026-07-01T00:02:00.000Z';
+    photo.aiProcessedAt = '2026-07-01T00:03:00.000Z';
+    photo.isNsfw = true;
+    photo.nsfwReason = 'old reason';
+    photo.tagNsfwScores = { OLD: 0.8 };
+    photo.nsfwProcessedAt = '2026-07-01T00:04:00.000Z';
+    photo.facesProcessedAt = '2026-07-01T00:05:00.000Z';
+    await assetRepo.save(photo);
+
+    const result = await assetRepo.markForReprocessing([photo.id, 'missing-asset'], ['description', 'nsfw', 'faces']);
+
+    assert.deepStrictEqual(result, { accepted: [photo.id], missing: ['missing-asset'] });
+    const row = db.prepare('SELECT * FROM assets WHERE id = ?').get(photo.id) as any;
+    assert.strictEqual(row.ai_description, null);
+    assert.strictEqual(row.described_at, null);
+    assert.strictEqual(row.tags_json, null);
+    assert.strictEqual(row.tagged_at, null);
+    assert.strictEqual(row.title, null);
+    assert.strictEqual(row.titled_at, null);
+    assert.strictEqual(row.ai_processed_at, null);
+    assert.strictEqual(row.is_nsfw, null);
+    assert.strictEqual(row.nsfw_reason, null);
+    assert.strictEqual(row.tag_nsfw_scores_json, null);
+    assert.strictEqual(row.nsfw_processed_at, null);
+    assert.strictEqual(row.faces_processed_at, null);
+  });
+
 });

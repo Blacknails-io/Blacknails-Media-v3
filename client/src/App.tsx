@@ -15,6 +15,8 @@ import type { MediaAsset } from './types/MediaAsset.js';
 import { MediaModal } from './components/MediaModal.js';
 import type { MouseEvent } from 'react';
 
+type ReprocessJob = 'description' | 'nsfw' | 'faces';
+
 export default function App() {
   const { token, isLoggedIn, user, isInitializing, logout, updateAvatar } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -123,6 +125,13 @@ export default function App() {
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
   const [bulkActionFeedback, setBulkActionFeedback] = useState<string | null>(null);
+  const [isReprocessDialogOpen, setIsReprocessDialogOpen] = useState(false);
+  const [isReprocessingAssets, setIsReprocessingAssets] = useState(false);
+  const [reprocessJobs, setReprocessJobs] = useState<Record<ReprocessJob, boolean>>({
+    description: true,
+    nsfw: true,
+    faces: false
+  });
 
   useEffect(() => {
     if (!isAdmin && (activeTab === 'users' || activeTab === 'pipeline')) {
@@ -250,6 +259,7 @@ export default function App() {
   const handleClearSelection = () => {
     setSelectedAssets(new Set());
     setBulkActionFeedback(null);
+    setIsReprocessDialogOpen(false);
   };
 
   const copyBulkText = async (label: string, value: string) => {
@@ -268,6 +278,53 @@ export default function App() {
 
   const handleCopySelectedOriginalUrls = () => {
     void copyBulkText('Rutas', selectedAssetList.map(asset => asset.originalUrl).join('\n'));
+  };
+
+  const handleToggleReprocessJob = (job: ReprocessJob) => {
+    setReprocessJobs(prev => ({ ...prev, [job]: !prev[job] }));
+  };
+
+  const handleSubmitReprocess = async () => {
+    const jobs = (Object.entries(reprocessJobs) as Array<[ReprocessJob, boolean]>)
+      .filter(([, enabled]) => enabled)
+      .map(([job]) => job);
+
+    if (jobs.length === 0) {
+      setBulkActionFeedback('Selecciona al menos un análisis');
+      return;
+    }
+
+    setIsReprocessingAssets(true);
+    setBulkActionFeedback(null);
+    try {
+      const res = await fetch('/api/admin/assets/reprocess', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          assetIds: selectedAssetList.map(asset => asset.id),
+          jobs
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(typeof data.error === 'string' ? data.error : 'No se pudo reencolar el análisis.');
+      }
+
+      const accepted = typeof data.accepted === 'number' ? data.accepted : selectedAssetList.length;
+      const missing = Array.isArray(data.missing) ? data.missing.length : 0;
+      setBulkActionFeedback(missing > 0 ? `${accepted} reencolados, ${missing} no encontrados` : `${accepted} reencolados`);
+      setIsReprocessDialogOpen(false);
+      void loadAssets();
+    } catch (error) {
+      console.error('Error reprocessing assets:', error);
+      setBulkActionFeedback(error instanceof Error ? error.message : 'No se pudo reencolar el análisis.');
+    } finally {
+      setIsReprocessingAssets(false);
+    }
   };
   const photoCount = assets.filter(asset => asset.type === 'PHOTO').length;
   const videoCount = assets.filter(asset => asset.type === 'VIDEO').length;
@@ -584,6 +641,9 @@ export default function App() {
                       <button type="button" onClick={handleOpenFirstSelected} data-instance-id="bulk-open-first">Abrir primero</button>
                       <button type="button" onClick={handleCopySelectedIds} data-instance-id="bulk-copy-ids">Copiar IDs</button>
                       <button type="button" onClick={handleCopySelectedOriginalUrls} data-instance-id="bulk-copy-paths">Copiar rutas</button>
+                      {isAdmin && (
+                        <button type="button" onClick={() => setIsReprocessDialogOpen(true)} data-instance-id="bulk-open-reprocess">Reanalizar IA</button>
+                      )}
                       <button type="button" className="subtle" onClick={handleClearSelection} data-instance-id="bulk-clear-selection">Limpiar</button>
                     </div>
                     {bulkActionFeedback && <span className="app-bulk-feedback">{bulkActionFeedback}</span>}
@@ -804,6 +864,41 @@ export default function App() {
       </main>
 
       </div> {/* fin app-window */}
+
+      {isReprocessDialogOpen && (
+        <div className="app-reprocess-backdrop" role="dialog" aria-modal="true" aria-labelledby="reprocess-dialog-title">
+          <div className="app-reprocess-dialog">
+            <header>
+              <div>
+                <p className="app-kicker">Pipeline // Selección</p>
+                <h2 id="reprocess-dialog-title">Reanalizar IA</h2>
+              </div>
+              <button type="button" onClick={() => setIsReprocessDialogOpen(false)} aria-label="Cerrar reanálisis">×</button>
+            </header>
+            <p className="app-reprocess-copy">{selectedCountLabel}. Los workers volverán a procesar los campos marcados cuando estén activos.</p>
+            <div className="app-reprocess-options">
+              <label>
+                <input type="checkbox" checked={reprocessJobs.description} onChange={() => handleToggleReprocessJob('description')} />
+                <span>Descripción, tags y título</span>
+              </label>
+              <label>
+                <input type="checkbox" checked={reprocessJobs.nsfw} onChange={() => handleToggleReprocessJob('nsfw')} />
+                <span>Clasificación NSFW</span>
+              </label>
+              <label>
+                <input type="checkbox" checked={reprocessJobs.faces} onChange={() => handleToggleReprocessJob('faces')} />
+                <span>Detección de caras</span>
+              </label>
+            </div>
+            <footer>
+              <button type="button" className="subtle" onClick={() => setIsReprocessDialogOpen(false)}>Cancelar</button>
+              <button type="button" onClick={() => void handleSubmitReprocess()} disabled={isReprocessingAssets} data-instance-id="bulk-submit-reprocess">
+                {isReprocessingAssets ? 'Reencolando...' : 'Reencolar análisis'}
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
 
       {/* Modal / Sidebar derecho de imagen */}
       <MediaModal

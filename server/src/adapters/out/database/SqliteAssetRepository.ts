@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import { IAssetRepository } from '../../../application/ports/out/IAssetRepository.js';
 import { Asset } from '../../../domain/entities/Asset.js';
+import type { AssetReprocessJob } from '../../../application/ports/in/IReprocessAssetsUseCase.js';
 import { AssetMapper } from './mappers/AssetMapper.js';
 
 export class SqliteAssetRepository implements IAssetRepository {
@@ -92,5 +93,63 @@ export class SqliteAssetRepository implements IAssetRepository {
       ORDER BY a.date_taken DESC
     `).all(personId) as any[];
     return rows.map(row => AssetMapper.toDomain(row));
+  }
+
+  public async markForReprocessing(assetIds: string[], jobs: AssetReprocessJob[]): Promise<{ accepted: string[]; missing: string[] }> {
+    const accepted: string[] = [];
+    const missing: string[] = [];
+    const existsStatement = this.db.prepare('SELECT id FROM assets WHERE id = ?');
+    const statements = jobs.map((job) => this.buildReprocessStatement(job));
+
+    const run = this.db.transaction((ids: string[]) => {
+      for (const id of ids) {
+        const row = existsStatement.get(id) as { id: string } | undefined;
+        if (!row) {
+          missing.push(id);
+          continue;
+        }
+
+        for (const statement of statements) {
+          statement.run(id);
+        }
+        accepted.push(id);
+      }
+    });
+
+    run(assetIds);
+    return { accepted, missing };
+  }
+
+  private buildReprocessStatement(job: AssetReprocessJob): Database.Statement<[string]> {
+    if (job === 'description') {
+      return this.db.prepare(`
+        UPDATE assets
+        SET ai_description = NULL,
+            described_at = NULL,
+            tags_json = NULL,
+            tagged_at = NULL,
+            title = NULL,
+            titled_at = NULL,
+            ai_processed_at = NULL
+        WHERE id = ?
+      `) as Database.Statement<[string]>;
+    }
+
+    if (job === 'nsfw') {
+      return this.db.prepare(`
+        UPDATE assets
+        SET is_nsfw = NULL,
+            nsfw_reason = NULL,
+            tag_nsfw_scores_json = NULL,
+            nsfw_processed_at = NULL
+        WHERE id = ?
+      `) as Database.Statement<[string]>;
+    }
+
+    return this.db.prepare(`
+      UPDATE assets
+      SET faces_processed_at = NULL
+      WHERE id = ?
+    `) as Database.Statement<[string]>;
   }
 }

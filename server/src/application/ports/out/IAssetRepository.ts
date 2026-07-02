@@ -1,4 +1,5 @@
 import { Asset } from '../../../domain/entities/Asset.js';
+import type { AssetReprocessJob } from '../in/IReprocessAssetsUseCase.js';
 
 export interface IAssetRepository {
   save(asset: Asset): Promise<void>;
@@ -8,4 +9,5 @@ export interface IAssetRepository {
   delete(id: string): Promise<void>;
   deleteAll(): Promise<number>;
   getAssetsByPersonId(personId: string): Promise<Asset[]>;
+  markForReprocessing(assetIds: string[], jobs: AssetReprocessJob[]): Promise<{ accepted: string[]; missing: string[] }>;
 }
