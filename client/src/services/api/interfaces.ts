@@ -34,6 +34,7 @@ export interface PipelineWorkerDTO {
   label: string;
   isRunning: boolean;
   isExecuting?: boolean;
+  currentAssetType?: 'PHOTO' | 'VIDEO';
   intervalMs: number;
   pendingItems: number;
   lastRunAt?: string;

@@ -3,7 +3,7 @@ import { GalleryCard } from './components/GalleryCard.js';
 import { useGlobalHologram } from './hooks/useGlobalHologram.js';
 import type { AppEvent } from '@blacknails/shared';
 import { useAuth } from './context/AuthContext.js';
-import { LoginScreen } from './components/LoginScreen.js';
+import { Login } from './presentation/views/auth/Login/index.js';
 import { AdminUsersPanel } from './components/AdminUsersPanel.js';
 import { AdminImportPanel } from './components/AdminImportPanel.js';
 import { AdminPeoplePanel } from './components/AdminPeoplePanel.js';
@@ -231,7 +231,7 @@ export default function App() {
   }
 
   if (!isLoggedIn) {
-    return <LoginScreen />;
+    return <Login />;
   }
 
   // -- FILTRADO LOCAL --
@@ -473,6 +473,7 @@ export default function App() {
               <button 
                 className={`app-menu-item ${activeTab === 'console' ? 'active' : ''}`}
                 onClick={() => setActiveTab('console')}
+                data-instance-id="console-menu-item"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="4 17 10 11 4 5"></polyline>
@@ -650,7 +651,7 @@ export default function App() {
         </header>
 
         {/* Contenido */}
-        <div className="app-content">
+        <div className={`app-content ${activeTab === 'console' ? 'app-content--console' : ''}`}>
           {activeTab === 'gallery' && (
             <div className="app-gallery-shell">
               <section className="app-gallery-stage">
@@ -723,7 +724,7 @@ export default function App() {
           )}
 
           {activeTab === 'console' && (
-             <div className="app-console-panel" ref={consoleRef}>
+             <div className="app-console-panel" ref={consoleRef} data-instance-id="event-log-panel">
                 {logs.length === 0 ? (
                   <div className="text-zinc-500">Esperando eventos del sistema...</div>
                 ) : (
