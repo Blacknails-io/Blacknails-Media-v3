@@ -84,6 +84,57 @@ test('Standard users do not see admin management', async ({ page }) => {
   await expect(page.locator('[data-instance-id="users-menu-item"]')).toHaveCount(0);
 });
 
+test("Event Logs keep wheel scrolling inside the event panel", async ({ page }) => {
+  await buildAdminMocks(page);
+
+  const events = Array.from({ length: 140 }, (_, index) => ({
+    id: `event-${index}`,
+    type: "PROCESS",
+    processName: "IMPORT",
+    action: "STARTED",
+    message: `Console scroll probe ${index}`,
+    occurredAt: new Date(Date.UTC(2026, 6, 1, 12, 0, index)).toISOString()
+  }));
+  let streamAttempt = 0;
+
+  await page.route("**/api/events/stream**", async (route) => {
+    const attempt = streamAttempt++;
+    const streamBody = events.map((event) => "data: " + JSON.stringify({ ...event, id: event.id + "-" + attempt }) + "\n\n").join("");
+    await route.fulfill({
+      status: 200,
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache"
+      },
+      body: streamBody
+    });
+  });
+
+  await page.goto("/");
+  await page.getByLabel("USUARIO / CORREO ELECTRÓNICO").fill("admin");
+  await page.locator("[data-instance-id=\"password-input\"]").fill("admin123");
+  await page.locator("[data-instance-id=\"login-submit-btn\"]").click();
+  await page.locator("[data-instance-id=\"console-menu-item\"]").click();
+
+  const panel = page.locator("[data-instance-id=\"event-log-panel\"]");
+  await expect(panel).toBeVisible();
+  await expect.poll(async () => panel.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+
+  const parentBefore = await panel.evaluate((element) => element.parentElement?.scrollTop ?? 0);
+  const panelBefore = await panel.evaluate((element) => element.scrollTop);
+  const box = await panel.boundingBox();
+  if (!box) {
+    throw new Error("Event log panel has no viewport box");
+  }
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.wheel(0, 700);
+
+  await expect.poll(async () => panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(panelBefore);
+  await expect.poll(async () => panel.evaluate((element) => element.parentElement?.scrollTop ?? 0)).toBe(parentBefore);
+});
+
+
 test('ADMIN can control the import pipeline', async ({ page }) => {
   const state = await buildAdminMocks(page);
 
@@ -108,7 +159,7 @@ test('ADMIN can control the import pipeline', async ({ page }) => {
   await page.locator('[data-instance-id="pipeline-stop-all"]').click();
   await expect.poll(() => state.workers.every((worker) => !worker.isRunning)).toBe(true);
 
-  await page.getByRole('button', { name: 'Ver Lista' }).click();
+  await page.locator('[data-instance-id="pipeline-view-toggle"]').click();
   await expect(page.locator('[data-instance-id="import-worker-import-worker"]')).toBeVisible();
 
   await page.locator('[data-instance-id="import-worker-start-import-worker"]').click();
@@ -135,4 +186,104 @@ test('ADMIN can control the import pipeline', async ({ page }) => {
   }
   expect(Math.abs(startButton.y - triggerButton.y)).toBeLessThan(2);
   expect(Math.abs(startButton.y - resetButton.y)).toBeLessThan(2);
+});
+
+
+test("Login uses production LiquidGlass surface with visible form", async ({ page }) => {
+  await page.goto("/");
+
+  const viewport = page.locator('[data-instance-id="login-viewport"]');
+  await expect(viewport).toBeVisible();
+  await expect(viewport).not.toHaveAttribute("data-glass-stage", "calibration");
+
+  const card = page.locator('[data-instance-id="login-card"]');
+  await expect(card).toBeVisible();
+  await expect(card.getByText("INICIAR SESIÓN")).toBeVisible();
+  await expect(card.getByText("Glass", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("USUARIO / CORREO ELECTRÓNICO")).toBeVisible();
+  await expect(page.locator('[data-instance-id="password-input"]')).toBeVisible();
+  await expect(page.locator('[data-instance-id="login-submit-btn"]')).toBeVisible();
+
+  const glassState = await card.evaluate((element) => {
+    const canvas = element.querySelector(":scope > canvas") as HTMLCanvasElement | null;
+    const panelRect = element.getBoundingClientRect();
+    const config = element.getAttribute("data-config");
+    const panelStyle = getComputedStyle(element);
+    const canvasStyle = canvas ? getComputedStyle(canvas) : null;
+    return {
+      hasCanvas: Boolean(canvas),
+      panelRadius: panelStyle.borderRadius,
+      canvasRadius: canvasStyle?.borderRadius ?? null,
+      panel: { width: panelRect.width, height: panelRect.height },
+      config: config ? JSON.parse(config) : null
+    };
+  });
+
+  expect(glassState.hasCanvas).toBe(true);
+  expect(glassState.panelRadius).toBe("40px");
+  expect(glassState.canvasRadius).toBe("40px");
+  expect(glassState.panel.width).toBeGreaterThan(360);
+  expect(glassState.panel.width).toBeLessThanOrEqual(430);
+  expect(glassState.panel.height).toBeGreaterThan(420);
+  expect(glassState.config).toMatchObject({
+    floating: false,
+    button: false,
+    blurAmount: 0,
+    refraction: 0.69,
+    chromAberration: 0.05,
+    edgeHighlight: 0.05,
+    specular: 0,
+    fresnel: 1,
+    distortion: 0,
+    cornerRadius: 40,
+    zRadius: 40,
+    opacity: 1,
+    saturation: 0,
+    tintStrength: 0,
+    brightness: 0,
+    shadowOpacity: 0.3,
+    shadowSpread: 10,
+    shadowOffsetY: 1,
+    bevelMode: 0
+  });
+});
+
+test("Login viewport stays centered without scrollbars", async ({ page }) => {
+  const viewports = [
+    { width: 1440, height: 920 },
+    { width: 390, height: 640 },
+    { width: 390, height: 520 }
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await expect(page.locator("[data-instance-id=\"login-card\"]")).toBeVisible();
+
+    const metrics = await page.locator("[data-instance-id=\"login-card\"]").evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const wrapper = document.querySelector("[data-instance-id=\"login-viewport\"]") as HTMLElement;
+      return {
+        bodyScrollWidth: document.documentElement.scrollWidth,
+        bodyScrollHeight: document.documentElement.scrollHeight,
+        wrapperClientHeight: wrapper.clientHeight,
+        wrapperScrollHeight: wrapper.scrollHeight,
+        wrapperOverflowY: getComputedStyle(wrapper).overflowY,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        centerDeltaX: Math.abs(rect.left + rect.width / 2 - window.innerWidth / 2),
+        centerDeltaY: Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2),
+        top: rect.top,
+        bottom: window.innerHeight - rect.bottom
+      };
+    });
+
+    expect(metrics.bodyScrollWidth).toBeLessThanOrEqual(metrics.viewportWidth + 1);
+    expect(metrics.bodyScrollHeight).toBeLessThanOrEqual(metrics.viewportHeight + 1);
+    expect(metrics.wrapperOverflowY).toBe("hidden");
+    expect(metrics.centerDeltaX).toBeLessThanOrEqual(2);
+    expect(metrics.centerDeltaY).toBeLessThanOrEqual(18);
+    expect(metrics.top).toBeGreaterThanOrEqual(0);
+    expect(metrics.bottom).toBeGreaterThanOrEqual(0);
+  }
 });

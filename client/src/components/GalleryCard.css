@@ -13,26 +13,49 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
-  border: 1px solid rgba(0, 243, 255, 0.14);
+  border: 1px solid rgba(174, 196, 227, 0.2);
   border-radius: 8px;
   background:
-    radial-gradient(circle at 12% 18%, rgba(0, 243, 255, 0.12), transparent 28%),
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px),
-    #05080d;
+    linear-gradient(145deg, rgba(174, 196, 227, 0.12), rgba(8, 16, 45, 0.58) 46%, rgba(78, 31, 129, 0.2)),
+    #05091c;
   cursor: pointer;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.34), inset 0 0 22px rgba(0, 243, 255, 0.035);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34), 0 0 26px rgba(52, 186, 231, 0.07), inset 0 1px 0 rgba(174, 196, 227, 0.16);
   transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.prosumer-card-wrapper::before,
+.prosumer-card-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.prosumer-card-wrapper::before {
+  background:
+    linear-gradient(116deg, rgba(255, 255, 255, 0.18), transparent 18% 62%, rgba(183, 23, 176, 0.16)),
+    linear-gradient(180deg, rgba(174, 196, 227, 0.08), transparent 34%);
+  mix-blend-mode: screen;
+  opacity: 0.46;
+}
+
+.prosumer-card-wrapper::after {
+  inset: 1px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 -1px 0 rgba(52, 186, 231, 0.16), inset 1px 0 0 rgba(174, 196, 227, 0.08);
 }
 
 .prosumer-card-wrapper:hover {
   transform: translateY(-2px);
-  border-color: rgba(0, 243, 255, 0.56);
-  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.42), 0 0 30px rgba(0, 243, 255, 0.14), inset 0 0 26px rgba(0, 243, 255, 0.05);
+  border-color: rgba(125, 231, 255, 0.64);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.44), 0 0 36px rgba(52, 186, 231, 0.18), 0 0 54px rgba(183, 23, 176, 0.08), inset 0 1px 0 rgba(174, 196, 227, 0.22);
 }
 
 .prosumer-card-wrapper.selected {
-  border-color: rgba(255, 0, 200, 0.82);
-  box-shadow: 0 0 0 1px rgba(255, 0, 200, 0.25), 0 0 36px rgba(255, 0, 200, 0.22);
+  border-color: rgba(183, 23, 176, 0.86);
+  box-shadow: 0 0 0 1px rgba(183, 23, 176, 0.28), 0 0 38px rgba(183, 23, 176, 0.26), 0 22px 52px rgba(0, 0, 0, 0.42);
 }
 
 .prosumer-card-image {
@@ -41,7 +64,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(1.08) contrast(1.04);
   transition: transform 700ms ease, opacity 220ms ease;
 }
 
@@ -52,9 +74,10 @@
 .prosumer-card-gradient {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
-    linear-gradient(to top, rgba(0, 0, 0, 0.94), rgba(0, 0, 0, 0.18) 58%, rgba(0,0,0,0.18)),
-    linear-gradient(135deg, rgba(0, 243, 255, 0.08), transparent 42%, rgba(255, 0, 200, 0.08));
+    linear-gradient(to top, rgba(2, 5, 18, 0.96), rgba(2, 5, 18, 0.36) 54%, rgba(174, 196, 227, 0.05)),
+    linear-gradient(132deg, rgba(52, 186, 231, 0.16), transparent 42%, rgba(183, 23, 176, 0.18));
 }
 
 .prosumer-card-content {
@@ -62,6 +85,7 @@
   left: 14px;
   right: 14px;
   bottom: 14px;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -74,66 +98,74 @@
   color: #fff;
   font-size: 0.9rem;
   font-weight: 760;
-  text-shadow: 0 0 18px rgba(0, 243, 255, 0.22);
+  letter-spacing: 0;
+  text-shadow: 0 0 18px rgba(52, 186, 231, 0.26), 0 1px 12px rgba(0, 0, 0, 0.55);
 }
 
 .prosumer-card-meta {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: rgba(222, 244, 255, 0.72);
+  color: rgba(222, 244, 255, 0.76);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.68rem;
+  letter-spacing: 0;
 }
 
 .prosumer-card-badge {
   position: absolute;
   top: 12px;
   right: 12px;
+  z-index: 4;
   padding: 4px 8px;
-  border: 1px solid rgba(0, 243, 255, 0.38);
+  border: 1px solid rgba(174, 196, 227, 0.28);
   border-radius: 6px;
-  color: #dffcff;
-  background: rgba(0, 0, 0, 0.64);
-  backdrop-filter: blur(12px);
+  color: #eafdff;
+  background: rgba(5, 12, 36, 0.62);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
   font-size: 0.62rem;
   font-weight: 900;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(174, 196, 227, 0.14), 0 0 20px rgba(52, 186, 231, 0.1);
 }
 
 .prosumer-card-checkbox {
   position: absolute;
   top: 12px;
   left: 12px;
-  z-index: 10;
+  z-index: 5;
   width: 22px;
   height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(174, 196, 227, 0.5);
   border-radius: 999px;
   color: transparent;
-  background: rgba(0, 0, 0, 0.48);
+  background: rgba(5, 12, 36, 0.56);
   backdrop-filter: blur(12px);
-  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
 .prosumer-card-checkbox:hover {
   border-color: #fff;
+  box-shadow: 0 0 18px rgba(52, 186, 231, 0.18);
 }
 
 .prosumer-card-checkbox.checked {
-  color: #05070a;
-  border-color: #ff00c8;
-  background: #ff00c8;
-  box-shadow: 0 0 18px rgba(255, 0, 200, 0.55);
+  color: #05070f;
+  border-color: var(--bn-magenta);
+  background: linear-gradient(135deg, var(--bn-cyan-hot), var(--bn-magenta));
+  box-shadow: 0 0 18px rgba(183, 23, 176, 0.5);
 }
 
 .prosumer-card-play-overlay {
   position: absolute;
   inset: 0;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,10 +183,98 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(0, 243, 255, 0.52);
+  border: 1px solid rgba(174, 196, 227, 0.42);
   border-radius: 999px;
   color: #fff;
-  background: rgba(0, 0, 0, 0.48);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 0 30px rgba(0, 243, 255, 0.25);
+  background: rgba(5, 12, 36, 0.58);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow: 0 0 32px rgba(52, 186, 231, 0.28), inset 0 1px 0 rgba(174, 196, 227, 0.22);
+}
+
+/* Reference-image amplification pass for gallery cards. Media pixels remain unfiltered. */
+.prosumer-card-wrapper {
+  border-color: rgba(174, 196, 227, 0.32);
+  background:
+    linear-gradient(145deg, rgba(174, 196, 227, 0.2), rgba(15, 76, 153, 0.22) 38%, rgba(78, 31, 129, 0.26)),
+    #05091c;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.38),
+    0 0 34px rgba(52, 186, 231, 0.18),
+    0 0 56px rgba(183, 23, 176, 0.12),
+    inset 0 1px 0 rgba(224, 242, 255, 0.22);
+}
+
+.prosumer-card-wrapper::before {
+  background:
+    linear-gradient(112deg, rgba(255, 255, 255, 0.26), transparent 20% 58%, rgba(183, 23, 176, 0.22)),
+    linear-gradient(172deg, transparent 0 34%, rgba(52, 186, 231, 0.18) 48%, transparent 60% 100%),
+    linear-gradient(180deg, rgba(174, 196, 227, 0.12), transparent 34%);
+  opacity: 0.68;
+}
+
+.prosumer-card-wrapper::after {
+  border-color: rgba(224, 242, 255, 0.12);
+  box-shadow:
+    inset 0 -1px 0 rgba(52, 186, 231, 0.32),
+    inset 1px 0 0 rgba(174, 196, 227, 0.16),
+    inset -1px 0 0 rgba(183, 23, 176, 0.16);
+}
+
+.prosumer-card-wrapper:hover {
+  border-color: rgba(125, 231, 255, 0.82);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.46),
+    0 0 42px rgba(52, 186, 231, 0.34),
+    0 0 78px rgba(183, 23, 176, 0.2),
+    inset 0 1px 0 rgba(224, 242, 255, 0.28);
+}
+
+.prosumer-card-gradient {
+  background:
+    linear-gradient(to top, rgba(2, 5, 18, 0.92), rgba(2, 5, 18, 0.28) 50%, rgba(174, 196, 227, 0.08)),
+    linear-gradient(132deg, rgba(52, 186, 231, 0.2), transparent 38%, rgba(183, 23, 176, 0.22));
+}
+
+.prosumer-card-badge,
+.prosumer-card-checkbox,
+.prosumer-play-button {
+  border-color: rgba(174, 196, 227, 0.44);
+  background: linear-gradient(135deg, rgba(174, 196, 227, 0.18), rgba(5, 12, 36, 0.68), rgba(78, 31, 129, 0.24));
+  box-shadow: inset 0 1px 0 rgba(224, 242, 255, 0.2), 0 0 24px rgba(52, 186, 231, 0.18);
+}
+
+/* Luminous prism recalibration for gallery cards. */
+.prosumer-card-wrapper {
+  border-color: rgba(247, 252, 255, 0.38);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.22), rgba(174,196,227,0.18) 20%, rgba(24,125,204,0.2) 54%, rgba(183,23,176,0.2)),
+    rgba(24,125,204,0.22);
+  box-shadow:
+    0 20px 52px rgba(5, 8, 32, 0.3),
+    0 0 36px rgba(125,231,255,0.32),
+    0 0 74px rgba(183,23,176,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.36) !important;
+}
+
+.prosumer-card-wrapper::before {
+  background:
+    linear-gradient(112deg, rgba(255,255,255,0.34), transparent 20% 54%, rgba(226,80,218,0.24)),
+    linear-gradient(168deg, transparent 0 38%, rgba(125,231,255,0.28) 50%, transparent 64%),
+    repeating-linear-gradient(112deg, rgba(255,255,255,0.07) 0 1px, transparent 1px 30px);
+  opacity: 0.78;
+}
+
+.prosumer-card-gradient {
+  background:
+    linear-gradient(to top, rgba(3, 6, 24, 0.84), rgba(3, 6, 24, 0.24) 48%, rgba(255,255,255,0.1)),
+    linear-gradient(132deg, rgba(125,231,255,0.24), transparent 38%, rgba(226,80,218,0.24));
+}
+
+.prosumer-card-badge,
+.prosumer-card-checkbox,
+.prosumer-play-button {
+  border-color: rgba(247,252,255,0.44);
+  background: linear-gradient(135deg, rgba(255,255,255,0.24), rgba(17,56,132,0.36), rgba(126,23,156,0.2));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.34), 0 0 28px rgba(125,231,255,0.22);
 }

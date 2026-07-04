@@ -14,7 +14,7 @@ const EMPTY_STATE: AdminImportPanelState = {
 
 const RESETTABLE_WORKERS = new Set([
   'index-worker',
-  'thumbnail-worker',
+  'image-preview-worker', 'video-preview-worker', 'image-transcode-worker', 'video-transcode-worker',
   'description-worker',
   'tags-worker',
   'title-worker',
@@ -24,9 +24,9 @@ const RESETTABLE_WORKERS = new Set([
 ]);
 
 const WORKER_GROUPS = [
-  { id: 'base', label: 'Ejecutar Base', strategy: 'series' as const, workerIds: ['import-worker', 'index-worker', 'thumbnail-worker'] },
-  { id: 'ai', label: 'Ejecutar IA', strategy: 'series' as const, workerIds: ['description-worker', 'nsfw-worker', 'face-worker'] },
-  { id: 'derived', label: 'Ejecutar Derivados', strategy: 'series' as const, workerIds: ['tags-worker', 'title-worker', 'face-cluster-worker'] }
+  { id: 'base', label: 'Base', strategy: 'series' as const, workerIds: ['import-worker', 'index-worker', 'image-preview-worker', 'video-preview-worker', 'image-transcode-worker', 'video-transcode-worker'] },
+  { id: 'ai', label: 'IA', strategy: 'series' as const, workerIds: ['description-worker', 'nsfw-worker', 'face-worker'] },
+  { id: 'derived', label: 'Derivados', strategy: 'series' as const, workerIds: ['tags-worker', 'title-worker', 'face-cluster-worker'] }
 ];
 
 export const AdminImportPanel = () => {
@@ -66,8 +66,9 @@ export const AdminImportPanel = () => {
               type="button"
               className={"import-worker-button secondary " + (viewMode === 'graph' ? 'active' : '')}
               onClick={() => setViewMode(viewMode === 'grid' ? 'graph' : 'grid')}
+              data-instance-id="pipeline-view-toggle"
             >
-              {viewMode === 'grid' ? 'Ver Grafo (DAG)' : 'Ver Lista'}
+              {viewMode === 'grid' ? 'Grafo' : 'Lista'}
             </button>
 
             {WORKER_GROUPS.map((group) => {
@@ -91,7 +92,7 @@ export const AdminImportPanel = () => {
               className="import-worker-button"
               onClick={() => {
                 void handleGroupAction(
-                  ['import-worker', 'index-worker', 'thumbnail-worker', 'description-worker', 'nsfw-worker', 'face-worker', 'tags-worker', 'title-worker', 'face-cluster-worker']
+                  ['import-worker', 'index-worker', 'image-preview-worker', 'video-preview-worker', 'image-transcode-worker', 'video-transcode-worker', 'description-worker', 'nsfw-worker', 'face-worker', 'tags-worker', 'title-worker', 'face-cluster-worker']
                     .filter((workerId) => state.workers.some((worker) => worker.id === workerId && !worker.isRunning)),
                   'start',
                   'parallel'
@@ -100,7 +101,7 @@ export const AdminImportPanel = () => {
               disabled={state.isLoading || state.workers.length === 0 || state.workers.every((worker) => worker.isRunning)}
               data-instance-id="pipeline-start-all"
             >
-              Arrancar Todos
+              Arrancar
             </button>
 
             <button
@@ -116,7 +117,7 @@ export const AdminImportPanel = () => {
               disabled={state.isLoading || state.workers.every((worker) => !worker.isRunning)}
               data-instance-id="pipeline-stop-all"
             >
-              Parar Todos
+              Parar
             </button>
           </div>
         </div>

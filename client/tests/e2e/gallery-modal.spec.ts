@@ -270,3 +270,44 @@ test('Gallery modal supports asset review navigation and selection', async ({ pa
   await page.locator('[data-instance-id="bulk-clear-selection"]').click();
   await expect(bulkToolbar).toHaveCount(0);
 });
+
+
+test("Prism skin uses luminous metallic window colors without filtering media pixels", async ({ page }) => {
+  const previewSvg = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22600%22%3E%3Crect width=%22800%22 height=%22600%22 fill=%22%23187dcc%22/%3E%3Ccircle cx=%22580%22 cy=%22210%22 r=%22140%22 fill=%22%23b717b0%22 opacity=%22.72%22/%3E%3C/svg%3E";
+  const assets: MediaAsset[] = [{
+    id: "prism-skin-asset",
+    title: "Prism Skin Asset",
+    type: "PHOTO",
+    description: "Imagen de prueba para comprobar que la piel visual no filtra la media.",
+    tags: [],
+    date: "2026-07-03T00:00:00.000Z",
+    imageUrl: previewSvg,
+    originalUrl: previewSvg,
+    clearance: "LEVEL_1",
+    metadata: { fileSize: "2 MB", resolution: "800x600" }
+  }];
+
+  await buildAdminMocks(page, { assets });
+  await page.goto("/");
+  await page.getByLabel("USUARIO / CORREO ELECTRÓNICO").fill("admin");
+  await page.locator("[data-instance-id=\"password-input\"]").fill("admin123");
+  await page.locator("[data-instance-id=\"login-submit-btn\"]").click();
+
+  const skin = await page.locator(".app-layout").evaluate((element) => getComputedStyle(element).backgroundImage);
+  expect(skin).toContain("rgba(174, 196, 227");
+  expect(skin).toContain("rgba(52, 186, 231");
+  expect(skin).toContain("rgba(183, 23, 176");
+
+  const card = page.locator(".prosumer-card-wrapper").first();
+  const cardMaterial = await card.evaluate((element) => getComputedStyle(element).backgroundImage);
+  expect(cardMaterial).toContain("rgba(255, 255, 255");
+  expect(cardMaterial).toContain("rgba(24, 125, 204");
+
+  const cardImageFilter = await page.locator(".prosumer-card-image").first().evaluate((element) => getComputedStyle(element).filter);
+  expect(cardImageFilter).toBe("none");
+
+  await page.locator("[data-instance-id=\"prism-skin-asset-gallery-card\"]").click();
+  await expect(page.locator(".prosumer-modal-img")).toBeVisible();
+  const modalImageFilter = await page.locator(".prosumer-modal-img").evaluate((element) => getComputedStyle(element).filter);
+  expect(modalImageFilter).toBe("none");
+});

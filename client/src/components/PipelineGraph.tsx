@@ -19,7 +19,7 @@ const getOllamaKind = (workerId: string): 'text' | 'vision' | null => {
 
 const RESETTABLE_WORKERS = new Set([
   'index-worker',
-  'thumbnail-worker',
+  'image-preview-worker', 'video-preview-worker', 'image-transcode-worker', 'video-transcode-worker',
   'description-worker',
   'tags-worker',
   'title-worker',
@@ -32,6 +32,45 @@ const getWorkerIo = (worker: PipelineWorkerDTO) => ({
   requires: Array.isArray(worker.requires) ? worker.requires : [],
   provides: Array.isArray(worker.provides) ? worker.provides : []
 });
+
+const getActiveAssetLabel = (worker: PipelineWorkerDTO): 'Image' | 'Video' | null => {
+  if (!worker.isExecuting) return null;
+  if (worker.currentAssetType === 'PHOTO') return 'Image';
+  if (worker.currentAssetType === 'VIDEO') return 'Video';
+  return null;
+};
+
+const VISUAL_WORKER_LABELS: Record<string, string> = {
+  'import-worker': 'Importar',
+  'index-worker': 'Catalogar',
+  'image-preview-worker': 'Miniatura foto',
+  'video-preview-worker': 'Poster vídeo',
+  'image-transcode-worker': 'Imagen para IA',
+  'video-transcode-worker': 'Clip preview',
+  'nsfw-worker': 'NSFW',
+  'description-worker': 'Describir',
+  'face-worker': 'Detectar caras',
+  'tags-worker': 'Tags',
+  'title-worker': 'Título',
+  'face-cluster-worker': 'Agrupar personas'
+};
+
+const getWorkerLabel = (worker: PipelineWorkerDTO): string => VISUAL_WORKER_LABELS[worker.id] ?? worker.label;
+
+const getWorkerStatusLabel = (worker: PipelineWorkerDTO): string => {
+  if (worker.isExecuting) return 'PROCESANDO';
+  if (worker.pendingItems > 0 && !worker.isRunning) return 'COLA PARADA';
+  if (worker.pendingItems > 0) return 'PENDIENTE';
+  if (worker.isRunning) return 'LISTO';
+  return 'PARADO';
+};
+
+const MEDIA_LANE_LABELS: Record<string, 'Foto' | 'Vídeo'> = {
+  'image-preview-worker': 'Foto',
+  'image-transcode-worker': 'Foto',
+  'video-preview-worker': 'Vídeo',
+  'video-transcode-worker': 'Vídeo'
+};
 
 export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -54,23 +93,28 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
       workerIds: ['import-worker']
     },
     {
-      title: 'Estructuración',
-      subtitle: 'Indexado de catálogo',
+      title: 'Catálogo',
+      subtitle: 'Asset en biblioteca',
       workerIds: ['index-worker']
     },
     {
-      title: 'Optimización',
-      subtitle: 'Generación de multimedia',
-      workerIds: ['thumbnail-worker']
+      title: 'Preview',
+      subtitle: 'Foto y vídeo',
+      workerIds: ['image-preview-worker', 'video-preview-worker']
     },
     {
-      title: 'Análisis IA',
-      subtitle: 'Visión y detección',
+      title: 'Preparar IA',
+      subtitle: 'Derivados ligeros',
+      workerIds: ['image-transcode-worker', 'video-transcode-worker']
+    },
+    {
+      title: 'IA y caras',
+      subtitle: 'Análisis local',
       workerIds: ['nsfw-worker', 'description-worker', 'face-worker']
     },
     {
-      title: 'Derivados',
-      subtitle: 'Personas y semántica',
+      title: 'Metadata',
+      subtitle: 'Tags, títulos, personas',
       workerIds: ['tags-worker', 'title-worker', 'face-cluster-worker']
     }
   ];
@@ -184,6 +228,8 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
 
                 const isHovered = hoveredNode === worker.id;
                 const workerIo = getWorkerIo(worker);
+                const activeAssetLabel = getActiveAssetLabel(worker);
+                const mediaLaneLabel = MEDIA_LANE_LABELS[worker.id];
                 const statusClass = worker.isExecuting
                   ? 'running'
                   : worker.isRunning
@@ -212,8 +258,13 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
                       <div className="pipeline-node-badge-container">
                         <span className={`pipeline-node-status-dot ${statusClass}`} />
                         <span className={`pipeline-node-badge ${statusClass}`}>
-                          {worker.isExecuting ? 'ACTIVO' : worker.isRunning ? 'IDLE' : 'PARADO'}
+                          {getWorkerStatusLabel(worker)}
                         </span>
+                        {mediaLaneLabel && (
+                          <span className={"pipeline-node-lane " + (mediaLaneLabel === 'Foto' ? 'photo' : 'video')}>
+                            {mediaLaneLabel}
+                          </span>
+                        )}
                         {ollamaState && (
                           <span
                             className={"pipeline-node-resource ollama " + ollamaState + " " + ollamaKind}
@@ -222,8 +273,18 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
                           >
                           </span>
                         )}
+                        {activeAssetLabel && (
+                          <span
+                            className={"pipeline-node-media-kind " + activeAssetLabel.toLowerCase()}
+                            title={"Procesando " + activeAssetLabel}
+                            aria-label={"Procesando " + activeAssetLabel}
+                          >
+                            <span className="pipeline-node-media-kind-icon" aria-hidden="true" />
+                            <span>{activeAssetLabel}</span>
+                          </span>
+                        )}
                       </div>
-                      <h4 className="pipeline-node-label">{worker.label}</h4>
+                      <h4 className="pipeline-node-label">{getWorkerLabel(worker)}</h4>
                       <code className="pipeline-node-id">{worker.id}</code>
                     </header>
 
@@ -256,29 +317,12 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
                     </div>
 
                     <footer className="pipeline-node-actions">
-                      {worker.isRunning ? (
-                        <button
-                          type="button"
-                          className="pipeline-btn stop"
-                          onClick={() => void onAction(worker.id, 'stop')}
-                        >
-                          Parar
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="pipeline-btn start"
-                          onClick={() => void onAction(worker.id, 'start')}
-                        >
-                          Arrancar
-                        </button>
-                      )}
                       <button
                         type="button"
-                        className="pipeline-btn trigger"
-                        onClick={() => void onAction(worker.id, 'trigger')}
+                        className={"pipeline-btn primary " + (worker.isRunning ? 'stop' : 'trigger')}
+                        onClick={() => void onAction(worker.id, worker.isRunning ? 'stop' : 'trigger')}
                       >
-                        Ejecutar
+                        {worker.isRunning ? 'Parar' : 'Ejecutar'}
                       </button>
                       {RESETTABLE_WORKERS.has(worker.id) && (
                         <button

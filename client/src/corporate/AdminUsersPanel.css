@@ -14,8 +14,8 @@
 .admin-users-kicker {
   margin: 0 0 0.25rem;
   font-size: 0.72rem;
-  letter-spacing: 0.18rem;
-  color: var(--color-accent-green);
+  letter-spacing: 0;
+  color: var(--bn-cyan-hot);
   font-family: var(--font-mono);
 }
 
@@ -23,42 +23,47 @@
   margin: 0;
   font-size: 1.1rem;
   color: var(--color-text-primary);
+  letter-spacing: 0;
 }
 
 .admin-users-summary {
   min-width: 72px;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 255, 204, 0.25);
-  border-radius: 10px;
+  border: 1px solid rgba(174, 196, 227, 0.2);
+  border-radius: 8px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(145deg, rgba(174, 196, 227, 0.1), rgba(8, 16, 45, 0.46));
+  box-shadow: inset 0 1px 0 rgba(174, 196, 227, 0.12);
 }
 
 .admin-users-summary span {
   display: block;
   font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-accent-green);
+  font-weight: 750;
+  color: var(--bn-cyan-hot);
 }
 
 .admin-users-summary small {
   color: var(--color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.12rem;
+  letter-spacing: 0;
 }
 
 .admin-users-error,
 .admin-users-empty-state {
   padding: 0.85rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 0, 127, 0.3);
-  background: rgba(255, 0, 127, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 59, 115, 0.28);
+  background: rgba(255, 59, 115, 0.09);
   color: var(--color-text-primary);
   font-family: var(--font-mono);
 }
 
 .admin-users-table-wrap {
   overflow: auto;
+  border: 1px solid rgba(174, 196, 227, 0.12);
+  border-radius: 8px;
+  background: rgba(5, 12, 36, 0.34);
 }
 
 .admin-users-table {
@@ -71,14 +76,15 @@
 .admin-users-table td {
   padding: 0.85rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(174, 196, 227, 0.1);
 }
 
 .admin-users-table th {
   color: var(--color-text-secondary);
   font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.12rem;
+  letter-spacing: 0;
+  background: rgba(174, 196, 227, 0.035);
 }
 
 .admin-users-table td {
@@ -90,26 +96,34 @@
   max-width: 160px;
   padding: 0.55rem 0.6rem;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(5, 2, 10, 0.6);
+  border: 1px solid rgba(174, 196, 227, 0.18);
+  background: rgba(5, 12, 36, 0.72);
   color: var(--color-text-primary);
   font: inherit;
 }
 
 .admin-users-role-select:focus {
   outline: none;
-  border-color: rgba(0, 255, 204, 0.55);
-  box-shadow: 0 0 0 2px rgba(0, 255, 204, 0.12);
+  border-color: rgba(125, 231, 255, 0.68);
+  box-shadow: 0 0 0 2px rgba(52, 186, 231, 0.14), 0 0 22px rgba(52, 186, 231, 0.12);
 }
 
 .admin-users-row-action {
   padding: 0.55rem 0.85rem;
   border-radius: 8px;
-  border: 1px solid rgba(0, 255, 204, 0.35);
-  background: rgba(0, 255, 204, 0.08);
+  border: 1px solid rgba(52, 186, 231, 0.32);
+  background: rgba(52, 186, 231, 0.1);
   color: var(--color-text-primary);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.admin-users-row-action:hover:not(:disabled) {
+  border-color: rgba(125, 231, 255, 0.56);
+  background: rgba(52, 186, 231, 0.14);
+  box-shadow: 0 0 18px rgba(52, 186, 231, 0.12);
 }
 
 .admin-users-row-action + .admin-users-row-action {
@@ -117,8 +131,9 @@
 }
 
 .admin-users-row-action-danger {
-  border-color: rgba(255, 0, 127, 0.35);
-  background: rgba(255, 0, 127, 0.08);
+  border-color: rgba(255, 59, 115, 0.35);
+  background: rgba(255, 59, 115, 0.1);
+  color: #ffd5df;
 }
 
 .admin-users-status {
@@ -126,26 +141,26 @@
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   font-size: 0.72rem;
-  letter-spacing: 0.08rem;
+  letter-spacing: 0;
   border: 1px solid transparent;
 }
 
 .admin-users-status-active {
-  color: var(--color-accent-green);
-  border-color: rgba(0, 255, 204, 0.35);
-  background: rgba(0, 255, 204, 0.08);
+  color: var(--bn-cyan-hot);
+  border-color: rgba(52, 186, 231, 0.38);
+  background: rgba(52, 186, 231, 0.1);
 }
 
 .admin-users-status-inactive {
-  color: var(--color-accent-pink);
-  border-color: rgba(255, 0, 127, 0.35);
-  background: rgba(255, 0, 127, 0.08);
+  color: #ffb4cb;
+  border-color: rgba(255, 59, 115, 0.35);
+  background: rgba(255, 59, 115, 0.1);
 }
 
 .admin-users-status-warning {
-  color: var(--color-text-primary);
-  border-color: rgba(255, 196, 0, 0.4);
-  background: rgba(255, 196, 0, 0.12);
+  color: #ffe1a0;
+  border-color: rgba(248, 215, 120, 0.38);
+  background: rgba(248, 215, 120, 0.12);
   margin-left: 0.5rem;
 }
 

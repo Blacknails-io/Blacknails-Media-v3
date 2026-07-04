@@ -45,26 +45,60 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
         requires: ['original_files']
       },
       {
-        id: 'thumbnail-worker',
-        label: 'Miniaturas',
+        id: 'image-preview-worker',
+        label: 'Image Preview',
+        isRunning: false,
+        intervalMs: 15000,
+        pendingItems: 1,
+        lastRunAt: '2026-06-30T08:12:00.000Z',
+        isExecuting: false,
+        provides: ['image_previews'],
+        requires: ['assets']
+      },
+      {
+        id: 'video-preview-worker',
+        label: 'Video Preview',
+        isRunning: false,
+        intervalMs: 15000,
+        pendingItems: 1,
+        lastRunAt: '2026-06-30T08:12:30.000Z',
+        isExecuting: false,
+        provides: ['video_previews'],
+        requires: ['assets']
+      },
+      {
+        id: 'image-transcode-worker',
+        label: 'Image Transcode',
         isRunning: false,
         intervalMs: 15000,
         pendingItems: 0,
-        lastRunAt: '2026-06-30T08:12:00.000Z',
+        lastRunAt: '2026-06-30T08:12:45.000Z',
         isExecuting: false,
-        provides: ['thumbnails'],
-        requires: ['assets']
+        provides: ['image_transcodes'],
+        requires: ['image_previews']
+      },
+      {
+        id: 'video-transcode-worker',
+        label: 'Video Transcode',
+        isRunning: false,
+        intervalMs: 15000,
+        pendingItems: 0,
+        lastRunAt: '2026-06-30T08:12:50.000Z',
+        isExecuting: false,
+        provides: ['video_transcodes'],
+        requires: ['video_previews']
       },
       {
         id: 'description-worker',
         label: 'Descripciones',
-        isRunning: false,
+        isRunning: true,
         intervalMs: 30000,
         pendingItems: 3,
         lastRunAt: '2026-06-30T08:13:00.000Z',
-        isExecuting: false,
+        isExecuting: true,
+        currentAssetType: 'PHOTO',
         provides: ['descriptions'],
-        requires: ['thumbnails']
+        requires: ['image_transcodes', 'video_transcodes']
       },
       {
         id: 'nsfw-worker',
@@ -75,7 +109,7 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
         lastRunAt: '2026-06-30T08:14:00.000Z',
         isExecuting: false,
         provides: ['nsfw_scores'],
-        requires: ['thumbnails']
+        requires: ['image_transcodes', 'video_transcodes']
       },
       {
         id: 'face-worker',
@@ -86,7 +120,7 @@ export const buildAdminMocks = async (page: Page, options?: { assets?: MediaAsse
         lastRunAt: '2026-06-30T08:15:00.000Z',
         isExecuting: false,
         provides: ['faces'],
-        requires: ['thumbnails']
+        requires: ['image_transcodes', 'video_transcodes']
       },
       {
         id: 'tags-worker',
