@@ -18,8 +18,8 @@
   font-size: 1.45rem;
   font-weight: 800;
   line-height: 1.05;
-  color: var(--color-text-primary);
-  letter-spacing: 0.02em;
+  color: var(--bn-text);
+  letter-spacing: 0;
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
@@ -28,8 +28,26 @@
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 0.95;
-  color: var(--color-brand-cyan);
-  letter-spacing: 0.05em;
+  color: var(--bn-cyan-hot);
+  letter-spacing: 0;
   text-transform: uppercase;
-  text-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+  text-shadow: 0 0 14px rgba(52, 186, 231, 0.34);
+}
+
+
+/* Lab step 02c: logo text readability over liquid glass. */
+.logoTextBrand {
+  color: #ffffff !important;
+  font-weight: 860;
+  text-shadow:
+    0 1px 2px rgba(2, 6, 24, 0.92),
+    0 0 18px rgba(2, 6, 24, 0.5),
+    0 0 24px rgba(125, 231, 255, 0.42);
+}
+
+.logoTextSub {
+  font-weight: 820;
+  text-shadow:
+    0 1px 2px rgba(2, 6, 24, 0.9),
+    0 0 22px rgba(125, 231, 255, 0.5) !important;
 }
