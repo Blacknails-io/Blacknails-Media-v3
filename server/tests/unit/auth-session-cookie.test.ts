@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { clearSessionCookie, createSessionCookie, requireUser } from '../../src/adapters/in/http/auth.js';
+import { clearSessionCookie, createSessionCookie, requireUser, requireAdmin } from '../../src/adapters/in/http/auth.js';
 import { User } from '../../src/domain/entities/User.js';
 
 function createMockResponse() {
@@ -62,5 +62,73 @@ describe('session cookie authentication', () => {
     assert.match(clearCookie, /^bn_session=;/);
     assert.match(clearCookie, /Max-Age=0/);
     assert.match(clearCookie, /HttpOnly/);
+  });
+
+  it('requireAdmin allows ADMIN users', async () => {
+    const user = new User({
+      id: 'admin-1',
+      username: 'admin',
+      passwordHash: 'hash',
+      role: 'ADMIN'
+    });
+    const getSessionUserUseCase = {
+      async execute() {
+        return user;
+      }
+    };
+    const req = {
+      headers: {
+        authorization: 'Bearer token-123'
+      }
+    };
+    const res = createMockResponse();
+
+    const result = await requireAdmin(req as any, res as any, getSessionUserUseCase);
+    assert.equal(result, user);
+    assert.equal(res.statusCode, 200);
+  });
+
+  it('requireAdmin rejects STANDARD or VIEWER users with 403', async () => {
+    const getSessionUserUseCase = (role: 'STANDARD' | 'VIEWER') => ({
+      async execute() {
+        return new User({
+          id: 'user-id',
+          username: 'user',
+          passwordHash: 'hash',
+          role
+        });
+      }
+    });
+
+    const req = {
+      headers: {
+        authorization: 'Bearer token-123'
+      }
+    };
+
+    for (const role of ['STANDARD', 'VIEWER'] as const) {
+      const res = createMockResponse();
+      const result = await requireAdmin(req as any, res as any, getSessionUserUseCase(role));
+      assert.equal(result, null);
+      assert.equal(res.statusCode, 403);
+      assert.match((res.body as any).error, /Se requieren permisos de administrador/);
+    }
+  });
+
+  it('requireAdmin rejects unauthenticated requests with 401', async () => {
+    const getSessionUserUseCase = {
+      async execute() {
+        return null;
+      }
+    };
+    const req = {
+      headers: {}
+    };
+    const res = createMockResponse();
+
+    const result = await requireAdmin(req as any, res as any, getSessionUserUseCase);
+    assert.equal(result, null);
+    assert.equal(res.statusCode, 401);
+    assert.match((res.body as any).error, /Se requiere sesión válida/);
   });
 });

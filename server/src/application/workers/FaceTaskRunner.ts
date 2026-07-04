@@ -45,7 +45,7 @@ export class FaceTaskRunner extends BaseAssetWorker {
   public readonly id = 'face-worker';
   public readonly label = 'Face Detection';
   public readonly provides = ['faces'];
-  public readonly requires = ['thumbnails'];
+  public readonly requires = ['image_transcodes', 'video_transcodes'];
 
   constructor(
     eventBus: IEventBus,

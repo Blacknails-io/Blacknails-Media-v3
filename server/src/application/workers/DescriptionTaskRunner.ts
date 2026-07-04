@@ -19,7 +19,7 @@ export class DescriptionTaskRunner extends BaseAssetWorker {
   public readonly id = 'description-worker';
   public readonly label = 'Image Description (LLM)';
   public readonly provides = ['descriptions'];
-  public readonly requires = ['thumbnails'];
+  public readonly requires = ['image_transcodes', 'video_transcodes'];
 
   constructor(
     eventBus: IEventBus,

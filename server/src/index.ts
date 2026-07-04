@@ -15,7 +15,7 @@ import { IndexMediaUseCase } from './application/use_cases/IndexMediaUseCase.js'
 import { PurgeMediaUseCase } from './application/use_cases/PurgeMediaUseCase.js';
 import { ImportTaskRunner } from './application/workers/ImportTaskRunner.js';
 import { IndexTaskRunner } from './application/workers/IndexTaskRunner.js';
-import { ThumbnailTaskRunner } from './application/workers/ThumbnailTaskRunner.js';
+import { ImagePreviewTaskRunner, ImageTranscodeTaskRunner, VideoPreviewTaskRunner, VideoTranscodeTaskRunner } from './application/workers/MediaDerivativeTaskRunners.js';
 import { DescriptionTaskRunner } from './application/workers/DescriptionTaskRunner.js';
 import { TagsTaskRunner } from './application/workers/TagsTaskRunner.js';
 import { TitleTaskRunner } from './application/workers/TitleTaskRunner.js';
@@ -193,7 +193,10 @@ const indexMediaUseCase = new IndexMediaUseCase(sharedUow, processingService, ev
 const purgeMediaUseCase = new PurgeMediaUseCase(sharedUow, faceRepository, eventBus);
 const importWorker = new ImportTaskRunner(eventBus, importMediaUseCase, IMPORT_DIR, IMPORT_INTERVAL_MS);
 const indexWorker = new IndexTaskRunner(eventBus, sharedUow, indexMediaUseCase, purgeMediaUseCase, INDEX_INTERVAL_MS);
-const thumbnailWorker = new ThumbnailTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const imagePreviewWorker = new ImagePreviewTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const imageTranscodeWorker = new ImageTranscodeTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const videoPreviewWorker = new VideoPreviewTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const videoTranscodeWorker = new VideoTranscodeTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
 const descriptionWorker = new DescriptionTaskRunner(eventBus, sharedUow, DESCRIPTION_INTERVAL_MS, ollamaService, sidecarService);
 const tagsWorker = new TagsTaskRunner(eventBus, sharedUow, TAGS_INTERVAL_MS, ollamaService, sidecarService);
 const titleWorker = new TitleTaskRunner(eventBus, sharedUow, TITLE_INTERVAL_MS, ollamaService, sidecarService);
@@ -206,7 +209,10 @@ const peopleController = new PeopleController(peopleUseCase);
 
 pipelineWorkerManager.register(importWorker);
 pipelineWorkerManager.register(indexWorker);
-pipelineWorkerManager.register(thumbnailWorker);
+pipelineWorkerManager.register(imagePreviewWorker);
+pipelineWorkerManager.register(videoPreviewWorker);
+pipelineWorkerManager.register(imageTranscodeWorker);
+pipelineWorkerManager.register(videoTranscodeWorker);
 pipelineWorkerManager.register(descriptionWorker);
 pipelineWorkerManager.register(tagsWorker);
 pipelineWorkerManager.register(titleWorker);

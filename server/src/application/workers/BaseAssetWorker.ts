@@ -33,6 +33,7 @@ export abstract class BaseAssetWorker extends DaemonWorker {
           await this.publishLifecycleEvent('STARTED', `${prefix} Ollama ocupado. El worker se reserva para el próximo ciclo...`);
           return;
         }
+        this.currentAssetType = pending[0]?.assetType;
         await this.startExecution(total);
         await this.publishLifecycleEvent('STARTED', `${prefix} Comenzando procesamiento de ${total} de ${backlogTotal} elementos pendientes...`);
       }
@@ -40,6 +41,7 @@ export abstract class BaseAssetWorker extends DaemonWorker {
       let failed = 0;
       for (const asset of pending) {
         try {
+          this.currentAssetType = asset.assetType;
           await this.processAsset(asset);
           processed++;
           await this.updateExecution(processed, failed);
@@ -66,6 +68,7 @@ export abstract class BaseAssetWorker extends DaemonWorker {
       await this.publishLifecycleEvent('ERROR', `${prefix} El worker ha sufrido un error inesperado al procesar el lote.`);
       // No relanzamos el error para no crashear todo el proceso de Node en el setInterval
     } finally {
+      this.currentAssetType = undefined;
       this.releaseResources();
       this.isCatchingUp = false;
     }

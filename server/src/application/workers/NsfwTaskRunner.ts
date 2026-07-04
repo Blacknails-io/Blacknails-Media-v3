@@ -13,7 +13,7 @@ export class NsfwTaskRunner extends BaseAssetWorker {
   public readonly id = 'nsfw-worker';
   public readonly label = 'NSFW Analyzer';
   public readonly provides = ['nsfw_scores'];
-  public readonly requires = ['thumbnails'];
+  public readonly requires = ['image_transcodes', 'video_transcodes'];
 
   constructor(
     eventBus: IEventBus,

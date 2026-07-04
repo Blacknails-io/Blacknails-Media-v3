@@ -26,7 +26,7 @@ export class PipelineCoordinatorService {
     if (!this.eventBus) return;
     this.eventBus.subscribe('COMPLETED', (event) => {
       if (event.type === 'PROCESS') {
-        void this.handleWorkerCompleted(event.processName);
+        void this.handleWorkerCompleted(event.source || event.processName);
       }
     });
   }
@@ -34,17 +34,28 @@ export class PipelineCoordinatorService {
   private async handleWorkerCompleted(processName: string): Promise<void> {
     const processToWorkerId: Record<string, string> = {
       'IMPORT': 'import-worker',
+      'IMPORT-WORKER': 'import-worker',
       'INDEX': 'index-worker',
-      'THUMBNAIL': 'thumbnail-worker',
+      'INDEX-WORKER': 'index-worker',
+      'IMAGE-PREVIEW-WORKER': 'image-preview-worker',
+      'VIDEO-PREVIEW-WORKER': 'video-preview-worker',
+      'IMAGE-TRANSCODE-WORKER': 'image-transcode-worker',
+      'VIDEO-TRANSCODE-WORKER': 'video-transcode-worker',
       'DESCRIPTION': 'description-worker',
+      'DESCRIPTION-WORKER': 'description-worker',
       'TAGS': 'tags-worker',
+      'TAGS-WORKER': 'tags-worker',
       'TITLE': 'title-worker',
+      'TITLE-WORKER': 'title-worker',
       'NSFW': 'nsfw-worker',
+      'NSFW-WORKER': 'nsfw-worker',
       'FACE_DETECTION': 'face-worker',
-      'FACE_CLUSTERING': 'face-cluster-worker'
+      'FACE-WORKER': 'face-worker',
+      'FACE_CLUSTERING': 'face-cluster-worker',
+      'FACE-CLUSTER-WORKER': 'face-cluster-worker'
     };
 
-    const workerId = processToWorkerId[processName.toUpperCase()];
+    const workerId = this.get(processName) ? processName : processToWorkerId[processName.toUpperCase()];
     if (!workerId) return;
 
     const completedWorker = this.get(workerId);
@@ -153,8 +164,17 @@ export class PipelineCoordinatorService {
           await this.resetIndexState();
           await this.rehydrateOriginalMediaFiles();
           break;
-        case 'thumbnail-worker':
-          await this.resetThumbnailsState();
+        case 'image-preview-worker':
+          await this.resetImagePreviewState();
+          break;
+        case 'video-preview-worker':
+          await this.resetVideoPreviewState();
+          break;
+        case 'image-transcode-worker':
+          await this.resetImageTranscodeState();
+          break;
+        case 'video-transcode-worker':
+          await this.resetVideoTranscodeState();
           break;
         case 'description-worker':
           await this.resetDescriptionState();
@@ -254,6 +274,73 @@ export class PipelineCoordinatorService {
     }
   }
 
+  private async resetImagePreviewState(): Promise<void> {
+    const assets = await this.uow.assets.getAll();
+    const thumbsRoot = path.resolve(this.thumbnailsDir);
+
+    for (const asset of assets.filter((item) => item.assetType === 'PHOTO')) {
+      const candidates = [asset.thumbnailPath, asset.aiThumbnailPath].filter(
+        (value): value is string => Boolean(value)
+      );
+      for (const candidate of candidates) {
+        if (!this.isInsideDirectory(candidate, thumbsRoot)) continue;
+        await fs.unlink(candidate).catch(() => undefined);
+      }
+
+      asset.thumbnailPath = undefined;
+      asset.aiThumbnailPath = undefined;
+      await this.uow.assets.save(asset);
+    }
+  }
+
+  private async resetVideoPreviewState(): Promise<void> {
+    const assets = await this.uow.assets.getAll();
+    const thumbsRoot = path.resolve(this.thumbnailsDir);
+
+    for (const asset of assets.filter((item) => item.assetType === 'VIDEO')) {
+      const candidates = [asset.thumbnailPath, asset.aiThumbnailPath, asset.videoPreviewPath].filter(
+        (value): value is string => Boolean(value)
+      );
+      for (const candidate of candidates) {
+        if (!this.isInsideDirectory(candidate, thumbsRoot)) continue;
+        await fs.unlink(candidate).catch(() => undefined);
+      }
+
+      asset.thumbnailPath = undefined;
+      asset.aiThumbnailPath = undefined;
+      asset.videoPreviewPath = undefined;
+      await this.uow.assets.save(asset);
+    }
+  }
+
+  private async resetImageTranscodeState(): Promise<void> {
+    const assets = await this.uow.assets.getAll();
+    const thumbsRoot = path.resolve(this.thumbnailsDir);
+
+    for (const asset of assets.filter((item) => item.assetType === 'PHOTO')) {
+      if (asset.aiThumbnailPath && this.isInsideDirectory(asset.aiThumbnailPath, thumbsRoot)) {
+        await fs.unlink(asset.aiThumbnailPath).catch(() => undefined);
+      }
+
+      asset.aiThumbnailPath = undefined;
+      await this.uow.assets.save(asset);
+    }
+  }
+
+  private async resetVideoTranscodeState(): Promise<void> {
+    const assets = await this.uow.assets.getAll();
+    const thumbsRoot = path.resolve(this.thumbnailsDir);
+
+    for (const asset of assets.filter((item) => item.assetType === 'VIDEO')) {
+      if (asset.videoPreviewPath && this.isInsideDirectory(asset.videoPreviewPath, thumbsRoot)) {
+        await fs.unlink(asset.videoPreviewPath).catch(() => undefined);
+      }
+
+      asset.videoPreviewPath = undefined;
+      await this.uow.assets.save(asset);
+    }
+  }
+
   private async resetDescriptionState(): Promise<void> {
     const assets = await this.uow.assets.getAll();
     for (const asset of assets) {
@@ -312,7 +399,10 @@ export class PipelineCoordinatorService {
   private async computeBacklogSnapshot(workerIds: string[]): Promise<Record<string, number>> {
     const idSet = new Set(workerIds);
     const needsAssets = [
-      'thumbnail-worker',
+      'image-preview-worker',
+      'video-preview-worker',
+      'image-transcode-worker',
+      'video-transcode-worker',
       'description-worker',
       'tags-worker',
       'title-worker',
@@ -339,8 +429,17 @@ export class PipelineCoordinatorService {
         case 'index-worker':
           snapshot[workerId] = orphans.length;
           break;
-        case 'thumbnail-worker':
-          snapshot[workerId] = assets.filter((asset) => !asset.thumbnailPath).length;
+        case 'image-preview-worker':
+          snapshot[workerId] = assets.filter((asset) => asset.assetType === 'PHOTO' && !asset.thumbnailPath).length;
+          break;
+        case 'video-preview-worker':
+          snapshot[workerId] = assets.filter((asset) => asset.assetType === 'VIDEO' && !asset.thumbnailPath).length;
+          break;
+        case 'image-transcode-worker':
+          snapshot[workerId] = assets.filter((asset) => asset.assetType === 'PHOTO' && Boolean(asset.thumbnailPath) && !asset.aiThumbnailPath).length;
+          break;
+        case 'video-transcode-worker':
+          snapshot[workerId] = assets.filter((asset) => asset.assetType === 'VIDEO' && Boolean(asset.thumbnailPath) && !asset.videoPreviewPath).length;
           break;
         case 'description-worker':
           snapshot[workerId] = assets.filter((asset) => Boolean(asset.aiThumbnailPath || asset.thumbnailPath) && !asset.aiDescription).length;

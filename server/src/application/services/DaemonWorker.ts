@@ -15,6 +15,7 @@ export interface WorkerStatusDTO {
   label: string;
   isRunning: boolean;
   isExecuting?: boolean;
+  currentAssetType?: 'PHOTO' | 'VIDEO';
   intervalMs: number;
   pendingItems: number;
   lastRunAt?: string;
@@ -37,6 +38,7 @@ export abstract class DaemonWorker {
   protected lastErrorAt?: string;
   protected lastErrorMessage?: string;
   protected currentExecutionId?: string;
+  protected currentAssetType?: 'PHOTO' | 'VIDEO';
 
   constructor(
     protected readonly eventBus: IEventBus,
@@ -91,6 +93,7 @@ export abstract class DaemonWorker {
       label: this.label,
       isRunning: this.isRunning,
       isExecuting: !!this.currentExecutionId,
+      currentAssetType: this.currentAssetType,
       intervalMs: this.intervalMs,
       pendingItems: pendingItemsOverride ?? await this.getPendingItems(),
       lastRunAt: this.lastRunAt,

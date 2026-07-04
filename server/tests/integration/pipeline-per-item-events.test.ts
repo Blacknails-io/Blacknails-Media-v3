@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Photo, Asset } from '../../src/domain/entities/Asset.js';
+import { Photo, Video, Asset } from '../../src/domain/entities/Asset.js';
 import { BaseAssetWorker } from '../../src/application/workers/BaseAssetWorker.js';
 import { IEventBus } from '../../src/application/ports/out/IEventBus.js';
 import { IUnitOfWork } from '../../src/application/ports/out/IUnitOfWork.js';
@@ -15,12 +15,14 @@ class TestAssetWorker extends BaseAssetWorker {
   public readonly label = 'Test Worker';
   public readonly intervalMs = 0;
   public readonly processedAssetIds: string[] = [];
+  public readonly observedAssetTypes: Array<'PHOTO' | 'VIDEO' | undefined> = [];
 
   protected isPending(asset: Asset): boolean {
     return !this.processedAssetIds.includes(asset.id);
   }
 
   protected async processAsset(asset: Asset): Promise<void> {
+    this.observedAssetTypes.push((await this.describe()).currentAssetType);
     this.processedAssetIds.push(asset.id);
   }
 }
@@ -53,7 +55,7 @@ function createNoopWorkerExecutionRepo(): IWorkerExecutionRepository {
   };
 }
 
-function createUnitOfWorkForAssets(assets: Photo[]): IUnitOfWork {
+function createUnitOfWorkForAssets(assets: Asset[]): IUnitOfWork {
   const repo: IAssetRepository = {
     save: async () => {},
     getById: async () => null,
@@ -107,4 +109,22 @@ test('asset workers process one pending asset per trigger', async () => {
 
   assert.equal(perAssetMessages.length, 2);
   assert.ok(perAssetMessages[1].includes(assets[1].id));
+});
+
+test('asset workers expose the current media type while processing', async () => {
+  const assets: Asset[] = [new Photo({}), new Video({})];
+  const eventBus: IEventBus = {
+    publish: async () => {},
+    subscribe: () => {}
+  };
+
+  const worker = new TestAssetWorker(eventBus, createUnitOfWorkForAssets(assets));
+
+  await worker.trigger();
+  assert.deepEqual(worker.observedAssetTypes, ['PHOTO']);
+  assert.equal((await worker.describe()).currentAssetType, undefined);
+
+  await worker.trigger();
+  assert.deepEqual(worker.observedAssetTypes, ['PHOTO', 'VIDEO']);
+  assert.equal((await worker.describe()).currentAssetType, undefined);
 });
