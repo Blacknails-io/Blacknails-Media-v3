@@ -14,3 +14,5 @@ Refer to the description field above. This skill is meant to be activated when d
 ## How to use it
 
 - Follow the detailed rules, configurations, and architecture conventions defined in the resources: [guidelines.md](resources/guidelines.md)
+- **Ejemplo de Tarjeta Interactiva**: Consulta [InteractiveMediaCard.tsx](examples/InteractiveMediaCard.tsx) para ver cómo estructurar componentes con efectos 3D de Atropos y transiciones físicas de Framer Motion.
+

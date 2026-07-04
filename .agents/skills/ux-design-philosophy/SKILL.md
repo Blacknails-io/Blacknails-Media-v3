@@ -19,6 +19,9 @@ Whenever you design a mockup or propose a UI change, you MUST provide:
 4. **Mockups vs Specs:** Image generators struggle with exact UI layouts. Use `generate_image` ONLY for aesthetic mood boards or general lighting/color references. For the actual UI structure, you MUST rely on text-based layout descriptions, Markdown tables, or Mermaid diagrams specifying where the Sidebar, Toolbar, and Grid are positioned.
 
 ## 3. Aesthetic Guidelines
-- **Clean & Minimalist:** Use neutral backgrounds (pure whites/light grays in light mode, deep slate/blacks in dark mode) so the colors of the photographs are not tinted or distracted by the UI.
-- **Typography:** Modern, highly legible sans-serif. Information hierarchy should be established through weight and opacity (e.g., text-zinc-400 for secondary metadata), not just size.
-- **Micro-interactions:** Use smooth, physical-feeling spring animations (Framer Motion). Avoid abrupt flashes or "cyberpunk" neon glowing UI elements.
+- **Cyberpunk Visual Direction:** The product aesthetic is cyberpunk, built from gloss, neon, polished dark metal, glass, reflections, and cinematic city-light contrast. It should feel premium and physical, not flat or generic.
+- **Terminal Surface Model:** Treat the web UI like a futuristic terminal/control surface. LiquidGlass belongs on important, large, brand-bearing, navigational, content-framing, or operational command surfaces. Decide by visual weight, scale, and function rather than by a fixed component list.
+- **LiquidGlass-First Moments:** When a surface is meant to carry the cyberpunk/gloss/neon feeling, create and tune that feeling through the LiquidGlass laboratory workflow before production. Do not fake the main material with a simple gradient.
+- **Media Respect:** The gallery remains media-first. Cyberpunk chrome and command surfaces may be expressive, but photo/video colors should not be globally tinted or distracted.
+- **Typography:** Modern, highly legible sans-serif. Information hierarchy should be established through weight, opacity, light, and material contrast, not just size.
+- **Micro-interactions:** Use smooth, physical-feeling spring animations (Framer Motion), reflective highlights, and controlled neon energy. Avoid random glitch noise or unreadable flashing.

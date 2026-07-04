@@ -16,3 +16,8 @@ description: Reglas obligatorias para la corrección de bugs y regresiones. Úsa
 ## 3. Aislamiento y Mocks
 - Los tests de backend deben usar una base de datos en memoria o aislada (como `:memory:` en SQLite) para evitar contaminar la base de datos de desarrollo.
 - Los tests deben ser repetibles y deterministas.
+
+## 4. Recursos de Ayuda y Automatización
+- **Ejemplo de Test de Regresión**: Consulta [node_regression_test_template.ts](examples/node_regression_test_template.ts) para ver cómo estructurar un test aislado usando el framework nativo de Node.js.
+- **Script de Ejecución**: Puedes usar el script [run_changed_tests.sh](scripts/run_changed_tests.sh) para correr de forma automatizada únicamente los tests asociados a tus archivos TypeScript modificados en Git.
+

@@ -45,6 +45,10 @@ temp/
 client/test-results/
 client/playwright-report/
 playwright-report/
+client/artifacts/
+
+# Temporary AI / Pipeline outputs
+outputs/
 
 # OS/editor noise
 .DS_Store

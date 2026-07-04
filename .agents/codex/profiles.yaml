@@ -1,0 +1,51 @@
+profiles:
+  codex-architect:
+    model: gpt-5.5
+    thinking: xhigh
+    purpose: "Owns architecture decisions, domain boundaries, Open/Closed design, and cross-layer tradeoffs."
+    requiredSkills:
+      - server-architecture
+      - frontend-architecture
+      - security-privacy
+      - project-documentation
+    prompt: prompts/codex-architect.md
+
+  codex-frontend-visual:
+    model: gpt-5.5
+    thinking: high
+    purpose: "Owns reusable frontend visual-system decisions: themes, materials, surfaces, glass/metal effects, typography, and UI polish."
+    requiredSkills:
+      - frontend-architecture
+      - frontend-design-system
+      - frontend-ui-motion
+      - ux-design-philosophy
+      - project-documentation
+    prompt: prompts/codex-frontend-visual.md
+
+  codex-implementation:
+    model: gpt-5.4
+    thinking: high
+    purpose: "Implements focused features once the architectural direction is clear."
+    requiredSkills:
+      - proactive-bug-fixing
+      - project-documentation
+    prompt: prompts/codex-implementation.md
+
+  codex-fast-fix:
+    model: gpt-5.4-mini
+    thinking: medium
+    purpose: "Handles small, low-risk, mechanical changes and quick verification tasks."
+    requiredSkills:
+      - bug-regression-testing
+      - proactive-bug-fixing
+    prompt: prompts/codex-fast-fix.md
+
+  codex-test-qa:
+    model: gpt-5.4
+    thinking: high
+    purpose: "Designs and runs regression, E2E, and verification work."
+    requiredSkills:
+      - test-automation
+      - bug-regression-testing
+      - proactive-bug-fixing
+    prompt: prompts/codex-test-qa.md
