@@ -21,6 +21,7 @@ To enforce and preserve backend layers and boundaries, ensuring that domain enti
 - **NEVER** import Express request or response objects (`Request`, `Response`) into `application/use_cases/`.
 - **MUST** isolate application execution boundaries using explicit Driving Ports (`ports/in/`) and Driven Ports (`ports/out/`).
 - **MUST** map raw database rows back to pure Domain Entity models in the outbound database adapters before returning them to the application layer.
+- **MUST** classify API operations into Synchronous (Blocking) and Asynchronous (Reactive). Long-running executions (media tasks, AI, clustering) must never block HTTP responses; they must return a `202 Accepted` immediately and process asynchronously while dispatching status events to the client.
 
 ---
 

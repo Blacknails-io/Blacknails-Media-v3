@@ -18,3 +18,22 @@ This layer contains all concrete implementations bridging the Application with t
 - **`adapters/out/` (Driven Adapters)**: Concrete implementations of `ports/out`. 
   - E.g., `adapters/out/database/SqliteAssetRepository.ts`
   - E.g., `adapters/out/services/InMemoryEventBus.ts`
+
+## 4. API Operations: Synchronous vs Asynchronous
+
+Every API endpoint must fall into one of two design categories to ensure both data integrity and UI responsiveness.
+
+### 4.1 Synchronous (Blocking) Operations
+Operations that complete immediately and update the transactional database must run síncronamente. The HTTP request blocks until the database writes are finalized, returning a `200 OK` or `201 Created` response.
+*   **Examples**: User login, role assignment (`authService.updateUserRole`), naming detections (`peopleService.updateName`), and explicit deletions.
+*   **Rule**: Express controller waits (`await`) for the Use Case to complete before writing the HTTP response headers.
+
+### 4.2 Asynchronous (Non-Blocking / Reactive) Operations
+Long-running executions or background processing tasks (anything involving transcode, AI processing, or intensive batch operations) **MUST NEVER** block the HTTP thread.
+*   **Examples**: Media file import pipelines, AI description generation, face detection extraction, and clustering workflows.
+*   **Rule**: 
+    1.  The HTTP Controller parses inputs and hands over the execution task to the orchestrator (e.g. `PipelineCoordinatorService` or task queue).
+    2.  The Controller immediately returns an HTTP status code `202 Accepted` along with the initial task metadata.
+    3.  The task executes asynchronously in background workers. The workers periodically dispatch `PROCESS` and `DOMAIN` events to the system `EventBus`.
+    4.  The frontend client catches these events and dynamically updates the interface, avoiding polling and blocking states.
+
