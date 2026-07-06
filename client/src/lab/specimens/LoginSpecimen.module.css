@@ -1,9 +1,11 @@
 .loginPreviewPanel {
   /* Panel wrapper styling if needed */
+  display: block;
 }
 
 .loginPreviewContent {
   /* Content wrapper styling if needed */
+  display: block;
 }
 
 .previewLoginCard {

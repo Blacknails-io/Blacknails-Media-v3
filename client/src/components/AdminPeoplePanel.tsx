@@ -219,13 +219,13 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
     return (
       <SectionPanel title={`Fotos de ${selectedPerson.name || selectedPerson.label}`} instanceId="admin-person-gallery">
         <div className="flex flex-col gap-4">
-          <header className="flex justify-between items-center pb-3 border-b border-zinc-200 dark:border-zinc-800">
+          <header className="flex justify-between items-center pb-3 border-b border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)]">
             <button
               onClick={() => {
                 setSelectedPerson(null);
                 setPersonAssetsError(null);
               }}
-              className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-surface-panel hover:bg-surface-panel dark:bg-surface-panel dark:hover:bg-surface-panel text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="19" y1="12" x2="5" y2="12" />
@@ -233,16 +233,16 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
               </svg>
               Volver al Directorio
             </button>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-secondary">
               <span>{personAssets.length} {personAssets.length === 1 ? 'elemento encontrado' : 'elementos encontrados'}</span>
-              <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-semibold dark:bg-zinc-900">{selectedPerson.faceCount} detecciones</span>
+              <span className="rounded-full bg-surface-panel px-2 py-1 text-xs font-semibold dark:bg-surface-panel">{selectedPerson.faceCount} detecciones</span>
             </div>
           </header>
 
           {isLoadingAssets ? (
-            <div className="py-20 text-center text-zinc-500">Cargando galería de la persona...</div>
+            <div className="py-20 text-center text-secondary">Cargando galería de la persona...</div>
           ) : personAssetsError ? (
-            <div className="flex flex-col gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-500">
+            <div className="flex flex-col gap-3 rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-accent-ruby">
               <span>{personAssetsError}</span>
               <button
                 type="button"
@@ -254,14 +254,14 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
               </button>
             </div>
           ) : personAssets.length === 0 ? (
-            <div className="py-20 text-center text-zinc-500">No se encontraron archivos para esta persona.</div>
+            <div className="py-20 text-center text-secondary">No se encontraron archivos para esta persona.</div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {personAssets.map(asset => (
                 <article
                   key={asset.id}
                   onClick={() => onSelectAsset(asset)}
-                  className="group relative aspect-square rounded-xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md cursor-pointer transition-all duration-300"
+                  className="group relative aspect-square rounded-xl overflow-hidden bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] shadow-sm hover:shadow-md cursor-pointer transition-all duration-300"
                 >
                   <img
                     src={asset.imageUrl}
@@ -277,7 +277,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-3 flex flex-col justify-end">
                     <p className="text-xs text-white font-medium truncate">{asset.title}</p>
-                    <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{formatResolution(asset)}</p>
+                    <p className="text-[10px] text-secondary font-mono mt-0.5">{formatResolution(asset)}</p>
                   </div>
                 </article>
               ))}
@@ -291,19 +291,19 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
   return (
     <SectionPanel title="Personas Detectadas" instanceId="admin-people-panel">
       <div className="flex flex-col gap-4">
-        <div className="grid gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/30 md:grid-cols-[1fr_auto]">
+        <div className="grid gap-3 rounded-lg border border-[rgba(var(--lab-surface-rgb-edge),0.5)] bg-surface-panel p-3 dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:bg-surface-panel/30 md:grid-cols-[1fr_auto]">
           <div className="grid gap-2 sm:grid-cols-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Personas</p>
-              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{people.length}</strong>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-secondary">Personas</p>
+              <strong className="text-lg text-primary dark:text-primary">{people.length}</strong>
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Identificadas</p>
-              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{namedCount}</strong>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-secondary">Identificadas</p>
+              <strong className="text-lg text-primary dark:text-primary">{namedCount}</strong>
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Detecciones</p>
-              <strong className="text-lg text-zinc-900 dark:text-zinc-100">{totalFaces}</strong>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-secondary">Detecciones</p>
+              <strong className="text-lg text-primary dark:text-primary">{totalFaces}</strong>
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row md:items-center">
@@ -312,13 +312,13 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
               value={peopleQuery}
               onChange={(event) => setPeopleQuery(event.target.value)}
               placeholder="Buscar persona..."
-              className="min-h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              className="min-h-10 rounded-lg border border-[rgba(var(--lab-surface-rgb-edge),0.5)] bg-white px-3 text-sm text-primary focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:bg-surface-base dark:text-primary"
               data-instance-id="people-search-input"
             />
             <select
               value={sortMode}
               onChange={(event) => setSortMode(event.target.value as PeopleSortMode)}
-              className="min-h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              className="min-h-10 rounded-lg border border-[rgba(var(--lab-surface-rgb-edge),0.5)] bg-white px-3 text-sm text-primary focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:bg-surface-base dark:text-primary"
               data-instance-id="people-sort-select"
             >
               <option value="COUNT_DESC">Más apariciones</option>
@@ -329,15 +329,15 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
         </div>
 
         {isLoading ? (
-          <div className="py-20 text-center text-zinc-500">Cargando directorio de rostros...</div>
+          <div className="py-20 text-center text-secondary">Cargando directorio de rostros...</div>
         ) : error ? (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">{error}</div>
+          <div className="p-4 bg-red-500/10 border border-red-500/20 text-accent-ruby text-sm rounded-lg">{error}</div>
         ) : people.length === 0 ? (
-          <div className="py-20 text-center text-zinc-500 bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+          <div className="py-20 text-center text-secondary bg-surface-panel dark:bg-surface-panel/30 rounded-xl border border-dashed border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)]">
             No se han agrupado rostros todavía. Asegúrate de ejecutar los workers <strong>Face Detection</strong> y <strong>Face Clustering</strong>.
           </div>
         ) : visiblePeople.length === 0 ? (
-          <div className="py-20 text-center text-zinc-500 bg-zinc-50 dark:bg-zinc-900/30 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+          <div className="py-20 text-center text-secondary bg-surface-panel dark:bg-surface-panel/30 rounded-xl border border-dashed border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)]">
             No hay personas que coincidan con la búsqueda.
           </div>
         ) : (
@@ -345,7 +345,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
             {visiblePeople.map(person => (
               <article
                 key={person.id}
-                className="group relative flex flex-col items-center bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-5 hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300"
+                className="group relative flex flex-col items-center bg-surface-panel dark:bg-surface-panel/30 border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)]/80 rounded-2xl p-5 hover:shadow-lg hover:border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:hover:border-[rgba(var(--lab-surface-rgb-edge),0.5)] transition-all duration-300"
                 data-instance-id={`person-card-${person.id}`}
               >
                 <button
@@ -355,7 +355,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                     void handleDismissPerson(person);
                   }}
                   disabled={dismissingId === person.id}
-                  className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white/90 text-zinc-400 opacity-0 shadow-sm transition-all hover:border-red-300 hover:text-red-500 group-hover:opacity-100 disabled:cursor-wait disabled:opacity-60 dark:border-zinc-800 dark:bg-zinc-950/90 dark:hover:border-red-500/50"
+                  className="absolute right-2 top-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(var(--lab-surface-rgb-edge),0.5)] bg-white/90 text-secondary opacity-0 shadow-sm transition-all hover:border-accent-ruby hover:text-accent-ruby group-hover:opacity-100 disabled:cursor-wait disabled:opacity-60 dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:bg-surface-base/90 dark:hover:border-accent-ruby/50"
                   title="Descartar falso positivo"
                   aria-label={'Descartar ' + (person.name || person.label) + ' como falso positivo'}
                   data-instance-id={'person-dismiss-' + person.id}
@@ -380,7 +380,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                     thumbnailUrl={person.thumbnailUrl} 
                     bbox={person.bbox} 
                     size={110} 
-                    className="shadow-md border-2 border-white dark:border-zinc-950" 
+                    className="shadow-md border-2 border-white dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)]" 
                   />
                 </button>
 
@@ -389,17 +389,17 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                   {editingId === person.id ? (
                     <div id={`editing-container-${person.id}`} className="relative w-full flex flex-col items-center">
                       {/* Trigger: a styled select box showing current name */}
-                      <div className="flex items-center justify-between gap-1.5 w-full max-w-[150px] bg-zinc-100 dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-left cursor-default">
-                        <span className="truncate text-zinc-700 dark:text-zinc-300 font-medium">
+                      <div className="flex items-center justify-between gap-1.5 w-full max-w-[150px] bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] rounded-lg px-2.5 py-1.5 text-xs text-left cursor-default">
+                        <span className="truncate text-secondary dark:text-secondary font-medium">
                           {person.name || person.label}
                         </span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-zinc-500">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-secondary">
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </div>
 
                       {/* Dropdown Menu */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-1 w-[160px] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl p-1.5 flex flex-col gap-1.5">
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-1 w-[160px] bg-white dark:bg-surface-base border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] rounded-xl shadow-xl p-1.5 flex flex-col gap-1.5">
                         {/* Position 1: Input to type custom/new name */}
                         <input
                           type="text"
@@ -429,7 +429,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                           }}
                           autoFocus
                           disabled={isSavingName}
-                          className="w-full text-xs bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded px-2.5 py-1 text-center font-medium"
+                          className="w-full text-xs bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded px-2.5 py-1 text-center font-medium"
                         />
 
                         {/* Position 2+: Existing names list (max 5 visible, scrollable) */}
@@ -445,8 +445,8 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                                 }}
                                 className={`w-full px-2.5 py-1.5 text-xs text-left truncate rounded-lg transition-colors ${
                                   index === dropdownIndex 
-                                    ? 'bg-indigo-500/10 text-indigo-400 font-semibold' 
-                                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                                    ? 'bg-accent-cyan/10 text-accent-cyan font-semibold' 
+                                    : 'text-secondary dark:text-secondary hover:bg-surface-panel dark:hover:bg-surface-panel'
                                 }`}
                               >
                                 {name}
@@ -461,7 +461,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                       <button
                         type="button"
                         onClick={() => void fetchPersonAssets(person)}
-                        className="text-sm font-semibold truncate max-w-[130px] cursor-pointer hover:text-indigo-400 transition-colors"
+                        className="text-sm font-semibold truncate max-w-[130px] cursor-pointer hover:text-accent-cyan transition-colors"
                         title={person.name || person.label}
                       >
                         {person.name || person.label}
@@ -472,7 +472,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                           setEditingName(person.name || '');
                           setDropdownIndex(-1);
                         }}
-                        className="opacity-0 group-hover/name:opacity-100 p-0.5 text-zinc-400 hover:text-indigo-400 transition-all"
+                        className="opacity-0 group-hover/name:opacity-100 p-0.5 text-secondary hover:text-accent-cyan transition-all"
                         title="Editar nombre"
                       >
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -482,7 +482,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                       </button>
                     </div>
                   )}
-                  <span className="text-xs text-zinc-500 mt-1 font-medium">
+                  <span className="text-xs text-secondary mt-1 font-medium">
                     {person.faceCount} {person.faceCount === 1 ? 'foto' : 'fotos'}
                   </span>
                 </div>

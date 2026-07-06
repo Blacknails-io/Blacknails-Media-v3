@@ -1,0 +1,10 @@
+const content = `:root {\n  /* --- LAB_OVERRIDES_START --- *//* --- LAB_OVERRIDES_END --- */\n}`;
+const startMarker = `/* --- LAB_OVERRIDES_START --- */`;
+const endMarker = `/* --- LAB_OVERRIDES_END --- */`;
+const startIndex = content.indexOf(startMarker);
+const endIndex = content.indexOf(endMarker);
+const overrides = { '--text-primary': '#ff0000' };
+const lines = Object.entries(overrides).map(([key, val]) => `  ${key}: ${val};`);
+const newOverrides = lines.length > 0 ? `\n${lines.join('\n')}\n  ` : '';
+const newContent = content.substring(0, startIndex + startMarker.length) + newOverrides + content.substring(endIndex);
+console.log(newContent);

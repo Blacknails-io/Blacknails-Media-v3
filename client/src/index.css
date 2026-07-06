@@ -2,13 +2,35 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-tertiary: var(--text-tertiary);
+  --color-disabled: var(--text-disabled);
+  
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-ruby: var(--accent-ruby);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-lime: var(--accent-lime);
+
+  --color-surface-base: rgb(var(--lab-surface-rgb-base, 3, 6, 24));
+  --color-surface-panel: rgb(var(--lab-surface-rgb-edge, 12, 16, 61));
+}
 /* Base styles for the Prosumer UI */
 :root {
   /* --- LAB_OVERRIDES_START --- */
+  --text-primary: #F5C451;
+  --text-secondary: #E6D28C;
+  --text-tertiary: #BCA05A;
+  --text-disabled: #746A4A;
+  --accent-cyan: #F5C451;
+  --accent-ruby: #FF5C7A;
+  --accent-amber: #FF8A3D;
+  --accent-lime: #A8FFCF;
   /* --- LAB_OVERRIDES_END --- */
 }
 
 body {
-  @apply text-zinc-900 dark:text-zinc-100 transition-colors duration-300;
+  @apply text-zinc-900 dark:text-primary transition-colors duration-300;
   background: #030618;
 }

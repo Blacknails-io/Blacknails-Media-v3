@@ -98,4 +98,52 @@ test.describe('Visual Lab', () => {
     expect(payload.component).toBe('login');
     expect(payload.overrides['--accent-ruby']).toBe('#ff00ff');
   });
+
+  test('switching palettes updates colors and deploys full palette', async ({ page }) => {
+    await page.goto('/?lab=true');
+
+    await page.route('/__theme_sync?component=global', async (route) => {
+      // Mock empty initial overrides to ensure clean state
+      await route.fulfill({ status: 200, json: { overrides: {} } });
+    });
+
+    await page.route('/__theme_sync', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({ status: 200, json: { success: true } });
+      } else {
+        await route.fallback();
+      }
+    });
+
+    // Find the text-primary input
+    const textPrimaryRow = page.locator('label').filter({ hasText: '--text-primary' });
+    const textPrimaryInput = textPrimaryRow.locator('input[type="color"]');
+    
+    // Get the initial color (e.g., from default Ice preset)
+    const initialColor = await textPrimaryInput.inputValue();
+
+    // Click the "Netrunner" palette swatch
+    const netrunnerSwatch = page.locator('button[aria-label="Netrunners"]');
+    await expect(netrunnerSwatch).toBeVisible();
+    await netrunnerSwatch.click();
+
+    // Verify the text-primary color input changed to Netrunner text primary color
+    await expect(textPrimaryInput).not.toHaveValue(initialColor);
+    const netrunnerColor = await textPrimaryInput.inputValue();
+    
+    // Click Deploy Theme and verify the payload contains the Netrunner palette colors
+    const requestPromise = page.waitForRequest('/__theme_sync');
+    const dialogPromise = page.waitForEvent('dialog');
+    await page.getByRole('button', { name: 'DEPLOY THEME' }).click();
+    
+    const request = await requestPromise;
+    const dialog = await dialogPromise;
+    await dialog.accept();
+
+    const payload = JSON.parse(request.postData() || '{}');
+    expect(payload.component).toBe('global');
+    // Verify that the deploy payload contains the palette colors, not an empty object
+    expect(payload.overrides['--text-primary'].toLowerCase()).toBe(netrunnerColor.toLowerCase());
+    expect(Object.keys(payload.overrides).length).toBeGreaterThan(3);
+  });
 });

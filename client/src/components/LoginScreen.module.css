@@ -216,7 +216,7 @@
 }
 
 .loginInput:focus + .loginInputIcon {
-  color: var(--bn-cyan-hot);
+  color: var(--accent-cyan);
 }
 
 .loginInputToggleBtn {
@@ -259,7 +259,7 @@
   width: 100%;
   min-height: 44px;
   padding: 12px;
-  background: linear-gradient(100deg, var(--bn-ice) 0%, var(--bn-cyan) 46%, var(--bn-magenta) 100%);
+  background: linear-gradient(100deg, var(--text-primary) 0%, var(--accent-cyan) 46%, var(--accent-ruby) 100%);
   border: 1px solid rgba(219, 245, 255, 0.72);
   border-radius: var(--border-radius-input);
   color: #030716;
@@ -373,8 +373,8 @@
 }
 
 .loginCheckbox:checked {
-  background: linear-gradient(135deg, var(--bn-ice), var(--bn-cyan));
-  border-color: var(--bn-cyan-hot);
+  background: linear-gradient(135deg, var(--text-primary), var(--accent-cyan));
+  border-color: var(--accent-cyan);
   box-shadow: 0 0 10px rgba(52, 186, 231, 0.36);
 }
 
@@ -392,7 +392,7 @@
 
 .loginOptionsLink,
 .loginFooterLink {
-  color: var(--bn-cyan-hot);
+  color: var(--accent-cyan);
   text-decoration: none;
   transition: all var(--transition-fast) var(--ease-cyber);
   font-family: var(--font-sans);

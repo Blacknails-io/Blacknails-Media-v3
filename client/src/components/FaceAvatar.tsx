@@ -40,11 +40,11 @@ export const FaceAvatar = ({ thumbnailUrl, bbox, size = 64, className = '' }: Fa
 
   return (
     <div 
-      className={`relative rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center ${className}`} 
+      className={`relative rounded-full overflow-hidden bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] flex items-center justify-center ${className}`} 
       style={{ width: `${size}px`, height: `${size}px`, flexShrink: 0 }}
     >
       {error ? (
-        <span className="text-zinc-400 dark:text-zinc-500 font-bold text-xs">?</span>
+        <span className="text-secondary dark:text-secondary font-bold text-xs">?</span>
       ) : (
         <img src={thumbnailUrl} alt="Face Crop" style={styles} />
       )}

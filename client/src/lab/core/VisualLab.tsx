@@ -35,7 +35,7 @@ export function VisualLab({ stylesDef, specimens, initialStyleId, initialSpecime
         if (res.ok) {
           const data = await res.json();
           if (data.overrides) {
-            setConfig((c: any) => ({ ...activeStyle.defaultConfig, ...data.overrides }));
+            setConfig(() => ({ ...activeStyle.defaultConfig, ...data.overrides }));
           }
         }
       } catch (e) {
@@ -72,11 +72,14 @@ export function VisualLab({ stylesDef, specimens, initialStyleId, initialSpecime
   };
 
   const deployTheme = async () => {
-    // Only send string keys (colors) that are explicitly overridden
+    // Merge palette defaults with explicit config overrides
     const overrides: Record<string, string> = {};
-    for (const key in config) {
-      if (typeof config[key] === 'string' && config[key] !== undefined) {
-        overrides[key] = config[key] as string;
+    for (const control of activeStyle.controls) {
+      if (control.type === 'color') {
+        const val = config[control.key] || (cssVars as any)[control.key];
+        if (typeof val === 'string') {
+          overrides[control.key] = val;
+        }
       }
     }
 
@@ -150,7 +153,10 @@ export function VisualLab({ stylesDef, specimens, initialStyleId, initialSpecime
                     type="button"
                     aria-label={p.name}
                     className={activePaletteId === p.id ? styles.activeSwatch : ''}
-                    onClick={() => setActivePaletteId(p.id)}
+                    onClick={() => {
+                      setActivePaletteId(p.id);
+                      setConfig(activeStyle.defaultConfig);
+                    }}
                     style={{ '--swatch-a': swatchA, '--swatch-b': swatchB } as CSSProperties}
                   />
                 );

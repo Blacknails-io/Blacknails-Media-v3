@@ -224,7 +224,7 @@ export default function App() {
   // -- RENDER CONDICIONAL (Auth) --
   if (isInitializing) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-zinc-950 text-zinc-500 font-mono">
+      <div className="h-screen w-full flex items-center justify-center bg-surface-base text-secondary font-mono">
         INICIALIZANDO SISTEMA...
       </div>
     );
@@ -352,7 +352,7 @@ export default function App() {
         <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-1 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors"
+            className="p-1 text-secondary hover:text-primary dark:hover:text-primary transition-colors"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -360,7 +360,7 @@ export default function App() {
               <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
           </button>
-          <div className={`font-bold tracking-wide flex items-center gap-2 transition-colors duration-300 animate-pulse ${sseStatus === 'CONNECTED' ? 'text-emerald-500' : 'text-rose-500'}`}>
+          <div className={`font-bold tracking-wide flex items-center gap-2 transition-colors duration-300 animate-pulse ${sseStatus === 'CONNECTED' ? 'text-accent-lime' : 'text-accent-ruby'}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -373,7 +373,7 @@ export default function App() {
         <div className="flex items-center gap-6">
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
+            className="p-1.5 rounded-lg text-secondary hover:text-primary dark:text-secondary dark:hover:text-primary hover:bg-surface-panel dark:hover:bg-surface-panel transition-colors"
             title={theme === 'light' ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro'}
           >
             {theme === 'light' ? (
@@ -399,7 +399,7 @@ export default function App() {
           {user && (
             <div className="flex items-center gap-3">
               <div 
-                className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white cursor-pointer overflow-hidden border border-zinc-700 hover:border-zinc-400 transition-colors"
+                className="w-8 h-8 rounded-full bg-accent-cyan text-surface-base flex items-center justify-center text-xs font-bold text-white cursor-pointer overflow-hidden border border-[rgba(var(--lab-surface-rgb-edge),0.5)] hover:border-primary transition-colors"
                 title="Cambiar Avatar"
                 onClick={() => avatarInputRef.current?.click()}
               >
@@ -419,9 +419,9 @@ export default function App() {
               />
               <div className="flex flex-col text-left hidden sm:flex">
                 <span className="text-sm font-semibold">{user.username}</span>
-                <span className="text-xs text-zinc-500">{user.role}</span>
+                <span className="text-xs text-secondary">{user.role}</span>
               </div>
-              <button onClick={logout} className="ml-2 text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200" title="Cerrar sesión">
+              <button onClick={logout} className="ml-2 text-secondary hover:text-primary dark:hover:text-primary" title="Cerrar sesión">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                   <polyline points="16 17 21 12 16 7" />
@@ -466,7 +466,7 @@ export default function App() {
           {isAdmin && (
             <>
               {!isSidebarCollapsed && (
-                <div className="mt-6 mb-2 px-3 text-xs font-semibold tracking-wider text-zinc-400 uppercase">
+                <div className="mt-6 mb-2 px-3 text-xs font-semibold tracking-wider text-secondary uppercase">
                   Administración
                 </div>
               )}
@@ -523,7 +523,7 @@ export default function App() {
         <header className="app-topbar">
           {activeTab === 'gallery' ? (
             <>
-              <div className="flex bg-zinc-100 dark:bg-zinc-900 rounded-lg p-1">
+              <div className="flex bg-surface-panel dark:bg-surface-panel rounded-lg p-1">
                 {([
                   { value: 'ALL', label: 'Todo', count: assets.length },
                   { value: 'PHOTO', label: 'Fotos', count: photoCount },
@@ -542,13 +542,13 @@ export default function App() {
               <div className="flex-1 flex items-center gap-2 min-w-0">
                  <input 
                     type="text" 
-                    className="w-full max-w-md bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+                    className="w-full max-w-md bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-4 py-2 text-sm text-primary dark:text-primary"
                     placeholder="Buscar por título, tags o descripción..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                  />
                  <select
-                    className="bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100"
+                    className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-2 text-sm text-primary dark:text-primary"
                     value={gallerySort}
                     onChange={(e) => setGallerySort(e.target.value as GallerySort)}
                     aria-label="Ordenar galería"
@@ -574,7 +574,7 @@ export default function App() {
           ) : activeTab === 'console' ? (
             <div className="flex items-center gap-2 flex-wrap w-full">
               <select
-                className="bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100"
+                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
                 value={eventTypeFilter}
                 onChange={(e) => setEventTypeFilter(e.target.value)}
               >
@@ -585,7 +585,7 @@ export default function App() {
               </select>
 
               <select
-                className="bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100"
+                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >
@@ -605,7 +605,7 @@ export default function App() {
               </select>
 
               <select
-                className="bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100"
+                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
                 value={actionFilter}
                 onChange={(e) => setActionFilter(e.target.value)}
               >
@@ -627,23 +627,23 @@ export default function App() {
 
               <input
                 type="text"
-                className="w-full max-w-xs bg-zinc-100 dark:bg-zinc-900 border-transparent focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100"
+                className="w-full max-w-xs bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
                 placeholder="Filtrar texto..."
                 value={consoleFilter}
                 onChange={(e) => setConsoleFilter(e.target.value)}
               />
               <button
                 onClick={toggleConsolePause}
-                className={`px-3 py-1.5 rounded text-sm font-semibold flex items-center gap-2 ${isConsolePaused ? 'bg-amber-500/20 text-amber-500' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700'}`}
+                className={`px-3 py-1.5 rounded text-sm font-semibold flex items-center gap-2 ${isConsolePaused ? 'bg-accent-amber/20 text-accent-amber' : 'bg-surface-panel dark:bg-surface-panel text-secondary dark:text-secondary hover:bg-surface-panel dark:hover:bg-surface-panel'}`}
               >
                 {isConsolePaused ? '▶ Reanudar' : '⏸ Pausar'}
                 {isConsolePaused && queuedLogsRef.current.length > 0 && (
-                  <span className="bg-amber-500 text-white text-xs px-1.5 rounded-full">{queuedLogsRef.current.length}</span>
+                  <span className="bg-accent-amber text-surface-base text-white text-xs px-1.5 rounded-full">{queuedLogsRef.current.length}</span>
                 )}
               </button>
             </div>
           ) : (
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-lg font-semibold text-primary dark:text-primary">
               {activeTab === 'users' && 'Gestión de Usuarios'}
               {activeTab === 'pipeline' && 'Gestión de Workers'}
             </h1>
@@ -726,7 +726,7 @@ export default function App() {
           {activeTab === 'console' && (
              <div className="app-console-panel" ref={consoleRef} data-instance-id="event-log-panel">
                 {logs.length === 0 ? (
-                  <div className="text-zinc-500">Esperando eventos del sistema...</div>
+                  <div className="text-secondary">Esperando eventos del sistema...</div>
                 ) : (
                   logs.filter(log => {
                     // 1. Event Type filter
@@ -790,19 +790,19 @@ export default function App() {
                     const lowerMsg = String(log?.message || '').toLowerCase();
 
                     // Prefix tags color (determined by event type)
-                    let tagColorClass = 'text-zinc-400 dark:text-zinc-500';
+                    let tagColorClass = 'text-secondary dark:text-secondary';
                     if (log.type === 'SYSTEM') {
-                      tagColorClass = 'text-purple-500 dark:text-purple-400 font-semibold';
+                      tagColorClass = 'text-accent-ruby dark:text-accent-ruby font-semibold';
                     } else if (log.type === 'PROCESS') {
-                      tagColorClass = 'text-blue-500 dark:text-blue-400 font-semibold';
+                      tagColorClass = 'text-accent-cyan dark:text-accent-cyan font-semibold';
                     } else if (log.type === 'DOMAIN') {
-                      tagColorClass = 'text-teal-500 dark:text-teal-400 font-semibold';
+                      tagColorClass = 'text-accent-lime dark:text-accent-lime font-semibold';
                     }
 
                     // Message text color (determined by action outcome/status/content success or failure)
-                    let msgColorClass = 'text-zinc-850 dark:text-zinc-300';
+                    let msgColorClass = 'text-primary dark:text-secondary';
                     if (action === 'error' || status === 'error' || lowerMsg.includes('error') || lowerMsg.includes('falló')) {
-                      msgColorClass = 'text-red-500 dark:text-red-400';
+                      msgColorClass = 'text-accent-ruby dark:text-red-400';
                     } else if (
                       action === 'success' ||
                       status === 'processed' ||
@@ -814,9 +814,9 @@ export default function App() {
                       action === 'grouped' ||
                       action === 'created'
                     ) {
-                      msgColorClass = 'text-emerald-500 dark:text-emerald-400';
+                      msgColorClass = 'text-accent-lime dark:text-accent-lime';
                     } else if (action === 'started' || action === 'startup' || status === 'running') {
-                      msgColorClass = 'text-blue-500 dark:text-blue-400';
+                      msgColorClass = 'text-accent-cyan dark:text-accent-cyan';
                     } else if (
                       action === 'duplicated' ||
                       action === 'rejected' ||
@@ -824,12 +824,12 @@ export default function App() {
                       lowerMsg.includes('saltado') ||
                       lowerMsg.includes('rechazado')
                     ) {
-                      msgColorClass = 'text-amber-500 dark:text-amber-400';
+                      msgColorClass = 'text-accent-amber dark:text-amber-400';
                     }
 
                     return (
-                      <div key={log.id} className="flex items-start gap-2 mb-1 text-zinc-700 dark:text-zinc-300">
-                        <span className="text-zinc-500 whitespace-nowrap flex-shrink-0 text-xs select-none">
+                      <div key={log.id} className="flex items-start gap-2 mb-1 text-secondary dark:text-secondary">
+                        <span className="text-secondary whitespace-nowrap flex-shrink-0 text-xs select-none">
                           [{new Date(log.occurredAt).toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
                         </span>
                         <span className={`${tagColorClass} font-mono flex-shrink-0 select-none text-xs`}>
