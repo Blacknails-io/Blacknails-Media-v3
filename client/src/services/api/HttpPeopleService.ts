@@ -37,10 +37,10 @@ export class HttpPeopleService implements IPeopleService {
       if (err.error) errorMessage = err.error;
     } catch {
       if (res.status === 502 || res.status === 503) {
-        errorMessage = 'Servidor no disponible (Error 502/503).';
+        errorMessage = 'Servidor no disponible.';
       }
     }
-    return errorMessage;
+    return `Error ${res.status}: ${errorMessage}`;
   }
 
   public async list(token?: string): Promise<PersonDTO[]> {
