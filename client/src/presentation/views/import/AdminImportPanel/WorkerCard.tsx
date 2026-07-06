@@ -15,12 +15,25 @@
  */
 
 import { useAuth } from '../../../../context/AuthContext.js';
-import { useAdminImportPanelLogic } from './useAdminImportPanelLogic.js';
-import { AdminImportPanelView } from './AdminImportPanelView.js';
+import { useWorkerCardLogic } from './useWorkerCardLogic.js';
+import { WorkerCardView } from './WorkerCardView.js';
+import type { PipelineWorkerDTO } from '../../../../services/api/interfaces.js';
 
-export const AdminImportPanel = () => {
+interface WorkerCardProps {
+  workerId: string;
+  initialWorker?: PipelineWorkerDTO;
+}
+
+export const WorkerCard = ({ workerId, initialWorker }: WorkerCardProps) => {
   const { token } = useAuth();
-  const logic = useAdminImportPanelLogic(token);
+  const { worker, isLoading, error, handleAction } = useWorkerCardLogic(workerId, token, initialWorker);
 
-  return <AdminImportPanelView {...logic} />;
+  return (
+    <WorkerCardView
+      worker={worker}
+      isLoading={isLoading}
+      error={error}
+      onAction={handleAction}
+    />
+  );
 };
