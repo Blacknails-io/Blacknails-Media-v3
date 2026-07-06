@@ -1,17 +1,29 @@
 ---
 name: frontend-architecture
-description: "Ensures frontend code follows domain-first architecture aligned with the backend. Use when designing, creating, or refactoring frontend domain entities, application use cases, API adapters, event-bus integrations, presentation views, shared UI boundaries, or themes."
+description: Ensures frontend code follows domain-first architecture aligned with the backend. Use when designing, creating, or refactoring frontend domain entities, use cases, API adapters, views, or themes.
 ---
 
-# Frontend Architecture
+# Frontend Domain Architecture
 
-This skill ensures that frontend code follows domain-first architecture principles aligned with the backend domain.
+## Goal
+To enforce separation of concerns in the frontend client, preventing visual UI components from directly performing API requests or encoding backend transport logic.
 
 ## When to use this skill
+- When creating or refactoring frontend code directories in `client/src/`.
+- When designing views, custom hooks, controllers, or API adapters.
 
-- Use when designing, writing, or refactoring frontend domain architecture.
-- Use when creating frontend domain models, application use cases, API adapters, event-bus integrations, presentation views, shared UI boundaries, or theme boundaries.
+## When NOT to use this skill
+- When working on the backend codebase (`server/src/`).
+- For purely aesthetic styling (CSS) or animations without logical code transitions.
 
-## How to use it
+## Core Rules (Must Follow)
+- **MUST** isolate API requests and browser APIs under the `adapters/` or `services/` directory.
+- **MUST** keep visual React components under `presentation/` or `components/` generic, accepting domain data through props.
+- **MUST** separate UI layout (Views) from execution logic (Custom Hooks/Use Cases/Controllers).
+- **NEVER** let visual components execute raw fetch requests or handle network states directly.
+- **MUST** consume theme variables/tokens in CSS classes instead of hardcoding cyberpunk/neon values.
 
-- Follow the architecture conventions defined in resources: [architecture_guidelines.md](resources/architecture_guidelines.md)
+---
+
+## Detailed Workflows & Examples
+- **[Frontend Architecture Guidelines](./resources/architecture_guidelines.md)**: Conceptual layers, directory mappings (views, UI, themes), and relationships with other frontend skills.

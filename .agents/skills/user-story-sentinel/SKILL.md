@@ -1,45 +1,29 @@
 ---
 name: user-story-sentinel
-description: Evaluate a requested user story or change before implementation by using the repo map to locate affected behavior, docs, tests, entrypoints, model states, and unknowns. Use when a developer provides a story, feature request, bugfix, refactor request, or PR plan and the repo may contain legacy, undocumented, or insufficiently tested behavior.
+description: Evaluate a requested user story or change before implementation by using the repo map to locate affected behavior, docs, tests, entrypoints, and unknowns. Use when a developer provides a story, feature request, bugfix, or refactor plan.
 ---
 
 # User Story Sentinel
 
-## Overview
+## Goal
+To gate user story implementation until the affected behavior, domains, and tests are understood well enough to proceed safely without breaking legacy features.
 
-Gate story work until the affected behavior is understood enough to change
-safely. Prefer documenting observed behavior, adding characterization tests, and
-asking targeted validation questions over implementing from guesses.
+## When to use this skill
+- Whenever a new feature request, bugfix story, refactoring task, or PR plan is assigned.
+- Before writing any implementation code on complex or undocumented areas of the codebase.
 
-## Workflow
+## When NOT to use this skill
+- For minor, standalone tweaks (like fixing simple typos or modifying CSS animations).
 
-1. Read `.codex/repo-map/index.md`. If missing, stop and run
-   `repo-knowledge-bootstrap`.
-2. Read `references/readiness-gate.md`.
-3. Locate likely affected domains, files, entrypoints, model states, external
-   surfaces, and existing tests.
-4. Compare the story against current docs, tests, and unknowns.
-5. Classify readiness using one readiness state.
-6. If blocked, produce a preparation plan: docs to draft, characterization tests
-   to add, evidence to inspect, and human validation questions.
-7. Do not implement the requested behavior until the gate is
-   `READY_TO_IMPLEMENT` or the user explicitly overrides the gate.
+## Core Rules (Must Follow)
+- **MUST** locate the target domain files, entrypoints, model states, database schemas, and existing tests using `.codex/repo-map/index.md` (run `repo-knowledge-bootstrap` first if missing).
+- **MUST** classify task readiness into a single readiness state (e.g., `READY_TO_IMPLEMENT` or `PREPARATION_NEEDED`) before editing source files.
+- **NEVER** write implementation code while the readiness state is blocked (requires preparation) unless explicitly overridden by the user.
+- **MUST** create a preparation plan outlining human validation questions, evidence to inspect, and characterization tests to draft if the gate is blocked.
 
-## Output
+---
 
-Return:
-
-- readiness state;
-- affected areas and evidence paths;
-- existing docs/tests found;
-- missing characterization tests;
-- unknowns and assumptions;
-- human validation questions;
-- next safe action.
-
-## Resources
-
-- `references/readiness-gate.md`: readiness states.
-- `references/characterization-test-policy.md`: how to preserve current
-  behavior before change.
-- `references/human-validation-policy.md`: when and how to ask for validation.
+## Detailed Workflows & Examples
+- **[Readiness Gate Checklist](./references/readiness-gate.md)**: Details on readiness states, gates, and requirements.
+- **[Characterization Test Policy](./references/characterization-test-policy.md)**: Guidelines on how to write tests that lock down existing behavior before applying changes.
+- **[Human Validation Policy](./references/human-validation-policy.md)**: Framework on when and how to ask the developer for architectural clarifications.

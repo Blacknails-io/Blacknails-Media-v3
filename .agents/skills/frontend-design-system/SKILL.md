@@ -1,20 +1,29 @@
 ---
 name: frontend-design-system
-description: "Ensures frontend visual decisions follow a reusable design-system and theming model. Use when defining or changing design tokens, themes, visual materials, surfaces, glass/metal effects, typography, spacing, borders, shadows, CSS class naming, or cross-component visual variants."
+description: Ensures frontend visual styling follows a unified, reusable tokens and theming system. Use when defining visual tokens, themes, typography, glass/metal effects, CSS class naming, or spacing rules.
 ---
 
 # Frontend Design System
 
-This skill ensures that visual styling is implemented as reusable design-system decisions rather than one-off component decoration.
+## Goal
+To enforce a consistent, reusable design-system token structure, separating generic HTML role structures from their visual themes, materials, and cyberpunk finishes.
 
 ## When to use this skill
+- Whenever creating or editing CSS style sheets or theme configurations.
+- When selecting visual styling variables (colors, borders, shadows, spacing, font sizes).
+- When implementing cyberpunk-specific visual treatments (neon highlights, glass refractions, dark metal surfaces).
 
-- Use when defining or changing frontend themes, tokens, materials, surfaces, typography, spacing, borders, shadows, or visual variants.
-- Use when deciding whether an effect belongs in a theme, shared UI surface, or individual view.
-- Use alongside `frontend-architecture` when visual work also changes presentation boundaries.
-- Use alongside `frontend-ui-motion` when visual work includes React layout, animation, or interaction implementation.
+## When NOT to use this skill
+- When defining application workflow states, routes, or API data fetching logic.
+- When editing backend code or Docker/devops configurations.
 
-## How to use it
+## Core Rules (Must Follow)
+- **MUST** define CSS variables (colors, borders, outlines, shadows) inside global theme tokens; **NEVER** write hardcoded values in local component styles.
+- **MUST** name class selectors based on role (e.g., `.login-panel`, `.surface`) rather than material name (e.g., `.glass-login-panel`, `.cyber-border`).
+- **NEVER** embed WebGL shader setups, material math, or canvas manipulations inside feature views; delegate these to shared UI wrappers (e.g., `LiquidGlassSurface`).
+- **MUST** preserve the true colors of gallery photo and video media; cyberpunk visual treatments must frame the media, not globally tint or distract from it.
 
-- Follow the design-system conventions defined in resources: [guidelines.md](resources/guidelines.md)
-- Use examples only as concrete references, not as hard requirements for every theme.
+---
+
+## Detailed Workflows & Examples
+- **[Design System Guidelines](./resources/guidelines.md)**: Details on tokens, visual cyberpunk guidelines, generic class naming rules, shared material components, and open/closed theming boundaries.

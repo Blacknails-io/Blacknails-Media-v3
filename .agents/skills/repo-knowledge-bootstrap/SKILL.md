@@ -1,44 +1,31 @@
 ---
 name: repo-knowledge-bootstrap
-description: Create or refresh a repo-local technical orientation map from source code, tests, package manifests, Docker/config files, environment examples, entrypoints, domain model signals, and external-service surfaces. Use when a repository lacks the minimum Codex-ready repo map, when installing Codex Evaluator into a repo, or before story work when existing documentation is missing, stale, or not trustworthy.
+description: Create or refresh a repo-local technical orientation map from source code, package manifests, Docker files, and entrypoints. Use when a repository lacks the minimum Codex-ready repo map, or when existing documentation is missing, stale, or not trustworthy.
 ---
 
 # Repo Knowledge Bootstrap
 
-## Overview
+## Goal
+To construct or refresh a factual, evidence-backed technical map (`.codex/repo-map/`) to help future development sessions quickly orient themselves inside the repository.
 
-Create a factual technical map that helps future Codex sessions orient
-themselves inside a repository. Capture evidence, confidence, risks, and
-unknowns; do not infer product intent or write confirmed functional
-documentation.
+## When to use this skill
+- When a repository is missing the `.codex/repo-map/` directory.
+- Before starting a major user story or feature implementation if existing documentation is stale or untrustworthy.
 
-## Workflow
+## When NOT to use this skill
+- If a trustworthy, up-to-date `.codex/repo-map/` already exists in the repository.
+- During typical coding, refactoring, or testing tasks.
 
-1. Inspect repository structure, package manifests, config files, Docker files,
-   tests, source folders, entrypoints, and environment examples.
-2. Read `references/repo-map-contract.md` before writing `.codex/repo-map`.
-3. Read `references/evidence-and-confidence.md` before classifying claims.
-4. Read `references/domain-signal-detection.md` before identifying important
-   model classes, enums, states, events, tables, DTOs, workers, constants, and
-   external surfaces.
-5. Generate or refresh `.codex/repo-map/`.
-6. Tie important claims to repo-relative file-path evidence.
-7. Mark uncertain behavior as `hypothesis` or `unknown`.
-8. Never present functional intent as confirmed without human validation.
+## Core Rules (Must Follow)
+- **MUST** write all repo-map files under `.codex/repo-map/`.
+- **MUST** tie every technical claim or architectural rule to concrete, relative file-path evidence.
+- **MUST** separate claims clearly into categories: `fact`, `hypothesis`, `risk`, and `unknown`.
+- **NEVER** present functional intent as confirmed without explicit human validation.
+- **NEVER** impose or enforce a desired architecture during the bootstrap phase; document the architecture *actually* found in the code.
 
-## Output Rules
+---
 
-- Write repo-map files under `.codex/repo-map/`.
-- Include source-relative evidence paths.
-- Separate `fact`, `hypothesis`, `risk`, and `unknown`.
-- Keep functional documentation out of scope unless the user explicitly asks for
-  it.
-- Describe the architecture found; do not impose a desired architecture during
-  bootstrap.
-
-## Resources
-
-- `references/repo-map-contract.md`: required map structure.
-- `references/evidence-and-confidence.md`: claim classification rules.
-- `references/domain-signal-detection.md`: signals that usually indicate
-  important model concepts.
+## Detailed Workflows & Examples
+- **[Repo Map Contract](./references/repo-map-contract.md)**: Required structure and format for the map files.
+- **[Evidence and Confidence Guideline](./references/evidence-and-confidence.md)**: Rules for categorizing claims and evaluating confidence.
+- **[Domain Signal Detection](./references/domain-signal-detection.md)**: How to locate key entities, models, ports, and services in the codebase.

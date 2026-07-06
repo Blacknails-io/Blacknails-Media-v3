@@ -1,13 +1,22 @@
 # Documentation Guidelines
 
-To keep the project easily understandable for new developers (or agents) being onboarded, you must adhere to the following rules:
+Rules for keeping the project's documentation consistent and up-to-date.
 
-1. **Central Documentation**: All high-level features, system architecture, and workflows are documented in `/srv/storage/ai-lab/Blacknails-Media-v3/docs/FEATURES_AND_ARCHITECTURE.md`.
-2. **Mandatory Updates**: Whenever you implement an accepted production feature, you MUST open the central documentation file and add or update the relevant section.
-3. **Lab Exception**: Lab-only experiments are not accepted production features. For work isolated under `client/src/lab`, keep notes inside the lab folder when useful. Do not update `/srv/storage/ai-lab/Blacknails-Media-v3/docs/FEATURES_AND_ARCHITECTURE.md` until the user accepts the experiment for promotion or the work changes a real architecture rule.
-4. **What to Document**:
-   - New APIs (endpoints, expected payloads).
-   - Database schema changes.
-   - Core algorithms (e.g., how deduplication or Face AI works).
-   - Any new external dependency (e.g., a new Ollama model or Docker container).
-5. **Style**: Be concise. Use Markdown. Do not copy-paste code; explain the concepts and the flow.
+## 1. Central Documentation File
+All high-level features, system architecture, and workflows are documented in the central file:
+*   **[FEATURES_AND_ARCHITECTURE.md](../../../docs/FEATURES_AND_ARCHITECTURE.md)** (relative path).
+
+## 2. Mandatory Updates
+Whenever you complete implementing an accepted production feature, fixing a major structural bug, changing the system architecture, or adding APIs, you **MUST** update [FEATURES_AND_ARCHITECTURE.md](../../../docs/FEATURES_AND_ARCHITECTURE.md).
+
+## 3. Lab Exception
+For work isolated under `client/src/lab` (Lab-only experiments), **DO NOT** update the central documentation. Keep notes inside the lab folder instead. Only update [FEATURES_AND_ARCHITECTURE.md](../../../docs/FEATURES_AND_ARCHITECTURE.md) once the experiment is promoted to production or if it changes a core architecture rule.
+
+## 4. What to Document
+- **New APIs**: Endpoint paths, HTTP methods, payloads, and response structures.
+- **Database Changes**: Schema modifications, migrations, or new tables.
+- **Core Algorithms**: Deduplication flow, Face AI pipelines, EXIF parsing logic.
+- **Infrastructure**: New dependencies, Docker containers, or environment configurations.
+
+## 5. Style
+Be concise. Use Markdown. Focus on explaining concepts, flows, and rationales rather than copy-pasting raw source code blocks.

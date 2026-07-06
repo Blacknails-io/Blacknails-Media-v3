@@ -1,25 +1,29 @@
 ---
 name: server-architecture
-description: "Ensures backend code follows Hexagonal Architecture. Use when designing, creating, or modifying backend APIs, controllers, use cases, or SQLite database repositories."
+description: Ensures backend code follows Hexagonal Architecture. Use when designing, creating, or modifying backend APIs, controllers, use cases, or SQLite database repositories.
 ---
 
-# Server Architecture
+# Server Hexagonal Architecture
 
-This skill ensures that all backend code follows Hexagonal Architecture principles.
+## Goal
+To enforce and preserve backend layers and boundaries, ensuring that domain entities and use cases are isolated from transport protocol definitions (Express) and database adapters (SQLite).
 
 ## When to use this skill
+- When creating or modifying backend APIs, use cases, ports, or repository adapters in `server/src/`.
+- When writing database queries or configuring HTTP routes.
 
-- Use when designing, writing, or refactoring code involving Hexagonal Architecture.
-- Use when creating domain models, defining ports, or implementing adapters.
+## When NOT to use this skill
+- When working on the frontend client codebase (`client/src/`).
+- During general devops container orchestration tasks.
 
-## How to use it
+## Core Rules (Must Follow)
+- **NEVER** import infrastructure dependencies, frameworks, database drivers, or filesystem modules (`express`, `better-sqlite3`, `fs`, `http`) into the `domain/` directory.
+- **NEVER** import Express request or response objects (`Request`, `Response`) into `application/use_cases/`.
+- **MUST** isolate application execution boundaries using explicit Driving Ports (`ports/in/`) and Driven Ports (`ports/out/`).
+- **MUST** map raw database rows back to pure Domain Entity models in the outbound database adapters before returning them to the application layer.
 
-- Follow the architecture conventions defined in resources: [architecture_guidelines.md](resources/architecture_guidelines.md)
-- **Scaffold de Referencia (Ejemplo Completo)**: Explora la carpeta [examples/hexagonal_scaffold/](examples/hexagonal_scaffold/) para ver cómo se estructura un flujo completo de registro de usuario:
-  - **Dominio**: [User.ts](examples/hexagonal_scaffold/domain/User.ts) (Lógica de negocio pura sin dependencias).
-  - **Puerto In**: [IRegisterUseCase.ts](examples/hexagonal_scaffold/application/ports/in/IRegisterUseCase.ts) (Caso de uso).
-  - **Puerto Out**: [IUserRepository.ts](examples/hexagonal_scaffold/application/ports/out/IUserRepository.ts) (Base de datos).
-  - **Caso de Uso**: [RegisterUseCase.ts](examples/hexagonal_scaffold/application/use_cases/RegisterUseCase.ts) (Orquestador de negocio).
-  - **Adaptador In**: [UserController.ts](examples/hexagonal_scaffold/adapters/in/http/UserController.ts) (HTTP Controller).
-  - **Adaptador Out**: [SqliteUserRepository.ts](examples/hexagonal_scaffold/adapters/out/database/SqliteUserRepository.ts) (SQLite).
+---
 
+## Detailed Workflows & Examples
+- **[Hexagonal Guidelines](./resources/architecture_guidelines.md)**: Rules for the Domain, Application, and Adapters layers.
+- **[Hexagonal Scaffold Example](./examples/hexagonal-scaffold-example.md)**: Complete code walkthrough implementing User registration using domain, ports, use cases, and controllers.
