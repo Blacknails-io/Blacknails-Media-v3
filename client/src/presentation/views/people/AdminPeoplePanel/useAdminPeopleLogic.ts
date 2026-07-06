@@ -82,17 +82,23 @@ export function useAdminPeopleLogic(token: string | null) {
   const namedCount = people.filter((person) => Boolean(person.name)).length;
   const totalFaces = people.reduce((sum, person) => sum + person.faceCount, 0);
 
-  const fetchPeople = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchPeople = useCallback(async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+      setError(null);
+    }
     try {
       const data = await peopleService.list(token || undefined);
       setPeople(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : 'Error desconocido.');
+      if (!silent) {
+        setError(err instanceof Error ? err.message : 'Error desconocido.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   }, [token]);
 
@@ -188,7 +194,11 @@ export function useAdminPeopleLogic(token: string | null) {
   useEffect(() => {
     const unsubscribe = backendEventsController.subscribeEvents(
       () => {
-        void fetchPeople();
+        if (editingIdRef.current !== null) {
+          console.log('[SSE] Ignorando refresco silencioso debido a edición de nombre activa.');
+          return;
+        }
+        void fetchPeople(true);
       },
       (event) => {
         if (event.type === 'DOMAIN' && (event as any).entityType === 'Face') {
