@@ -18,6 +18,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { peopleService } from '../../../../services/api/index.js';
 import type { PersonDTO } from '../../../../services/api/index.js';
 import type { MediaAsset } from '../../../../types/MediaAsset.js';
+import { backendEventsController } from '../../../../controllers/BackendEventsController.js';
 
 export type PeopleSortMode = 'COUNT_DESC' | 'NAME_ASC' | 'UNNAMED_FIRST';
 
@@ -182,6 +183,28 @@ export function useAdminPeopleLogic(token: string | null) {
 
   useEffect(() => {
     void fetchPeople();
+  }, [fetchPeople]);
+
+  useEffect(() => {
+    const unsubscribe = backendEventsController.subscribeEvents(
+      () => {
+        void fetchPeople();
+      },
+      (event) => {
+        if (event.type === 'DOMAIN' && (event as any).entityType === 'Face') {
+          return true;
+        }
+        if (
+          event.type === 'PROCESS' &&
+          event.action === 'COMPLETED' &&
+          ['face-worker', 'face-cluster-worker'].includes((event as any).processName)
+        ) {
+          return true;
+        }
+        return false;
+      }
+    );
+    return () => unsubscribe();
   }, [fetchPeople]);
 
   return {
