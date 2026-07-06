@@ -52,6 +52,8 @@ import { UpdateUserRoleUseCase } from './application/use_cases/UpdateUserRoleUse
 import { DeleteUserUseCase } from './application/use_cases/DeleteUserUseCase.js';
 import { UpdateUserActiveUseCase } from './application/use_cases/UpdateUserActiveUseCase.js';
 import { UpdateAvatarUseCase } from './application/use_cases/UpdateAvatarUseCase.js';
+import { LocalAvatarStorageService } from './adapters/out/services/LocalAvatarStorageService.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -125,7 +127,8 @@ const passwordHasher = new PasswordHasher();
 const loginUseCase = new LoginUseCase(userRepository, sessionRepository, passwordHasher);
 const registerUseCase = new RegisterUseCase(userRepository, passwordHasher);
 const getSessionUserUseCase = new GetSessionUserUseCase(userRepository, sessionRepository);
-const updateAvatarUseCase = new UpdateAvatarUseCase(userRepository, eventBus);
+const avatarStorageService = new LocalAvatarStorageService();
+const updateAvatarUseCase = new UpdateAvatarUseCase(userRepository, eventBus, avatarStorageService);
 const authController = new AuthController(loginUseCase, registerUseCase, getSessionUserUseCase, eventBus, updateAvatarUseCase);
 const listUsersUseCase = new ListUsersUseCase(userRepository);
 const updateUserRoleUseCase = new UpdateUserRoleUseCase(userRepository);
@@ -193,10 +196,10 @@ const indexMediaUseCase = new IndexMediaUseCase(sharedUow, processingService, ev
 const purgeMediaUseCase = new PurgeMediaUseCase(sharedUow, faceRepository, eventBus);
 const importWorker = new ImportTaskRunner(eventBus, importMediaUseCase, IMPORT_DIR, IMPORT_INTERVAL_MS);
 const indexWorker = new IndexTaskRunner(eventBus, sharedUow, indexMediaUseCase, purgeMediaUseCase, INDEX_INTERVAL_MS);
-const imagePreviewWorker = new ImagePreviewTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
-const imageTranscodeWorker = new ImageTranscodeTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
-const videoPreviewWorker = new VideoPreviewTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
-const videoTranscodeWorker = new VideoTranscodeTaskRunner(eventBus, sharedUow, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const imagePreviewWorker = new ImagePreviewTaskRunner(eventBus, sharedUow, processingService, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const imageTranscodeWorker = new ImageTranscodeTaskRunner(eventBus, sharedUow, processingService, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const videoPreviewWorker = new VideoPreviewTaskRunner(eventBus, sharedUow, processingService, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
+const videoTranscodeWorker = new VideoTranscodeTaskRunner(eventBus, sharedUow, processingService, THUMBNAIL_INTERVAL_MS, THUMBNAILS_DIR);
 const descriptionWorker = new DescriptionTaskRunner(eventBus, sharedUow, DESCRIPTION_INTERVAL_MS, ollamaService, sidecarService, OLLAMA_VISION_CONCURRENCY);
 const tagsWorker = new TagsTaskRunner(eventBus, sharedUow, TAGS_INTERVAL_MS, ollamaService, sidecarService, OLLAMA_TEXT_CONCURRENCY);
 const titleWorker = new TitleTaskRunner(eventBus, sharedUow, TITLE_INTERVAL_MS, ollamaService, sidecarService, OLLAMA_TEXT_CONCURRENCY);

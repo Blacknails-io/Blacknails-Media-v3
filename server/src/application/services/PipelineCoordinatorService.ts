@@ -7,8 +7,9 @@ import { IFaceRepository } from '../ports/out/IFaceRepository.js';
 import { IUnitOfWork } from '../ports/out/IUnitOfWork.js';
 import { DaemonWorker, WorkerStatusDTO } from './DaemonWorker.js';
 import { IEventBus } from '../ports/out/IEventBus.js';
+import { IPipelineCoordinator } from '../ports/in/IPipelineCoordinator.js';
 
-export class PipelineCoordinatorService {
+export class PipelineCoordinatorService implements IPipelineCoordinator {
   private readonly workers = new Map<string, DaemonWorker>();
 
   constructor(

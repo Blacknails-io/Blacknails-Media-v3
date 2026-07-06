@@ -322,4 +322,56 @@ export class CommandLineMediaProcessingService implements IMediaProcessingServic
       }
     }
   }
+
+  public async generateImagePreview(sourcePath: string, outputPath: string): Promise<void> {
+    await execFileAsync('ffmpeg', ['-v', 'error', '-y', '-i', sourcePath, '-vf', 'scale=640:-2', '-frames:v', '1', outputPath]);
+  }
+
+  public async generateVideoPreview(sourcePath: string, outputPath: string): Promise<void> {
+    await execFileAsync('ffmpeg', ['-v', 'error', '-y', '-i', sourcePath, '-vf', 'thumbnail,scale=640:-2', '-frames:v', '1', outputPath]);
+  }
+
+  public async generateVideoClipsPreview(sourcePath: string, outputPath: string): Promise<void> {
+    const metadata = await this.extractVideoMetadata(sourcePath);
+    const duration = metadata.durationSeconds;
+
+    if (duration < 5) {
+      await execFileAsync('ffmpeg', [
+        '-v', 'error', '-y', '-i', sourcePath,
+        '-ss', '00:00:00', '-t', '3',
+        '-vf', 'scale=640:-2', '-an', outputPath
+      ]);
+      return;
+    }
+
+    const t1 = Math.max(0, duration * 0.15).toFixed(2);
+    const t2 = Math.max(0, duration * 0.50).toFixed(2);
+    const t3 = Math.max(0, duration * 0.80).toFixed(2);
+
+    const tmpDir = path.dirname(outputPath);
+    const baseName = path.basename(outputPath, '.mp4');
+    const clip1 = path.join(tmpDir, `${baseName}_1.mp4`);
+    const clip2 = path.join(tmpDir, `${baseName}_2.mp4`);
+    const clip3 = path.join(tmpDir, `${baseName}_3.mp4`);
+    const concatList = path.join(tmpDir, `${baseName}_list.txt`);
+
+    try {
+      const extractOpts = ['-v', 'error', '-y', '-t', '1.5', '-i', sourcePath, '-vf', 'scale=640:-2', '-c:v', 'libx264', '-preset', 'fast', '-crf', '28', '-an'];
+      await execFileAsync('ffmpeg', ['-ss', t1, ...extractOpts, clip1]);
+      await execFileAsync('ffmpeg', ['-ss', t2, ...extractOpts, clip2]);
+      await execFileAsync('ffmpeg', ['-ss', t3, ...extractOpts, clip3]);
+
+      const concatContent = `file '${clip1}'\nfile '${clip2}'\nfile '${clip3}'\n`;
+      await fs.writeFile(concatList, concatContent);
+
+      await execFileAsync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', concatList, '-c', 'copy', outputPath]);
+    } finally {
+      await Promise.all([
+        fs.unlink(clip1).catch(() => {}),
+        fs.unlink(clip2).catch(() => {}),
+        fs.unlink(clip3).catch(() => {}),
+        fs.unlink(concatList).catch(() => {})
+      ]);
+    }
+  }
 }

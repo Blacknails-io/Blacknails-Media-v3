@@ -22,6 +22,7 @@ To enforce separation of concerns in the frontend client, preventing visual UI c
 - **MUST** separate UI layout (Views) from execution logic (Custom Hooks/Use Cases/Controllers).
 - **NEVER** let visual components execute raw fetch requests or handle network states directly.
 - **MUST** consume theme variables/tokens in CSS classes instead of hardcoding cyberpunk/neon values.
+- **MUST** implement a dual-update state strategy for real-time views: fetch the baseline state using HTTP GET on view mount, and progressively apply state changes reactively by subscribing to backend events via `BackendEventsController`.
 
 ---
 

@@ -53,3 +53,21 @@ export interface IPipelineService {
   triggerWorker(token: string, workerId: string): Promise<PipelineWorkerDTO>;
   resetWorker(token: string, workerId: string): Promise<PipelineWorkerDTO>;
 }
+
+export interface PersonDTO {
+  id: string;
+  label: string;
+  name?: string;
+  faceCount: number;
+  bbox: { x: number; y: number; width: number; height: number };
+  thumbnailUrl: string;
+}
+
+import type { MediaAsset } from '../../types/MediaAsset.js';
+
+export interface IPeopleService {
+  list(token?: string): Promise<PersonDTO[]>;
+  getAssets(personId: string, token?: string): Promise<MediaAsset[]>;
+  updateName(personId: string, name: string, token?: string): Promise<void>;
+  deletePerson(personId: string, token?: string): Promise<void>;
+}

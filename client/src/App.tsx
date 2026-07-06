@@ -4,9 +4,9 @@ import { useGlobalHologram } from './hooks/useGlobalHologram.js';
 import type { AppEvent } from '@blacknails/shared';
 import { useAuth } from './context/AuthContext.js';
 import { Login } from './presentation/views/auth/Login/index.js';
-import { AdminUsersPanel } from './components/AdminUsersPanel.js';
-import { AdminImportPanel } from './components/AdminImportPanel.js';
-import { AdminPeoplePanel } from './components/AdminPeoplePanel.js';
+import { AdminUsersPanel } from './presentation/views/users/AdminUsersPanel/index.js';
+import { AdminImportPanel } from './presentation/views/import/AdminImportPanel/index.js';
+import { AdminPeoplePanel } from './presentation/views/people/AdminPeoplePanel/index.js';
 import { backendEventsController } from './controllers/BackendEventsController.js';
 
 import './App.css';

@@ -45,4 +45,7 @@ export interface IMediaProcessingService {
   getDateWithSource(sourcePath: string): Promise<MediaDateResult>;
   extractImageMetadata(sourcePath: string): Promise<ImageMetadataResult>;
   extractVideoMetadata(sourcePath: string): Promise<VideoMetadataResult>;
+  generateImagePreview(sourcePath: string, outputPath: string): Promise<void>;
+  generateVideoPreview(sourcePath: string, outputPath: string): Promise<void>;
+  generateVideoClipsPreview(sourcePath: string, outputPath: string): Promise<void>;
 }

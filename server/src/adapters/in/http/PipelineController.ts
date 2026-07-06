@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { IGetSessionUserQuery } from '../../../application/ports/in/IGetSessionUserQuery.js';
-import { PipelineCoordinatorService } from '../../../application/services/PipelineCoordinatorService.js';
+import { IPipelineCoordinator } from '../../../application/ports/in/IPipelineCoordinator.js';
 import { requireAdmin as requireAdminUser } from './auth.js';
 
 export class PipelineController {
@@ -8,7 +8,7 @@ export class PipelineController {
 
   constructor(
     private readonly getSessionUserUseCase: IGetSessionUserQuery,
-    private readonly workerManager: PipelineCoordinatorService
+    private readonly workerManager: IPipelineCoordinator
   ) {
     this.router = Router();
     this.setupRoutes();

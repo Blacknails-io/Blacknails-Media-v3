@@ -1,216 +1,87 @@
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext.js';
-import { FaceAvatar } from './FaceAvatar.js';
-import { SectionPanel } from './SectionPanel.js';
-import type { MediaAsset } from '../types/MediaAsset.js';
+/*
+ * Copyright (c) 2026 MyCompany LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-interface PersonData {
-  id: string;
-  label: string;
-  name?: string;
-  faceCount: number;
-  bbox: { x: number; y: number; width: number; height: number };
-  thumbnailUrl: string;
-}
+import { FaceAvatar } from '../../../../components/FaceAvatar.js';
+import { SectionPanel } from '../../../../components/SectionPanel.js';
+import type { MediaAsset } from '../../../../types/MediaAsset.js';
+import type { PersonDTO } from '../../../../services/api/interfaces.js';
+import type { PeopleSortMode } from './useAdminPeopleLogic.js';
 
-type PeopleSortMode = 'COUNT_DESC' | 'NAME_ASC' | 'UNNAMED_FIRST';
+interface AdminPeoplePanelViewProps {
+  people: PersonDTO[];
+  isLoading: boolean;
+  error: string | null;
+  selectedPerson: PersonDTO | null;
+  setSelectedPerson: (person: PersonDTO | null) => void;
+  personAssets: MediaAsset[];
+  isLoadingAssets: boolean;
+  personAssetsError: string | null;
+  peopleQuery: string;
+  setPeopleQuery: (query: string) => void;
+  sortMode: PeopleSortMode;
+  setSortMode: (mode: PeopleSortMode) => void;
+  editingId: string | null;
+  setEditingId: (id: string | null) => void;
+  editingName: string;
+  setEditingName: (name: string) => void;
+  isSavingName: boolean;
+  dismissingId: string | null;
+  dropdownIndex: number;
+  setDropdownIndex: (index: number | ((prev: number) => number)) => void;
+  filteredNames: string[];
+  visiblePeople: PersonDTO[];
+  namedCount: number;
+  totalFaces: number;
 
-interface AdminPeoplePanelProps {
   onSelectAsset: (asset: MediaAsset) => void;
+  fetchPersonAssets: (person: PersonDTO) => Promise<void>;
+  handleSaveName: (personId: string, nameToSave?: string) => Promise<void>;
+  handleDismissPerson: (person: PersonDTO) => Promise<void>;
 }
 
-export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
-  const { token } = useAuth();
-  const [people, setPeople] = useState<PersonData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Sub-gallery states
-  const [selectedPerson, setSelectedPerson] = useState<PersonData | null>(null);
-  const [personAssets, setPersonAssets] = useState<MediaAsset[]>([]);
-  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
-  const [personAssetsError, setPersonAssetsError] = useState<string | null>(null);
-
-  // Inline editing state
-  const [peopleQuery, setPeopleQuery] = useState('');
-  const [sortMode, setSortMode] = useState<PeopleSortMode>('COUNT_DESC');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
-  const [isSavingName, setIsSavingName] = useState(false);
-  const [dismissingId, setDismissingId] = useState<string | null>(null);
-  const [dropdownIndex, setDropdownIndex] = useState(-1);
-  const editingIdRef = useRef<string | null>(null);
-  editingIdRef.current = editingId;
-
-  const existingNames = useMemo(() => {
-    return Array.from(
-      new Set(
-        people
-          .map((p) => p.name || '')
-          .map((name) => name.trim())
-          .filter((name) => name.length > 0)
-      )
-    ).sort();
-  }, [people]);
-
-  const filteredNames = useMemo(() => {
-    const query = editingName.trim().toLowerCase();
-    if (!query) return existingNames;
-    return existingNames.filter((name) => name.toLowerCase().includes(query));
-  }, [existingNames, editingName]);
-
-  const visiblePeople = useMemo(() => {
-    const query = peopleQuery.trim().toLowerCase();
-    const matches = query
-      ? people.filter((person) => `${person.name || ''} ${person.label}`.toLowerCase().includes(query))
-      : people;
-
-    return [...matches].sort((a, b) => {
-      if (sortMode === 'NAME_ASC') {
-        return (a.name || a.label).localeCompare(b.name || b.label, undefined, { sensitivity: 'base' });
-      }
-      if (sortMode === 'UNNAMED_FIRST') {
-        const unnamedDelta = (a.name ? 1 : 0) - (b.name ? 1 : 0);
-        if (unnamedDelta !== 0) return unnamedDelta;
-      }
-      return b.faceCount - a.faceCount;
-    });
-  }, [people, peopleQuery, sortMode]);
-
-  const namedCount = people.filter((person) => Boolean(person.name)).length;
-  const totalFaces = people.reduce((sum, person) => sum + person.faceCount, 0);
-
-  const fetchPeople = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/people', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      if (!res.ok) {
-        throw new Error(`Error ${res.status}: No se pudo cargar la lista de personas.`);
-      }
-      const data = (await res.json()) as PersonData[];
-      setPeople(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : 'Error desconocido.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [token]);
-
-  const fetchPersonAssets = useCallback(async (person: PersonData) => {
-    setSelectedPerson(person);
-    setIsLoadingAssets(true);
-    setPersonAssets([]);
-    setPersonAssetsError(null);
-    try {
-      const res = await fetch(`/api/people/${person.id}/assets`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      if (!res.ok) {
-        throw new Error(`Error ${res.status}: No se pudieron cargar los archivos.`);
-      }
-      const data = (await res.json()) as MediaAsset[];
-      setPersonAssets(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setPersonAssetsError(err instanceof Error ? err.message : 'No se pudieron cargar los archivos.');
-    } finally {
-      setIsLoadingAssets(false);
-    }
-  }, [token]);
-
-  const handleSaveName = useCallback(async (personId: string, nameToSave?: string) => {
-    if (editingIdRef.current !== personId) return;
-
-    const valueToSave = (nameToSave !== undefined ? nameToSave : editingName).trim();
-    if (!valueToSave) {
-      setEditingId(null);
-      return;
-    }
-    setIsSavingName(true);
-    try {
-      const res = await fetch(`/api/people/${personId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ name: valueToSave })
-      });
-      if (!res.ok) {
-        throw new Error('No se pudo guardar el nombre.');
-      }
-      // Update local state
-      setPeople(prev => prev.map(p => p.id === personId ? { ...p, name: valueToSave } : p));
-      if (selectedPerson && selectedPerson.id === personId) {
-        setSelectedPerson(prev => prev ? { ...prev, name: valueToSave } : null);
-      }
-      setEditingId(null);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error guardando el nombre.');
-    } finally {
-      setIsSavingName(false);
-    }
-  }, [editingName, selectedPerson, token]);
-
-  const handleDismissPerson = useCallback(async (person: PersonData) => {
-    const label = person.name || person.label;
-    if (!window.confirm('Descartar ' + label + ' como falso positivo? Se borraran sus detecciones de rostro.')) {
-      return;
-    }
-
-    setDismissingId(person.id);
-    try {
-      const res = await fetch('/api/people/' + person.id, {
-        method: 'DELETE',
-        headers: token ? { 'Authorization': 'Bearer ' + token } : {}
-      });
-      if (!res.ok) {
-        throw new Error('No se pudo descartar la persona.');
-      }
-      setPeople(prev => prev.filter(p => p.id !== person.id));
-      if (selectedPerson?.id === person.id) {
-        setSelectedPerson(null);
-        setPersonAssets([]);
-      }
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error descartando la persona.');
-    } finally {
-      setDismissingId(null);
-    }
-  }, [selectedPerson, token]);
-
-  const editingNameRef = useRef(editingName);
-  editingNameRef.current = editingName;
-
-  useEffect(() => {
-    if (editingId === null) return;
-
-    const handleOutsideClick = (e: MouseEvent) => {
-      const container = document.getElementById(`editing-container-${editingId}`);
-      if (container && !container.contains(e.target as Node)) {
-        void handleSaveName(editingId, editingNameRef.current);
-      }
-    };
-
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleOutsideClick);
-    }, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [editingId, handleSaveName]);
-
-  useEffect(() => {
-    void fetchPeople();
-  }, [fetchPeople]);
-
-  // Gallery render helpers
+export const AdminPeoplePanelView = ({
+  people,
+  isLoading,
+  error,
+  selectedPerson,
+  setSelectedPerson,
+  personAssets,
+  isLoadingAssets,
+  personAssetsError,
+  peopleQuery,
+  setPeopleQuery,
+  sortMode,
+  setSortMode,
+  editingId,
+  setEditingId,
+  editingName,
+  setEditingName,
+  isSavingName,
+  dismissingId,
+  dropdownIndex,
+  setDropdownIndex,
+  filteredNames,
+  visiblePeople,
+  namedCount,
+  totalFaces,
+  onSelectAsset,
+  fetchPersonAssets,
+  handleSaveName,
+  handleDismissPerson
+}: AdminPeoplePanelViewProps) => {
   const formatResolution = (asset: MediaAsset) => {
     return asset.metadata?.resolution || 'UNKNOWN';
   };
@@ -223,7 +94,6 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
             <button
               onClick={() => {
                 setSelectedPerson(null);
-                setPersonAssetsError(null);
               }}
               className="px-4 py-2 bg-surface-panel hover:bg-surface-panel dark:bg-surface-panel dark:hover:bg-surface-panel text-sm font-semibold rounded-lg transition-colors flex items-center gap-2"
             >
@@ -388,7 +258,6 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                 <div className="mt-4 w-full text-center flex flex-col items-center min-h-[50px] justify-center relative">
                   {editingId === person.id ? (
                     <div id={`editing-container-${person.id}`} className="relative w-full flex flex-col items-center">
-                      {/* Trigger: a styled select box showing current name */}
                       <div className="flex items-center justify-between gap-1.5 w-full max-w-[150px] bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] rounded-lg px-2.5 py-1.5 text-xs text-left cursor-default">
                         <span className="truncate text-secondary dark:text-secondary font-medium">
                           {person.name || person.label}
@@ -400,7 +269,6 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
 
                       {/* Dropdown Menu */}
                       <div className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-1 w-[160px] bg-white dark:bg-surface-base border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] rounded-xl shadow-xl p-1.5 flex flex-col gap-1.5">
-                        {/* Position 1: Input to type custom/new name */}
                         <input
                           type="text"
                           value={editingName}
@@ -432,7 +300,6 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                           className="w-full text-xs bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded px-2.5 py-1 text-center font-medium"
                         />
 
-                        {/* Position 2+: Existing names list (max 5 visible, scrollable) */}
                         {filteredNames.length > 0 && (
                           <div className="max-h-[140px] overflow-y-auto flex flex-col gap-0.5">
                             {filteredNames.map((name, index) => (
@@ -440,7 +307,7 @@ export const AdminPeoplePanel = ({ onSelectAsset }: AdminPeoplePanelProps) => {
                                 key={name}
                                 type="button"
                                 onMouseDown={(e) => {
-                                  e.preventDefault(); // Prevents input blur
+                                  e.preventDefault();
                                   void handleSaveName(person.id, name);
                                 }}
                                 className={`w-full px-2.5 py-1.5 text-xs text-left truncate rounded-lg transition-colors ${

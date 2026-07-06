@@ -81,6 +81,47 @@ Application use cases should depend on adapter contracts, not on raw `fetch`, DO
 
 Use frontend events for cross-cutting signals such as auth changes, worker status, import progress, and notifications. Do not use events to hide ordinary local component flow.
 
+### 5.1 Real-time Dual-Update State Pattern
+For stateful, real-time views (e.g. dashboards, workers panels, or logs), updates must occur in two phases:
+1.  **Baseline Initialization**: On component mount, the logic layer **MUST** perform an initial HTTP `GET` fetch via its API service adapter to establish the current state.
+2.  **Reactive Progression**: Immediately after initialization, the component/hook **MUST** subscribe to the backend EventStream (`BackendEventsController.subscribeEvents`) to receive progress updates, task completion signals, or state increments, merging these incoming events directly into the local state.
+
+*Example pattern (React custom hook):*
+```typescript
+import { useEffect, useState, useCallback } from 'react';
+import { backendEventsController } from '../../controllers/BackendEventsController.js';
+import { workerService } from '../../services/api/index.js';
+
+export function useWorkerState(token: string | null) {
+  const [workers, setWorkers] = useState<Worker[]>([]);
+
+  // 1. Initial baseline fetch
+  const fetchState = useCallback(async () => {
+    const data = await workerService.list(token);
+    setWorkers(data);
+  }, [token]);
+
+  useEffect(() => {
+    void fetchState();
+  }, [fetchState]);
+
+  // 2. Real-time progressive subscription
+  useEffect(() => {
+    const unsubscribe = backendEventsController.subscribeEvents((event) => {
+      if (event.type === 'PROCESS') {
+        // Incrementally update the targeted item in state
+        setWorkers((prev) => 
+          prev.map(w => w.id === event.source ? { ...w, isExecuting: event.action === 'STARTED' } : w)
+        );
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return { workers, fetchState };
+}
+```
+
 ## 6. Open/Closed Principle
 
 Frontend architecture must be open to extension and closed to unnecessary modification.

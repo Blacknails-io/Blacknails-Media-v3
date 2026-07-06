@@ -31,10 +31,10 @@ test('media derivative workers generate photo and video outputs independently', 
   const env = await createPipelineTestEnvironment();
   try {
     const thumbsDir = join(env.storageDir, 'thumbnails');
-    const imagePreviewWorker = new ImagePreviewTaskRunner(env.eventBus, env.uow, 0, thumbsDir);
-    const imageTranscodeWorker = new ImageTranscodeTaskRunner(env.eventBus, env.uow, 0, thumbsDir);
-    const videoPreviewWorker = new VideoPreviewTaskRunner(env.eventBus, env.uow, 0, thumbsDir);
-    const videoTranscodeWorker = new VideoTranscodeTaskRunner(env.eventBus, env.uow, 0, thumbsDir);
+    const imagePreviewWorker = new ImagePreviewTaskRunner(env.eventBus, env.uow, env.processingService, 0, thumbsDir);
+    const imageTranscodeWorker = new ImageTranscodeTaskRunner(env.eventBus, env.uow, env.processingService, 0, thumbsDir);
+    const videoPreviewWorker = new VideoPreviewTaskRunner(env.eventBus, env.uow, env.processingService, 0, thumbsDir);
+    const videoTranscodeWorker = new VideoTranscodeTaskRunner(env.eventBus, env.uow, env.processingService, 0, thumbsDir);
 
     const photoFixture = join(env.rootDir, 'fixtures', 'derivative-photo.jpg');
     const videoFixture = join(env.rootDir, 'fixtures', 'derivative-video.mov');
