@@ -26,29 +26,22 @@ export class DescriptionTaskRunner extends BaseAssetWorker {
     uow: IUnitOfWork,
     public readonly intervalMs: number,
     private readonly ollama: IOllamaService,
-    private readonly sidecarService: ISidecarService
+    private readonly sidecarService: ISidecarService,
+    batchSize = 1
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected isPending(asset: Asset): boolean {
-    return Boolean(asset.aiThumbnailPath || asset.thumbnailPath) && !asset.aiDescription;
-  }
-
-  protected acquireResources(): boolean {
-    return this.ollama.acquireLock(this.id);
-  }
-
-  protected releaseResources(): void {
-    this.ollama.releaseLock(this.id);
+    return Boolean(asset.aiThumbnailPath || asset.thumbnailPath) && !asset.describedAt;
   }
 
   protected async processAsset(asset: Asset): Promise<void> {
     const imagePath = asset.aiThumbnailPath || asset.thumbnailPath;
     if (!imagePath) return;
 
-    const description = (await this.ollama.describeImage(imagePath, DESCRIPTION_PROMPT, 'description')).trim();
-    if (!description) return;
+    let description = (await this.ollama.describeImage(imagePath, DESCRIPTION_PROMPT, 'description')).trim();
+    if (!description) description = '[Description generation failed]';
 
     asset.aiDescription = description;
     asset.describedAt = new Date().toISOString();

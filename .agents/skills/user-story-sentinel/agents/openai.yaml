@@ -1,0 +1,4 @@
+interface:
+  display_name: "User Story Sentinel"
+  short_description: "Gate story work until behavior is ready."
+  default_prompt: "Evaluate this user story against the repo map. Block implementation if the affected behavior lacks enough documentation, tests, or human-validated assumptions."

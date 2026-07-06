@@ -5,7 +5,11 @@ import { User } from '../../../domain/entities/User.js';
 const SESSION_COOKIE_NAME = 'bn_session';
 
 function shouldUseSecureCookie(): boolean {
-  return process.env.NODE_ENV === 'production' || process.env.COOKIE_SECURE === 'true';
+  // Explicit override wins so an HTTP/LAN deployment can disable Secure even in
+  // production (a Secure cookie over plain HTTP is silently dropped by browsers).
+  if (process.env.COOKIE_SECURE === 'false') return false;
+  if (process.env.COOKIE_SECURE === 'true') return true;
+  return process.env.NODE_ENV === 'production';
 }
 
 function serializeCookie(name: string, value: string, attributes: string[]): string {

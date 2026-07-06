@@ -12,6 +12,13 @@ const execFileAsync = promisify(execFile);
 
 type OllamaFormat = 'json';
 
+type OllamaKind = 'vision' | 'text';
+
+interface SlotWaiter {
+  kind: OllamaKind;
+  resolve: () => void;
+}
+
 interface OllamaChatResponse {
   message?: { content?: string };
 }
@@ -53,8 +60,9 @@ const TEXT_TASK_CONFIG: Record<OllamaTextTask, OllamaTaskConfig> = {
 };
 
 export class OllamaService implements IOllamaService {
-  private readonly activeWorkers = new Set<string>();
-  private activeKind: 'text' | 'vision' | null = null;
+  private activeKind: OllamaKind | null = null;
+  private inFlight = 0;
+  private readonly waiters: SlotWaiter[] = [];
 
   constructor(
     private readonly baseUrl: string,
@@ -83,40 +91,65 @@ export class OllamaService implements IOllamaService {
     }
   }
 
-  public acquireLock(workerId: string): boolean {
-    const kind = this.getLockKind(workerId);
-
-    if (this.activeWorkers.has(workerId)) return true;
-    if (this.activeKind && this.activeKind !== kind) return false;
-    if (this.activeWorkers.size >= this.getLockLimit(workerId)) return false;
-
-    this.activeWorkers.add(workerId);
-    this.activeKind = kind;
-    return true;
-  }
-
-  public releaseLock(workerId: string): void {
-    if (this.activeWorkers.delete(workerId) && this.activeWorkers.size === 0) {
-      this.activeKind = null;
-    }
-  }
-
-  private getLockLimit(workerId: string): number {
-    const configured = this.getLockKind(workerId) === 'text' ? this.textConcurrency : this.visionConcurrency;
+  /**
+   * Concurrency control shared by every request.
+   *
+   * A single kind (vision or text) runs at a time: mixing them only splits the
+   * iGPU memory bandwidth for no aggregate throughput gain. Within the active
+   * kind, up to `limitFor(kind)` requests run concurrently so same-model batching
+   * amortizes the weight reads. The cap counts real in-flight requests (not
+   * workers), so it holds no matter how many assets a worker dispatches at once
+   * and must match the runtime's OLLAMA_NUM_PARALLEL. Excess requests queue.
+   */
+  private limitFor(kind: OllamaKind): number {
+    const configured = kind === 'text' ? this.textConcurrency : this.visionConcurrency;
     return Math.max(1, Math.floor(configured));
   }
 
-  private getLockKind(workerId: string): 'text' | 'vision' {
-    return workerId === 'tags-worker' || workerId === 'title-worker' ? 'text' : 'vision';
+  private canRun(kind: OllamaKind): boolean {
+    return (this.activeKind === null || this.activeKind === kind) && this.inFlight < this.limitFor(kind);
+  }
+
+  private acquireSlot(kind: OllamaKind): Promise<void> {
+    if (this.canRun(kind)) {
+      this.inFlight++;
+      this.activeKind = kind;
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      this.waiters.push({ kind, resolve });
+    });
+  }
+
+  private releaseSlot(kind: OllamaKind): void {
+    this.inFlight = Math.max(0, this.inFlight - 1);
+    if (this.inFlight === 0) {
+      this.activeKind = null;
+    }
+    this.pump();
+  }
+
+  private pump(): void {
+    for (let i = 0; i < this.waiters.length; ) {
+      const waiter = this.waiters[i];
+      if (this.canRun(waiter.kind)) {
+        this.waiters.splice(i, 1);
+        this.inFlight++;
+        this.activeKind = waiter.kind;
+        waiter.resolve();
+      } else {
+        i++;
+      }
+    }
   }
 
   public async describeImage(imagePath: string, prompt: string, task: OllamaVisionTask = 'description'): Promise<string> {
     const b64 = await this.toJpegBase64(imagePath);
-    return this.chat(this.visionModel, prompt, VISION_TASK_CONFIG[task], [b64]);
+    return this.chat(this.visionModel, 'vision', prompt, VISION_TASK_CONFIG[task], [b64]);
   }
 
   public async extractJson(text: string, prompt: string, task: OllamaTextTask = 'tags'): Promise<Record<string, any>> {
-    const content = await this.chat(this.textModel, `${prompt}
+    const content = await this.chat(this.textModel, 'text', `${prompt}
 
 Texto:
 ${text}`, TEXT_TASK_CONFIG[task]);
@@ -132,7 +165,7 @@ ${text}`, TEXT_TASK_CONFIG[task]);
     }
   }
 
-  private async chat(model: string, prompt: string, config: OllamaTaskConfig, images?: string[]): Promise<string> {
+  private async chat(model: string, kind: OllamaKind, prompt: string, config: OllamaTaskConfig, images?: string[]): Promise<string> {
     const url = new URL(`${this.baseUrl.replace(/\/$/, '')}/api/chat`);
     const payload = JSON.stringify({
       model,
@@ -143,38 +176,43 @@ ${text}`, TEXT_TASK_CONFIG[task]);
       messages: [{ role: 'user', content: prompt, ...(images ? { images } : {}) }]
     });
 
-    return new Promise((resolve, reject) => {
-      const client = url.protocol === 'https:' ? https : http;
-      const req = client.request(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
-        },
-        timeout: config.timeoutMs
-      }, (res) => {
-        let body = '';
-        res.on('data', chunk => body += chunk);
-        res.on('end', () => {
-          if (res.statusCode && res.statusCode >= 400) {
-            reject(new Error(`Ollama request failed (${res.statusCode}): ${body}`));
-            return;
-          }
-          try {
-            const parsed = JSON.parse(body) as OllamaChatResponse;
-            resolve(parsed.message?.content?.trim() || '');
-          } catch (err) {
-            reject(err);
-          }
+    await this.acquireSlot(kind);
+    try {
+      return await new Promise<string>((resolve, reject) => {
+        const client = url.protocol === 'https:' ? https : http;
+        const req = client.request(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(payload)
+          },
+          timeout: config.timeoutMs
+        }, (res) => {
+          let body = '';
+          res.on('data', chunk => body += chunk);
+          res.on('end', () => {
+            if (res.statusCode && res.statusCode >= 400) {
+              reject(new Error(`Ollama request failed (${res.statusCode}): ${body}`));
+              return;
+            }
+            try {
+              const parsed = JSON.parse(body) as OllamaChatResponse;
+              resolve(parsed.message?.content?.trim() || '');
+            } catch (err) {
+              reject(err);
+            }
+          });
         });
-      });
 
-      req.on('error', reject);
-      req.on('timeout', () => {
-        req.destroy(new Error('Request timed out'));
+        req.on('error', reject);
+        req.on('timeout', () => {
+          req.destroy(new Error('Request timed out'));
+        });
+        req.write(payload);
+        req.end();
       });
-      req.write(payload);
-      req.end();
-    });
+    } finally {
+      this.releaseSlot(kind);
+    }
   }
 }

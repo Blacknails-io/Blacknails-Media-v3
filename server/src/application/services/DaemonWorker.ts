@@ -15,6 +15,7 @@ export interface WorkerStatusDTO {
   label: string;
   isRunning: boolean;
   isExecuting?: boolean;
+  currentlyProcessing?: number;
   currentAssetType?: 'PHOTO' | 'VIDEO';
   intervalMs: number;
   pendingItems: number;
@@ -38,6 +39,7 @@ export abstract class DaemonWorker {
   protected lastErrorAt?: string;
   protected lastErrorMessage?: string;
   protected currentExecutionId?: string;
+  protected currentExecutionTotalItems?: number;
   protected currentAssetType?: 'PHOTO' | 'VIDEO';
 
   constructor(
@@ -93,6 +95,7 @@ export abstract class DaemonWorker {
       label: this.label,
       isRunning: this.isRunning,
       isExecuting: !!this.currentExecutionId,
+      currentlyProcessing: this.currentExecutionTotalItems,
       currentAssetType: this.currentAssetType,
       intervalMs: this.intervalMs,
       pendingItems: pendingItemsOverride ?? await this.getPendingItems(),
@@ -127,6 +130,7 @@ export abstract class DaemonWorker {
   protected async startExecution(totalItems: number): Promise<void> {
     if (!this.executionRepo) return;
     this.currentExecutionId = crypto.randomUUID();
+    this.currentExecutionTotalItems = totalItems;
     const exec = new WorkerExecution({
       id: this.currentExecutionId,
       runner: this.id,
@@ -156,6 +160,7 @@ export abstract class DaemonWorker {
     exec.status = status;
     await this.executionRepo.save(exec);
     this.currentExecutionId = undefined;
+    this.currentExecutionTotalItems = undefined;
   }
 
   protected async publishLifecycleEvent(

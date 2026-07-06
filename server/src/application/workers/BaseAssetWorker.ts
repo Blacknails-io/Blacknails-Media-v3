@@ -6,14 +6,16 @@ import { DaemonWorker } from '../services/DaemonWorker.js';
 export abstract class BaseAssetWorker extends DaemonWorker {
   public readonly subsystem = 'AI';
   protected timer?: NodeJS.Timeout;
-  protected readonly maxAssetsPerRun = 1;
+  protected readonly maxAssetsPerRun: number;
   private isCatchingUp = false;
 
   constructor(
     eventBus: IEventBus,
-    protected readonly uow: IUnitOfWork
+    protected readonly uow: IUnitOfWork,
+    maxAssetsPerRun = 1
   ) {
     super(eventBus, uow.workerExecutions);
+    this.maxAssetsPerRun = Math.max(1, Math.floor(maxAssetsPerRun));
   }
 
   protected async catchUp(): Promise<void> {
@@ -37,20 +39,41 @@ export abstract class BaseAssetWorker extends DaemonWorker {
         await this.startExecution(total);
         await this.publishLifecycleEvent('STARTED', `${prefix} Comenzando procesamiento de ${total} de ${backlogTotal} elementos pendientes...`);
       }
+      // The whole batch is dispatched concurrently. OllamaService caps the real
+      // in-flight requests at its per-kind limit (= OLLAMA_NUM_PARALLEL), so
+      // batchSize only decides how many assets we hand off per cycle; the runtime
+      // never receives more concurrent requests than it can serve.
+      const results = await Promise.allSettled(pending.map(async (asset) => {
+        try {
+          return await this.processAsset(asset);
+        } finally {
+          if (this.currentExecutionTotalItems !== undefined) {
+            this.currentExecutionTotalItems = Math.max(0, this.currentExecutionTotalItems - 1);
+          }
+        }
+      }));
+
       let processed = 0;
       let failed = 0;
-      for (const asset of pending) {
-        try {
-          this.currentAssetType = asset.assetType;
-          await this.processAsset(asset);
+      let firstError: unknown;
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        const asset = pending[i];
+        if (result.status === 'fulfilled') {
           processed++;
-          await this.updateExecution(processed, failed);
           await this.publishLifecycleEvent('SUCCESS', `${prefix} Processed item ${processed}/${total} (${asset.id})`, { workerName: this.id, itemId: asset.id, status: 'PROCESSED' });
-        } catch (err) {
+        } else {
           failed++;
-          await this.updateExecution(processed, failed);
-          throw err;
+          firstError = firstError ?? result.reason;
+          console.error(`${prefix} Error processing asset ${asset.id}:`, result.reason);
         }
+      }
+      await this.updateExecution(processed, failed);
+
+      // Only bubble up when nothing succeeded, so a single bad asset doesn't fail
+      // the rest of the batch. The outer catch marks the execution as FAILED.
+      if (processed === 0 && failed > 0) {
+        throw firstError;
       }
 
       this.markRun();

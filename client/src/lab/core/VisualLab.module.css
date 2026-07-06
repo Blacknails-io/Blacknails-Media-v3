@@ -683,75 +683,7 @@
   line-height: 1.35;
 }
 
-.previewLoginCard {
-  width: min(100%, 330px);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 14px;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
 
-.previewLogo {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  align-self: center;
-  border: 1px solid rgba(166, 244, 255, 0.62);
-  border-radius: 50%;
-  color: #f8feff;
-  font-weight: 850;
-  box-shadow: 0 0 24px rgba(126, 235, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.24);
-}
-
-.previewLoginCard h1 {
-  margin: 0;
-  color: var(--lab-text-main);
-  font-size: 1rem;
-  font-weight: 860;
-  letter-spacing: 0;
-  text-shadow: 0 1px 2px rgba(2, 7, 18, 0.94), 0 0 24px rgba(126, 235, 255, 0.36);
-}
-
-.previewLoginCard p {
-  margin: -8px 0 4px;
-  color: #edfaff;
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  text-shadow: 0 1px 2px rgba(2, 7, 18, 0.9), 0 0 18px rgba(126, 235, 255, 0.24);
-}
-
-.previewInput,
-.previewButton {
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  border-radius: 11px;
-  font-size: 0.72rem;
-  font-weight: 760;
-  letter-spacing: 0;
-}
-
-.previewInput {
-  justify-content: flex-start;
-  padding: 0 16px;
-  border: 1px solid rgba(244, 253, 255, 0.42);
-  background: linear-gradient(145deg, rgba(2, 7, 18, 0.62), rgba(18, 71, 112, 0.42) 56%, rgba(92, 28, 102, 0.28));
-  color: rgba(232, 247, 255, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 28px rgba(0, 0, 0, 0.22);
-}
-
-.previewButton {
-  justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  background: linear-gradient(105deg, rgba(255, 255, 255, 0.92), rgba(166, 244, 255, 0.94) 31%, rgba(70, 198, 232, 0.92) 58%, rgba(236, 84, 211, 0.9) 100%);
-  color: #030716;
-  box-shadow: 0 18px 42px rgba(24, 125, 204, 0.32), 0 0 34px rgba(126, 235, 255, 0.46), 0 0 68px rgba(236, 84, 211, 0.24);
-}
 
 .controlPanel {
   min-height: 100dvh;
@@ -781,12 +713,29 @@
   text-transform: uppercase;
 }
 
-.controlHeader h1 {
+.controlHeader h1,
+.controlHeader .headerSelect {
   margin: 0;
   color: var(--lab-text-main);
   font-size: 1.45rem;
   font-weight: 840;
   letter-spacing: 0;
+}
+
+.controlHeader .headerSelect {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  outline: none;
+}
+
+.controlHeader .headerSelect option {
+  background: var(--lab-surface-base, #111);
+  color: var(--lab-text-main, #fff);
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .presetRow {
@@ -833,13 +782,152 @@
   min-width: 0;
   min-height: 46px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 36px 76px;
+  grid-template-columns: minmax(0, 1fr) 36px auto;
   align-items: center;
   gap: 10px;
   padding: 8px;
   border: 1px solid rgba(166, 244, 255, 0.14);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.specimenSelectBox {
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid rgba(166, 244, 255, 0.28);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: rgba(5, 10, 18, 0.82);
+  color: #e8f7ff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.specimenSelectBox:focus-visible {
+  border-color: rgba(166, 244, 255, 0.74);
+  box-shadow: 0 0 0 3px rgba(126, 235, 255, 0.14);
+}
+
+.controlAccordion {
+  border: 1px solid rgba(166, 244, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color 200ms ease;
+  flex-shrink: 0;
+}
+
+.controlAccordion:hover {
+  border-color: rgba(166, 244, 255, 0.3);
+}
+
+.accordionSummary {
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-weight: 760;
+  text-transform: uppercase;
+  color: #dcebf4;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
+  user-select: none;
+  list-style: none;
+}
+
+.accordionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.accordionSummary::after {
+  content: '▼';
+  float: right;
+  font-size: 0.6rem;
+  color: rgba(166, 244, 255, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.controlAccordion[open] .accordionSummary::after {
+  transform: rotate(180deg);
+}
+
+.controlAccordion[open] .colorEditorList {
+  padding: 10px;
+  border-top: 1px solid rgba(166, 244, 255, 0.08);
+}
+
+.hexInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 0 6px;
+  min-height: 34px;
+}
+
+.headerSelect {
+  width: 100%;
+  background: rgba(2, 7, 18, 0.4);
+  color: #c9efff;
+  border: 1px solid rgba(166, 244, 255, 0.1);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.deployButton {
+  background: var(--accent-cyan);
+  color: #020712;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+  transition: all 0.2s;
+}
+
+.deployButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(0, 229, 255, 0.6);
+}
+
+.colorHexInput {
+  width: 58px;
+  background: transparent;
+  border: none;
+  color: #e8f7ff;
+  font-size: 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  outline: none;
+  text-transform: uppercase;
+}
+
+.resetButton {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  background: transparent;
+  border: none;
+  color: rgba(166, 244, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 150ms ease;
+}
+
+.resetButton:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .colorMeta {

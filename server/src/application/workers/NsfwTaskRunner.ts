@@ -20,21 +20,14 @@ export class NsfwTaskRunner extends BaseAssetWorker {
     uow: IUnitOfWork,
     public readonly intervalMs: number,
     private readonly ollama: IOllamaService,
-    private readonly nsfwThreshold: number
+    private readonly nsfwThreshold: number,
+    batchSize = 1
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected isPending(asset: Asset): boolean {
     return Boolean(asset.aiThumbnailPath || asset.thumbnailPath) && !asset.nsfwProcessedAt;
-  }
-
-  protected acquireResources(): boolean {
-    return this.ollama.acquireLock(this.id);
-  }
-
-  protected releaseResources(): void {
-    this.ollama.releaseLock(this.id);
   }
 
   protected async processAsset(asset: Asset): Promise<void> {
@@ -42,22 +35,30 @@ export class NsfwTaskRunner extends BaseAssetWorker {
     if (!imagePath) return;
 
     const raw = await this.ollama.describeImage(imagePath, NSFW_PROMPT, 'nsfw');
+    asset.nsfwProcessedAt = new Date().toISOString();
+    
     const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) return;
+    if (!match) {
+      await this.uow.assets.save(asset);
+      return;
+    }
 
     let parsed: Record<string, any> = {};
     try {
       parsed = JSON.parse(match[0]) as Record<string, any>;
     } catch {
+      await this.uow.assets.save(asset);
       return;
     }
 
     const score = Number(parsed.nsfw_score);
-    if (!Number.isFinite(score)) return;
+    if (!Number.isFinite(score)) {
+      await this.uow.assets.save(asset);
+      return;
+    }
 
     asset.isNsfw = score >= this.nsfwThreshold;
     asset.nsfwReason = typeof parsed.reason === 'string' ? parsed.reason : undefined;
-    asset.nsfwProcessedAt = new Date().toISOString();
     await this.uow.assets.save(asset);
   }
 }

@@ -4,6 +4,4 @@ export type OllamaTextTask = 'tags' | 'title';
 export interface IOllamaService {
   describeImage(imagePath: string, prompt: string, task?: OllamaVisionTask): Promise<string>;
   extractJson(text: string, prompt: string, task?: OllamaTextTask): Promise<Record<string, any>>;
-  acquireLock(workerId: string): boolean;
-  releaseLock(workerId: string): void;
 }

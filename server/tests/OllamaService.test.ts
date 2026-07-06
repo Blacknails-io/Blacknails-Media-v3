@@ -6,24 +6,106 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { OllamaService } from '../src/adapters/out/services/OllamaService.js';
 
-test('ollama lock keeps two slots for a single model kind', () => {
-  const ollama = new OllamaService('http://localhost:11434', 'vision-model', 'text-model', 2, 2);
+const tick = () => new Promise<void>((resolve) => setTimeout(resolve, 20));
 
-  assert.equal(ollama.acquireLock('description-worker'), true);
-  assert.equal(ollama.acquireLock('nsfw-worker'), true);
-  assert.equal(ollama.acquireLock('tags-worker'), false);
+async function waitFor(predicate: () => boolean, timeoutMs = 2000): Promise<void> {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) throw new Error('waitFor timed out');
+    await new Promise<void>((resolve) => setTimeout(resolve, 5));
+  }
+}
 
-  ollama.releaseLock('description-worker');
-  assert.equal(ollama.acquireLock('tags-worker'), false);
+test('ollama caps concurrent same-kind requests at the configured limit', async () => {
+  let active = 0;
+  let maxActive = 0;
+  let arrived = 0;
+  const releases: Array<() => void> = [];
+  const server = http.createServer((req, res) => {
+    req.on('data', () => {});
+    req.on('end', () => {
+      arrived++;
+      active++;
+      maxActive = Math.max(maxActive, active);
+      releases.push(() => {
+        active--;
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify({ message: { content: '{"ok":true}' } }));
+      });
+    });
+  });
 
-  ollama.releaseLock('nsfw-worker');
-  assert.equal(ollama.acquireLock('tags-worker'), true);
-  assert.equal(ollama.acquireLock('title-worker'), true);
-  assert.equal(ollama.acquireLock('face-worker'), false);
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = server.address() as any;
+    const ollama = new OllamaService(`http://127.0.0.1:${address.port}`, 'vision-model', 'text-model', 2, 2, '5m');
 
-  ollama.releaseLock('tags-worker');
-  ollama.releaseLock('title-worker');
-  assert.equal(ollama.acquireLock('face-worker'), true);
+    const pending = [
+      ollama.extractJson('a', 'p', 'tags'),
+      ollama.extractJson('b', 'p', 'tags'),
+      ollama.extractJson('c', 'p', 'tags'),
+      ollama.extractJson('d', 'p', 'tags')
+    ];
+
+    await waitFor(() => arrived >= 2);
+    await tick();
+    assert.equal(active, 2, 'only two text requests should be in-flight at once');
+    assert.equal(arrived, 2, 'surplus requests must queue in the semaphore, not reach the server');
+
+    releases.shift()!();
+    releases.shift()!();
+    await waitFor(() => arrived >= 4);
+    assert.equal(active, 2, 'freeing two slots lets exactly two queued requests proceed');
+
+    releases.shift()!();
+    releases.shift()!();
+    await Promise.all(pending);
+    assert.equal(maxActive, 2, 'concurrency never exceeded the configured limit');
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
+});
+
+test('ollama never runs vision and text requests concurrently', async () => {
+  const seen: string[] = [];
+  const releases: Array<() => void> = [];
+  const server = http.createServer((req, res) => {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk.toString(); });
+    req.on('end', () => {
+      seen.push((JSON.parse(body) as { model: string }).model);
+      releases.push(() => {
+        res.setHeader('content-type', 'application/json');
+        res.end(JSON.stringify({ message: { content: '{"ok":true}' } }));
+      });
+    });
+  });
+
+  const tmp = await mkdtemp(join(tmpdir(), 'bn-ollama-kind-'));
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const address = server.address() as any;
+    const imagePath = join(tmp, 'image.jpg');
+    await writeFile(imagePath, Buffer.from('fake-jpeg'));
+    const ollama = new OllamaService(`http://127.0.0.1:${address.port}`, 'vision-model', 'text-model', 2, 2, '5m');
+
+    const visionPromise = ollama.describeImage(imagePath, 'describe', 'description');
+    await waitFor(() => seen.length >= 1);
+
+    const textPromise = ollama.extractJson('t', 'p', 'tags');
+    await tick();
+    assert.deepEqual(seen, ['vision-model'], 'text must not reach the server while vision is active');
+
+    releases.shift()!();
+    await waitFor(() => seen.length >= 2);
+    assert.deepEqual(seen, ['vision-model', 'text-model'], 'text runs only after vision drains');
+
+    releases.shift()!();
+    await Promise.all([visionPromise, textPromise]);
+  } finally {
+    await rm(tmp, { recursive: true, force: true });
+    await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
 });
 
 

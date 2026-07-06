@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "0.1.0",
+  "installedAt": "2026-07-05T02:14:18.129Z",
+  "codexEvaluatorVersion": "0.1.0",
+  "mode": "repo-local-symbiont",
+  "source": {
+    "localPath": "/srv/storage/ai-lab/Blacknails-Media-v3",
+    "installedBy": "codex-evaluator attach"
+  },
+  "installedSkills": [
+    {
+      "name": "repo-knowledge-bootstrap",
+      "version": "0.1.0",
+      "path": ".agents/skills/repo-knowledge-bootstrap"
+    },
+    {
+      "name": "user-story-sentinel",
+      "version": "0.1.0",
+      "path": ".agents/skills/user-story-sentinel"
+    }
+  ],
+  "repoMap": {
+    "path": ".codex/repo-map",
+    "generatedAt": "2026-07-05T02:14:18.022Z"
+  },
+  "policy": {
+    "bootstrapDoesNotRunProjectScripts": true,
+    "functionalDocumentationRequiresHumanValidation": true
+  }
+}

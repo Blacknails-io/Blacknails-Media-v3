@@ -18,21 +18,14 @@ export class TitleTaskRunner extends BaseAssetWorker {
     uow: IUnitOfWork,
     public readonly intervalMs: number,
     private readonly ollama: IOllamaService,
-    private readonly sidecarService: ISidecarService
+    private readonly sidecarService: ISidecarService,
+    batchSize = 1
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected isPending(asset: Asset): boolean {
-    return Boolean(asset.aiDescription) && !asset.title;
-  }
-
-  protected acquireResources(): boolean {
-    return this.ollama.acquireLock(this.id);
-  }
-
-  protected releaseResources(): void {
-    this.ollama.releaseLock(this.id);
+    return Boolean(asset.aiDescription) && !asset.titledAt;
   }
 
   protected async processAsset(asset: Asset): Promise<void> {
@@ -42,7 +35,8 @@ export class TitleTaskRunner extends BaseAssetWorker {
     if (title.startsWith('"') && title.endsWith('"') && title.length >= 2) {
       title = title.slice(1, -1).trim();
     }
-    if (!title) return;
+    
+    if (!title) title = '[Untitled]';
 
     asset.title = title.length > 100 ? `${title.slice(0, 97)}...` : title;
     asset.titledAt = new Date().toISOString();

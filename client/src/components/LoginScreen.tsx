@@ -1,27 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { LiquidGlass } from '@ybouane/liquidglass';
+import React, { useState } from 'react';
 import styles from './LoginScreen.module.css';
 import { BrandLogo } from './BrandLogo.js';
 import { useAuth } from '../context/AuthContext.js';
-
-const loginGlassConfig = JSON.stringify({
-  floating: false,
-  blurAmount: 0,
-  refraction: 0.69,
-  chromAberration: 0.05,
-  edgeHighlight: 0.05,
-  specular: 0,
-  fresnel: 1,
-  distortion: 0,
-  cornerRadius: 40,
-  zRadius: 40,
-  opacity: 1,
-  saturation: 0,
-  brightness: 0,
-  shadowOpacity: 0.3,
-  shadowSpread: 10,
-  bevelMode: 0
-});
 
 export const LoginScreen: React.FC = () => {
   const { login } = useAuth();
@@ -33,39 +13,7 @@ export const LoginScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const liquidGlassRootRef = useRef<HTMLDivElement>(null);
-  const liquidGlassPanelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const root = liquidGlassRootRef.current;
-    const panel = liquidGlassPanelRef.current;
-    if (!root || !panel) {
-      return;
-    }
-
-    let disposed = false;
-    let instance: Awaited<ReturnType<typeof LiquidGlass.init>> | null = null;
-
-    LiquidGlass.init({
-      root,
-      glassElements: [panel]
-    })
-      .then((glassInstance) => {
-        if (disposed) {
-          glassInstance.destroy();
-          return;
-        }
-        instance = glassInstance;
-      })
-      .catch((error) => {
-        console.warn('LiquidGlass login effect failed to initialize.', error);
-      });
-
-    return () => {
-      disposed = true;
-      instance?.destroy();
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,7 +35,7 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <div ref={liquidGlassRootRef} className={styles.loginWrapper} data-instance-id="login-viewport" data-glass-stage="calibration">
+    <div className={styles.loginWrapper} data-instance-id="login-viewport" data-glass-stage="calibration">
       <img className={styles.loginBackdrop} src="/demo/liquidglass-background.png" alt="" aria-hidden="true" />
       <svg className={styles.liquidSvgFilters} aria-hidden="true" focusable="false">
         <filter id="login-liquid-distortion" x="-20%" y="-20%" width="140%" height="140%">
@@ -98,9 +46,7 @@ export const LoginScreen: React.FC = () => {
         </filter>
       </svg>
       <div
-        ref={liquidGlassPanelRef}
         className={`${styles.loginCardWrapper} ${hasError ? styles.cardHasError : ""}`}
-        data-config={loginGlassConfig}
       >
         
         {/* Glowing Corner Brackets */}

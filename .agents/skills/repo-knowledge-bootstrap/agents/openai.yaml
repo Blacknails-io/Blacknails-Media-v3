@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Knowledge Bootstrap"
+  short_description: "Create a repo orientation map from code and configuration."
+  default_prompt: "Create the initial technical repo map for this project, using evidence from code, tests, configuration, and entrypoints. Do not invent functional intent."

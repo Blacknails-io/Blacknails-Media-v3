@@ -3,6 +3,11 @@
 @variant dark (&:where(.dark, .dark *));
 
 /* Base styles for the Prosumer UI */
+:root {
+  /* --- LAB_OVERRIDES_START --- */
+  /* --- LAB_OVERRIDES_END --- */
+}
+
 body {
   @apply text-zinc-900 dark:text-zinc-100 transition-colors duration-300;
   background: #030618;

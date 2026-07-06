@@ -16,12 +16,12 @@
   position: relative;
   z-index: 1;
   overflow: visible;
-  touch-action: none;
-}
-
-.panel > canvas {
-  pointer-events: none;
-  z-index: 0 !important;
+  /* Frosted Glass Base */
+  background: rgba(0, 40, 50, 0.1);
+  backdrop-filter: blur(12px) brightness(1.15) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) brightness(1.15) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .content {

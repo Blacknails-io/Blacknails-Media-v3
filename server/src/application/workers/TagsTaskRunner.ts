@@ -33,21 +33,14 @@ export class TagsTaskRunner extends BaseAssetWorker {
     uow: IUnitOfWork,
     public readonly intervalMs: number,
     private readonly ollama: IOllamaService,
-    private readonly sidecarService: ISidecarService
+    private readonly sidecarService: ISidecarService,
+    batchSize = 1
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected isPending(asset: Asset): boolean {
-    return Boolean(asset.aiDescription) && (!asset.tags || asset.tags.length === 0);
-  }
-
-  protected acquireResources(): boolean {
-    return this.ollama.acquireLock(this.id);
-  }
-
-  protected releaseResources(): void {
-    this.ollama.releaseLock(this.id);
+    return Boolean(asset.aiDescription) && !asset.taggedAt;
   }
 
   protected async processAsset(asset: Asset): Promise<void> {
@@ -67,9 +60,7 @@ export class TagsTaskRunner extends BaseAssetWorker {
       })
       .filter((value) => value.length > 0);
 
-    if (tags.length === 0) return;
-
-    asset.tags = Array.from(new Set(tags));
+    asset.tags = tags.length > 0 ? Array.from(new Set(tags)) : [];
     asset.taggedAt = new Date().toISOString();
     asset.aiProcessedAt = asset.taggedAt;
     asset.sidecarPath = await this.sidecarService.write(asset);

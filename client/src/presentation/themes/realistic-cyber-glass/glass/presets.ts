@@ -1,6 +1,4 @@
-import type { GlassConfig } from '@ybouane/liquidglass';
-
-export type SurfacePreset = Partial<GlassConfig>;
+export type SurfacePreset = any;
 
 export const surfacePresets = {
   clear: {

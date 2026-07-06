@@ -25,6 +25,9 @@ services:
     environment:
       - PORT=3000
       - NODE_ENV=production
+      # Served over plain HTTP on the LAN: the session cookie must NOT be Secure,
+      # or browsers drop it and <img>/<video> requests fail auth (blank thumbnails).
+      - COOKIE_SECURE=false
       - DATABASE_PATH=/home/node/app/data/blacknails.db
       - IMPORT_DIR=/home/node/app/library/import
       - ORIGINALS_DIR=/home/node/app/library/originals
@@ -34,8 +37,8 @@ services:
       - OLLAMA_URL=http://ollama-rocm:11434
       - OLLAMA_VISION_MODEL=blacknails-vision
       - OLLAMA_TEXT_MODEL=blacknails-text
-      - OLLAMA_VISION_CONCURRENCY=2
-      - OLLAMA_TEXT_CONCURRENCY=2
+      - OLLAMA_VISION_CONCURRENCY=4
+      - OLLAMA_TEXT_CONCURRENCY=4
       - OLLAMA_KEEP_ALIVE=5m
     restart: unless-stopped
     networks:

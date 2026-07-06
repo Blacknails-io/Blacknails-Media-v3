@@ -1,5 +1,5 @@
 import { BrandLogo } from '../../../../components/BrandLogo.js';
-import { LiquidGlassSurface, surfacePresets } from '../../../ui/surfaces/LiquidGlassSurface/index.js';
+import { FrostedGlassSurface } from '../../../ui/surfaces/FrostedGlassSurface/index.js';
 import styles from './Login.module.css';
 import type { LoginLogic } from './useLoginLogic.js';
 
@@ -12,14 +12,13 @@ const joinClassNames = (...classes: Array<string | false | null | undefined>) =>
 
 export function LoginView({ logic }: LoginViewProps) {
   return (
-    <LiquidGlassSurface
+    <FrostedGlassSurface
       className={styles.loginViewport}
       backgroundClassName={styles.loginBackdrop}
       panelClassName={joinClassNames(styles.loginPanel, logic.hasError && styles.panelError)}
-      contentClassName={styles.loginPanelContent}
-      config={surfacePresets.loginPanel}
+      contentClassName={styles.loginContent}
       rootInstanceId="login-viewport"
-      panelInstanceId="login-card"
+      panelInstanceId="login-panel"
       background={(
         <>
           <img className={styles.backdropImage} src="/demo/liquidglass-background.png" alt="" />
@@ -166,6 +165,6 @@ export function LoginView({ logic }: LoginViewProps) {
           Registrarse en la red
         </a>
       </footer>
-    </LiquidGlassSurface>
+    </FrostedGlassSurface>
   );
 }
