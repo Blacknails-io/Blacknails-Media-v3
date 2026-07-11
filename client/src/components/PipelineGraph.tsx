@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PipelineWorkerDTO } from '../services/api/interfaces.js';
-import '../corporate/PipelineGraph.css';
+import type { PipelineWorkerDTO } from '../types/Pipeline.js';
+import './PipelineGraph.css';
 
 interface PipelineGraphProps {
   workers: PipelineWorkerDTO[];
@@ -290,7 +290,7 @@ export const PipelineGraph = ({ workers, onAction }: PipelineGraphProps) => {
 
                     <div className="pipeline-node-details">
                       <div className="pipeline-node-pending">
-                        Pendientes: <strong className={worker.pendingItems > 0 ? 'text-amber-400 font-bold' : ''}>{worker.pendingItems}</strong>
+                        Pendientes: <strong style={worker.pendingItems > 0 ? { color: '#fbbf24', fontWeight: 'bold' } : {}}>{worker.pendingItems}</strong>
                       </div>
                       <div className="pipeline-node-io">
                         <div className="pipeline-io-group">

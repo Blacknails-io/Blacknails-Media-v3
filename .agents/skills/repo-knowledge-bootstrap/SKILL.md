@@ -1,31 +1,35 @@
 ---
 name: repo-knowledge-bootstrap
-description: Create or refresh a repo-local technical orientation map from source code, package manifests, Docker files, and entrypoints. Use when a repository lacks the minimum Codex-ready repo map, or when existing documentation is missing, stale, or not trustworthy.
+description: >
+  Genera un mapa técnico local del repositorio. Úsalo cuando el usuario te indique que el repositorio no tiene documentación fiable, o cuando necesites orientarte y falte el directorio .codex/repo-map/. Keywords: codex, bootstrap, map, orientation, documentation.
 ---
 
-# Repo Knowledge Bootstrap
+# Rol Operacional
+Actúas como un Explorador de Código y Arquitecto de Sistemas Analítico. Tu objetivo es descubrir, mapear y documentar de forma basada en evidencias el estado real de un repositorio de código, creando un mapa técnico fáctico que sirva de brújula para futuros desarrollos.
 
-## Goal
-To construct or refresh a factual, evidence-backed technical map (`.codex/repo-map/`) to help future development sessions quickly orient themselves inside the repository.
+## Criterios de Activación
+- Cuando un repositorio no contiene el directorio `.codex/repo-map/`.
+- Antes de iniciar una historia de usuario o feature importante si la documentación existente está desactualizada o no es confiable.
+- (NO usar si ya existe un `.codex/repo-map/` confiable y actualizado en el repositorio).
+- (NO usar durante tareas típicas de codificación, refactorización o testing).
 
-## When to use this skill
-- When a repository is missing the `.codex/repo-map/` directory.
-- Before starting a major user story or feature implementation if existing documentation is stale or untrustworthy.
+## Pasos Secuenciales del Flujo
+1. **Auditoría de Fuentes:** Examina el código fuente, manifiestos de paquetes, archivos Docker y puntos de entrada (entrypoints) usando [Domain Signal Detection](./references/domain-signal-detection.md).
+2. **Recopilación de Evidencias:** Extrae realidades arquitectónicas del código, clasificándolas según [Evidence and Confidence Guideline](./references/evidence-and-confidence.md) en: `fact`, `hypothesis`, `risk`, y `unknown`.
+3. **Generación del Mapa:** Estructura la información recopilada de acuerdo con el [Repo Map Contract](./references/repo-map-contract.md).
+4. **Escritura a Disco:** Guarda todos los archivos del mapa técnico estrictamente dentro del directorio `.codex/repo-map/`.
 
-## When NOT to use this skill
-- If a trustworthy, up-to-date `.codex/repo-map/` already exists in the repository.
-- During typical coding, refactoring, or testing tasks.
+## Restricciones Críticas (Reglas Negativas)
+- **NUNCA** escribas archivos del mapa fuera de `.codex/repo-map/`.
+- **NUNCA** presentes una afirmación técnica o regla arquitectónica sin vincularla a evidencia concreta mediante rutas de archivo relativas.
+- **NUNCA** presentes el "intento funcional" como un hecho confirmado sin validación humana explícita.
+- **NUNCA** impongas ni fuerces una arquitectura deseada durante la fase de bootstrap; debes documentar la arquitectura *realmente* encontrada en el código.
 
-## Core Rules (Must Follow)
-- **MUST** write all repo-map files under `.codex/repo-map/`.
-- **MUST** tie every technical claim or architectural rule to concrete, relative file-path evidence.
-- **MUST** separate claims clearly into categories: `fact`, `hypothesis`, `risk`, and `unknown`.
-- **NEVER** present functional intent as confirmed without explicit human validation.
-- **NEVER** impose or enforce a desired architecture during the bootstrap phase; document the architecture *actually* found in the code.
-
----
-
-## Detailed Workflows & Examples
-- **[Repo Map Contract](./references/repo-map-contract.md)**: Required structure and format for the map files.
-- **[Evidence and Confidence Guideline](./references/evidence-and-confidence.md)**: Rules for categorizing claims and evaluating confidence.
-- **[Domain Signal Detection](./references/domain-signal-detection.md)**: How to locate key entities, models, ports, and services in the codebase.
+## Formato de Salida Rígido
+El agente debe estructurar su respuesta de inicialización de este modo:
+- **Estado del Bootstrap:** Confirmación de creación o actualización del directorio `.codex/repo-map/`.
+- **Categorización de Descubrimientos:**
+  - *Hechos Confirmados (Facts):* [Breve lista con links a archivos]
+  - *Hipótesis/Desconocidos:* [Puntos pendientes de aclaración humana]
+  - *Riesgos (Risks):* [Deuda técnica o discrepancias encontradas]
+- **Archivos Generados:** Lista de los archivos creados en `.codex/repo-map/`.

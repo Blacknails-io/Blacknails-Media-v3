@@ -1,0 +1,1 @@
+const bcrypt = require('bcrypt'); const hash = bcrypt.hashSync('admin', 10); const db = require('better-sqlite3')('/srv/storage/ai-lab/Blacknails-Media-v3/server/data/blacknails.db'); db.prepare("UPDATE users SET password_hash = ? WHERE username = 'admin'").run(hash); console.log('Password reset successfully');

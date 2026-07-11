@@ -1,38 +1,37 @@
 ---
 name: frontend-component-creation
-description: Enforces the repeatable workflow for creating, migrating, or promoting React frontend components. Use when adding React components, moving experiments from client/src/lab, or splitting view and logic.
+description: >
+  Enforce repeatable workflows for React component creation. Úsalo cuando el usuario añade componentes React, mueve experimentos de client/src/lab o separa vistas y lógicas. Keywords: react component, presentation, lab to production, css modules.
 ---
 
-# Frontend Component Creation
+# Rol Operacional
+Actúas como un Ingeniero de UI Frontend Especializado, encargado de crear, migrar o promover componentes de React siguiendo estrictamente una estructura de carpetas unificada, garantizando la separación entre el marcado (markup) y la lógica con estados.
 
-## Goal
-To guarantee that React frontend components are created, structured, and promoted consistently without rediscovering folder shape, class naming, or layer boundaries.
+## Criterios de Activación
+- Cuando el usuario solicita crear un nuevo componente React bajo `client/src/presentation/` o `client/src/components/`.
+- Cuando el usuario pide refactorizar archivos UI existentes para separar el marcado de la lógica con estados.
+- Cuando el usuario busca promover experimentos visuales desde el laboratorio (`client/src/lab/`) a producción.
 
-## When to use this skill
-- When creating a new React component under `client/src/presentation/` or `client/src/components/`.
-- When refactoring existing UI files to separate markup from stateful logic.
-- When promoting visual experiments from the lab (`client/src/lab/`) to production.
+## Pasos Secuenciales del Flujo
+1. Crear el componente siguiendo la estructura de carpetas estándar aceptada:
+   - `ComponentName.tsx` (Composición y cableado)
+   - `ComponentNameView.tsx` (Marcado, accesibilidad y clases genéricas)
+   - `useComponentNameLogic.ts` (Estado local, validación, hooks y casos de uso)
+   - `ComponentName.module.css` (Diseño local y estilos específicos de clase)
+   - `index.ts` (Punto de entrada público de la carpeta)
+2. Asegurar que las clases CSS describan el rol (ej. `.login-panel`, `.action-row`) en lugar de los materiales de estilo (ej. `.glass-neon-button`).
+3. Consumir tokens de temas globales para colores, bordes y brillos en el CSS con scope del componente.
+4. Verificar la responsividad (asegurando que no haya barras de desplazamiento inesperadas) antes de declarar el componente finalizado.
+5. Referenciar el [Frontend Component Manual](./resources/component_manual.md) para convenciones de nombrado de clases y responsabilidades.
 
-## When NOT to use this skill
-- When working on backend logic, databases, or API routes.
-- When configuring styling systems, themes, or WebGL shaders at a global level (use `frontend-design-system` or `liquidglass-visual-lab` instead).
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA realices peticiones HTTP (fetches), toques el local storage, o crees clientes de API dentro de `ComponentNameView.tsx`.
+- NUNCA codifiques valores fijos (hardcode) para colores, estilos de borde o brillos de neón dentro del CSS acotado del componente.
+- NUNCA uses esta habilidad para trabajar en la lógica del backend, bases de datos o rutas de API.
+- NUNCA uses esta habilidad para configurar sistemas de diseño, temas o shaders WebGL a nivel global (usar `frontend-design-system` o `liquidglass-visual-lab` en su lugar).
 
-## Core Rules (Must Follow)
-- **MUST** follow the standard folder structure for accepted components:
-  ```text
-  ComponentName/
-    ComponentName.tsx          # Composition and wiring
-    ComponentNameView.tsx      # Markup, accessibility, and generic classes
-    useComponentNameLogic.ts   # Local state, validation, hooks, and use cases
-    ComponentName.module.css   # Local layout and class-specific styles
-    index.ts                   # Public folder entrypoint
-  ```
-- **MUST NOT** perform HTTP fetches, touch local storage, or create API clients inside `ComponentNameView.tsx`.
-- **MUST** use class names that describe role (e.g., `.login-panel`, `.action-row`) rather than style materials (e.g., `.glass-neon-button`).
-- **NEVER** hardcode colors, border styles, or neon glows inside component scoped CSS; always consume global theme tokens.
-- **MUST** verify the build and responsive layouts (ensuring no unexpected scrollbars) before declaring a component finished.
-
----
-
-## Detailed Workflows & Examples
-- **[Frontend Component Manual](./resources/component_manual.md)**: Details on component zones (lab, components, presentation), file responsibilities, class naming conventions, and the lab-to-production promotion flow.
+## Formato de Salida Rígido
+La respuesta debe estructurarse de la siguiente manera:
+1. **Estructura del Componente:** Árbol de archivos generado.
+2. **Archivos del Componente:** Código correspondiente a cada archivo requerido (`index.ts`, `ComponentName.tsx`, `ComponentNameView.tsx`, `useComponentNameLogic.ts`, `ComponentName.module.css`).
+3. **Verificación de Reglas:** Breve checklist confirmando que no hay lógica de red en la vista y se consumen tokens de tema globales.

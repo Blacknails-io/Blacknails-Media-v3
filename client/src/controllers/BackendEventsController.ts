@@ -1,20 +1,19 @@
 import type { AppEvent } from '@blacknails/shared';
-
-export type BackendConnectionStatus = 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED';
-type EventListener = (event: AppEvent) => void;
-type StatusListener = (status: BackendConnectionStatus) => void;
-type EventFilter = (event: AppEvent) => boolean;
-
-interface EventSubscription {
-  listener: EventListener;
-  filter?: EventFilter;
-}
+import type {
+  BackendConnectionStatus,
+  EventListener,
+  StatusListener,
+  EventFilter,
+  EventSubscription
+} from '../types/events';
 
 export class BackendEventsController {
   private eventSource: EventSource | null = null;
   private status: BackendConnectionStatus = 'DISCONNECTED';
   private readonly eventSubscriptions = new Set<EventSubscription>();
   private readonly statusListeners = new Set<StatusListener>();
+  private readonly eventHistory: AppEvent[] = [];
+  private readonly maxHistorySize = 200;
 
   public start(): void {
     if (this.eventSource) return;
@@ -71,7 +70,21 @@ export class BackendEventsController {
     }
   }
 
+  public getEventHistory(): AppEvent[] {
+    return [...this.eventHistory];
+  }
+
   private emitEvent(event: AppEvent): void {
+    // Evitar duplicados si el SSE se reconecta y vuelve a enviar el histórico
+    if (this.eventHistory.some(e => e.id === event.id)) {
+      return;
+    }
+
+    this.eventHistory.push(event);
+    if (this.eventHistory.length > this.maxHistorySize) {
+      this.eventHistory.shift();
+    }
+
     for (const { listener, filter } of this.eventSubscriptions) {
       if (!filter || filter(event)) {
         listener(event);

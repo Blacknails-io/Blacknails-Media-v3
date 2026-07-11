@@ -1,0 +1,347 @@
+.consolePanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px;
+  padding: 24px;
+}
+
+.consoleHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.consoleTitle {
+  font-size: 1.15rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.consoleBadge {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.consoleLogs {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding-right: 8px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-muted);
+  gap: 12px;
+  text-align: center;
+}
+
+/* Console Log Row animations */
+.logRow {
+  display: grid;
+  grid-template-columns: 160px 100px 1fr;
+  gap: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 3px solid transparent;
+  align-items: center;
+  animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+@keyframes slide-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logRow.logSystem {
+  border-left-color: var(--color-system);
+  background: rgba(59, 130, 246, 0.03);
+}
+
+.logRow.logDomain {
+  border-left-color: var(--color-domain);
+  background: rgba(139, 92, 246, 0.03);
+}
+
+.logRow.logTask {
+  border-left-color: var(--color-task);
+  background: rgba(16, 185, 129, 0.03);
+}
+
+.logRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.logTime {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.logCategory {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.categorySystem {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.categoryDomain {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+
+.categoryTask {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.logBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logMessage {
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.logDetails {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Button & Action styling */
+.actionButton {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition-fast);
+}
+
+.actionButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.actionButton:active {
+  transform: scale(0.98);
+}
+
+/* --- Phase 2: Premium UX/UI CSS --- */
+
+/* Filters Toolbar */
+.consoleToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.filterPills {
+  display: flex;
+  gap: 8px;
+}
+
+.filterPill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-family: var(--font-primary);
+}
+
+.filterPill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.filterPill.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.filterPill.activeAll {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.filterPill.activeSystem {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+}
+
+.filterPill.activeDomain {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #a78bfa;
+}
+
+.filterPill.activeTask {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.searchWrapper {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  transition: var(--transition-fast);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Collapsible Accordion Row styling */
+.logRowInteractive {
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: grid !important; /* Force grid layout */
+}
+
+.chevronIcon {
+  color: var(--text-muted);
+  transition: transform 0.2s ease-in-out;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.chevronIcon.expanded {
+  transform: rotate(180deg);
+  color: var(--text-primary);
+}
+
+/* Accordion details expanded content */
+.logDetailsDrawer {
+  grid-column: 1 / -1; /* spans across all grid columns */
+  margin-top: 10px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  animation: fade-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detailsTitle {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.jsonCodeBlock {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 10px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.775rem;
+  color: #34d399; /* Greenish/cyber console styling */
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Paused warning indicator */
+.pausedIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--color-warning);
+  margin-right: 12px;
+  animation: pulse-light 1.5s infinite alternate;
+}

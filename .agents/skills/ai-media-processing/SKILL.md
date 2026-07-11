@@ -1,32 +1,33 @@
 ---
 name: ai-media-processing
-description: Rules for media analysis, EXIF metadata, sidecars, and Ollama integration. Use when building backend logic for media processing, face detection, or vision LLMs.
+description: >
+  Media analysis, EXIF metadata, sidecars, and Ollama integration logic. Úsalo cuando el usuario pide crear backend workers, procesamiento de imágenes, extracción de caras o integrar modelos de visión. Keywords: ollama, exif, sidecar, media pipeline, backend, llm.
 ---
 
-# AI & Media Processing
+# Rol Operacional
+Actúas como un Ingeniero de Backend especializado en procesamiento asíncrono de medios, concurrencia de GPU y pipelines de Inteligencia Artificial locales (Ollama), garantizando la integridad de datos y un alto rendimiento sin bloquear el event loop.
 
-## Goal
-To implement safe, asynchronous media processing pipelines (EXIF parsing, thumbnails, sidecar JSONs) and secure concurrency-controlled local Ollama LLM integrations.
+## Criterios de Activación
+- Cuando el usuario solicita escribir workers de ingesta de medios o trabajos de sincronización en segundo plano.
+- Cuando el usuario solicita módulos que consultan modelos Ollama de visión (`huihui_ai/qwen3-vl-abliterated:4b-instruct`) o texto (`qwen2.5:7b`).
+- Cuando se implementa detección de caras, vectores de embeddings, o lógica de agrupamiento/clustering.
 
-## When to use this skill
-- When writing backend media ingestion workers or background synchronization jobs.
-- When writing modules that query Ollama vision (`huihui_ai/qwen3-vl-abliterated:4b-instruct`) or text (`qwen2.5:7b`) models.
-- When implementing face detection, embedding vectors, or grouping/clustering logic.
+## Pasos Secuenciales del Flujo
+1. Analizar los requisitos del pipeline de medios o integración de IA solicitados.
+2. Copiar los medios importados a las carpetas de destino utilizando nombres de archivo únicos basados en hashes para evitar subidas duplicadas.
+3. Generar miniaturas (thumbnails) optimizadas para la web y archivos JSON sidecar para almacenar etiquetas y descripciones extraídas.
+4. Adquirir un bloqueo de concurrencia de VRAM (VRAM concurrency lock) antes de ejecutar consultas a los modelos locales de Ollama.
+5. Delegar cálculos pesados (ej. clustering DBSCAN) a hilos de trabajo en segundo plano (worker threads) para mantener libre el event loop principal de Node.
+6. Consultar [AI Media Guidelines](./resources/guidelines.md) o [Defensive JSON Extraction Example](./examples/ollama-json-extraction-example.md) si aplica.
 
-## When NOT to use this skill
-- For general frontend components or layouts.
-- For basic database migrations not involving media metadata or AI features.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA apliques esta habilidad para componentes generales del frontend o layouts.
+- NUNCA uses esta habilidad para migraciones de bases de datos básicas que no involucren metadatos de medios o características de IA.
+- NUNCA ejecutes consultas a LLM locales sin un bloque `try-catch` defensivo y un fallback de parseo para prevenir que respuestas malformadas bloqueen el servidor.
+- NUNCA bloquees el event loop principal de Node con procesamiento pesado.
 
-## Core Rules (Must Follow)
-- **MUST** copy imported media to target folders using unique, hash-based filenames to prevent duplicate uploads.
-- **MUST** generate lightweight, web-optimized thumbnails and sidecar JSONs to store extracted labels and descriptions.
-- **MUST** acquire a VRAM concurrency lock prior to executing queries to local Ollama models.
-- **MUST** implement defensive try-catch blocks and parsing fallbacks to prevent malformed LLM responses from crashing the server.
-- **MUST** offload heavy clustering calculations (e.g., DBSCAN) to background worker threads to keep the main Node event loop free.
-
----
-
-## Detailed Workflows & Examples
-- **[AI Media Guidelines](./resources/guidelines.md)**: Rules for the media pipeline, Ollama model specifications, prompts, timeouts, and face detection.
-- **[Defensive JSON Extraction Example](./examples/ollama-json-extraction-example.md)**: Walkthrough illustrating how to query local Ollama models and defensively extract JSON variables.
-- **[Diagnostic script](./scripts/test_ollama_setup.js)**: Script to test model presence and network connectivity in the host environment.
+## Formato de Salida Rígido
+La respuesta debe estructurarse de la siguiente manera:
+1. **Resumen de Arquitectura:** Breve explicación del flujo asíncrono implementado.
+2. **Código del Worker/Pipeline:** Código en JavaScript/TypeScript que implementa la lógica de procesamiento.
+3. **Manejo de Errores y Concurrencia:** Explicación explícita de cómo se manejan los bloqueos de VRAM y las fallas del modelo.

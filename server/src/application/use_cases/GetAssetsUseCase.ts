@@ -1,6 +1,7 @@
 import { IAssetRepository } from '../ports/out/IAssetRepository.js';
 import { IMediaFileRepository } from '../ports/out/IMediaFileRepository.js';
-import { IGetAssetsQuery, AssetDto } from '../ports/in/IGetAssetsQuery.js';
+import { IFaceRepository } from '../ports/out/IFaceRepository.js';
+import { IGetAssetsQuery, AssetDto, ThinAssetDto } from '../ports/in/IGetAssetsQuery.js';
 import { Asset, Photo, Video } from '../../domain/entities/Asset.js';
 import path from 'path';
 
@@ -8,14 +9,52 @@ export class GetAssetsUseCase implements IGetAssetsQuery {
   constructor(
     private assetRepository: IAssetRepository,
     private mediaFileRepository: IMediaFileRepository,
+    private faceRepository: IFaceRepository,
     private originalsDir: string,
     private storageDir: string
   ) {}
 
-  public async execute(): Promise<AssetDto[]> {
+  public async execute(): Promise<ThinAssetDto[]> {
     const assets = await this.assetRepository.getAll();
-    return Promise.all(assets.map(async (asset) => this.mapToDto(asset)));
+    return assets.map(asset => this.mapToThinDto(asset));
   }
+
+  public mapToThinDto(asset: Asset): ThinAssetDto {
+    const type = asset.assetType;
+    let resolution = 'UNKNOWN';
+    let fileSize = 'UNKNOWN'; // We don't load MediaFile here to save N+1 queries
+
+    if (type === 'PHOTO') {
+      const photo = asset as Photo;
+      if (photo.resolution) {
+        resolution = `${photo.resolution.width}x${photo.resolution.height}`;
+      }
+    } else if (type === 'VIDEO') {
+      const video = asset as Video;
+      if (video.resolution) {
+        resolution = `${video.resolution.width}x${video.resolution.height}`;
+      }
+    }
+
+    const imageUrl = this.resolvePathUrl(asset.aiThumbnailPath || asset.thumbnailPath || '');
+    const videoPreviewUrl = this.resolveVideoPreviewUrl(asset.videoPreviewPath);
+    const title = asset.title?.trim() || `${type === 'PHOTO' ? 'Foto' : 'Video'} ${asset.dateTaken.slice(0, 10)}`;
+
+    return {
+      id: asset.id,
+      title,
+      type,
+      date: asset.dateTaken,
+      imageUrl,
+      videoPreviewUrl,
+      isNsfw: asset.isNsfw === true,
+      metadata: {
+        resolution,
+        fileSize
+      }
+    };
+  }
+
 
   public async mapToDto(asset: Asset): Promise<AssetDto> {
     const type = asset.assetType;
@@ -47,6 +86,27 @@ export class GetAssetsUseCase implements IGetAssetsQuery {
     const description = asset.aiDescription?.trim() || `Indexado: ${asset.indexedAt || 'N/A'}`;
     const tags = asset.tags?.length ? asset.tags : [type.toLowerCase()];
 
+    let people: { id: string; name: string | null; label: string }[] | undefined;
+    try {
+      const faces = await this.faceRepository.getFacesForPhoto(asset.id);
+      if (faces && faces.length > 0) {
+        people = [];
+        for (const face of faces) {
+          if (face.personId) {
+            const person = await this.faceRepository.getPersonById(face.personId);
+            if (person) {
+              // Avoid duplicates
+              if (!people.some(p => p.id === person.id)) {
+                people.push({ id: person.id, name: person.name || null, label: person.label });
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Could not load faces for asset ${asset.id}`, err);
+    }
+
     return {
       id: asset.id,
       title,
@@ -57,6 +117,9 @@ export class GetAssetsUseCase implements IGetAssetsQuery {
       imageUrl,
       videoPreviewUrl,
       originalUrl,
+      isNsfw: asset.isNsfw === true,
+      nsfwReason: asset.nsfwReason,
+      people,
       clearance: 'LEVEL_1', // Fictitious for UI consistency
       metadata: {
         resolution: resolution !== 'UNKNOWN' ? resolution : undefined,

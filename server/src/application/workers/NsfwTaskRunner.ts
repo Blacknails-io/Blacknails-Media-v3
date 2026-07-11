@@ -4,10 +4,20 @@ import { IEventBus } from '../ports/out/IEventBus.js';
 import { IUnitOfWork } from '../ports/out/IUnitOfWork.js';
 import { BaseAssetWorker } from './BaseAssetWorker.js';
 
-const NSFW_PROMPT = `Clasifica seguridad del contenido visual.
-Devuelve JSON exacto:
-{"nsfw_score":0.0,"reason":"..."}
-nsfw_score entre 0 y 1.`;
+const NSFW_PROMPT = `Analiza detalladamente esta imagen. Quiero que clasifiques si contiene contenido NSFW, vulgar o sexualmente explícito.
+Presta especial atención y detecta cualquier tipo de:
+- Desnudez explícita
+- Fetichismos (leather, rubber, latex, militar, uniformes)
+- Prácticas sexuales (fist fucking, piss, golden shower, anal, oral, BDSM)
+- Modificaciones corporales extremas (piercings genitales o en pezones)
+- Órganos sexuales (especialmente penes grandes, black penis, vaginas abiertas)
+- Fluidos corporales, semen, orina
+- Cualquier otro contenido de alto voltaje erótico o pornográfico.
+
+Devuelve un JSON exacto con la siguiente estructura:
+{"nsfw_score":0.0,"reason":"[explica detalladamente lo que ves, enumerando las etiquetas o fetiches detectados]"}
+nsfw_score debe ser un número entre 0 y 1 (donde 1 es contenido puramente pornográfico o fetichista extremo).
+SOLO DEVUELVE EL JSON. No añadas texto fuera de él.`;
 
 export class NsfwTaskRunner extends BaseAssetWorker {
   public readonly id = 'nsfw-worker';

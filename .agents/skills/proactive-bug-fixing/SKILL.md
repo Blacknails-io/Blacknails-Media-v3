@@ -1,29 +1,33 @@
 ---
 name: proactive-bug-fixing
-description: Use this skill whenever fixing a bug, resolving an exception, or encountering broken tests. It enforces the zero-broken-windows policy (fixing collateral bugs on the fly) and requires writing automated regression tests before applying bug fixes.
+description: >
+  Fuerza la política Zero Broken Windows y TDD para bugs. Úsalo cuando el usuario te pida solucionar un error, crash o tests rotos, o cuando encuentres un bug colateral. Keywords: bug, fix, crash, test, regression.
 ---
 
-# Proactive Bug Fixing & Regression Testing
+# Rol Operacional
+Actúas como un Ingeniero de QA y Desarrollador Senior obsesionado con la calidad y la estabilidad del código. Tu misión es garantizar que ningún error se pase por alto (Zero Broken Windows) y que cada solución esté respaldada por una prueba de regresión automatizada, erradicando los bugs desde la raíz.
 
-## Goal
-To enforce a "Zero Broken Windows" policy by immediately fixing collateral bugs found during work, and ensuring every bug fix has an automated regression test to prevent future occurrences.
+## Criterios de Activación
+- Cuando te encuentres con un bug, excepción en tiempo de ejecución o test fallido mientras trabajas en otra tarea.
+- Cuando el usuario te pida explícitamente que arregles un bug o resuelvas un crash.
+- Durante cualquier fase de resolución de bugs (bug-fixing).
+- (NO usar durante el desarrollo normal de features o diseño donde no se abordan bugs).
 
-## When to use this skill
-- Whenever you encounter a bug, runtime exception, or failing test while working on another task.
-- Whenever the user explicitly asks you to fix a bug or resolve a crash.
-- During any bug-fixing phase.
+## Pasos Secuenciales del Flujo
+1. **Identificar y Aislar:** Analiza el bug o lint error encontrado y aísla la causa raíz.
+2. **Escribir Prueba de Regresión (TDD):** Crea una prueba automatizada que reproduzca la falla *antes* de aplicar la solución (o inmediatamente después). Aíslala usando bases de datos en memoria (ej. `:memory:` en SQLite) si es en el backend.
+3. **Aplicar la Solución:** Modifica el código para arreglar el bug asegurándote de no romper otras funcionalidades.
+4. **Verificar:** Ejecuta el script de pruebas **[run_changed_tests.sh](./scripts/run_changed_tests.sh)** para correr las pruebas afectadas por los cambios en git y confirma que el nuevo test pasa exitosamente.
 
-## When NOT to use this skill
-- During ordinary feature development or design styling where no bugs or regressions are being addressed.
+## Restricciones Críticas (Reglas Negativas)
+- **NUNCA** ignores un bug menor, crash o error de linting que encuentres mientras trabajas en otra cosa; arréglalo inmediatamente.
+- **NUNCA** cierres una tarea de resolución de bugs o la declares terminada sin hacer commit de su correspondiente prueba de regresión automatizada.
+- **NUNCA** contamines las bases de datos de desarrollo con datos de prueba; aísla siempre las pruebas.
 
-## Core Rules (Must Follow)
-- **MUST** adopt a proactive attitude: if you find a minor bug, crash, or lint error while working on something else, do not ignore it—**fix it immediately**.
-- **MUST** write an automated test reproducing the failure *before* applying the fix, or immediately after (Test-Driven Bug Fixing).
-- **NEVER** close a bug-fixing task or declare it completed without committing its corresponding automated regression test.
-- **MUST** run the test execution script **[run_changed_tests.sh](./scripts/run_changed_tests.sh)** to run tests affected by git changes.
-- **MUST** isolate backend regression tests using in-memory databases (e.g., `:memory:` in SQLite) to avoid contaminating development databases.
-
----
-
-## Detailed Workflows & Examples
-- **[Bug Regression Test Template](./examples/node-regression-test-template.md)**: A boilerplate for writing database-isolated tests using Node.js's native test runner and assert libraries.
+## Formato de Salida Rígido
+El agente debe presentar los resultados utilizando el siguiente formato:
+- **Resumen del Bug:** Breve descripción del problema encontrado y su causa raíz.
+- **Test de Regresión Añadido:** Enlace al archivo o bloque de código del test que reproduce el fallo original.
+- **Solución Aplicada:** Explicación concisa de los cambios realizados.
+- **Resultados de Validación:** Salida confirmando que los tests locales (run_changed_tests.sh) pasan correctamente.
+- **Recursos Consultados:** Referencia a [Bug Regression Test Template](./examples/node-regression-test-template.md) si se utilizó.

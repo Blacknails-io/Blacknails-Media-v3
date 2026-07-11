@@ -1,6 +1,7 @@
 export interface LoginRequest {
   username: string;
   passwordRaw: string;
+  rememberMe?: boolean;
 }
 
 export interface LoginResponse {

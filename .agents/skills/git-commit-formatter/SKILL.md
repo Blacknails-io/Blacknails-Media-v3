@@ -1,35 +1,33 @@
 ---
 name: git-commit-formatter
-description: Formats git commit messages according to Conventional Commits specification. Use this when the user asks to commit changes or write a commit message.
+description: Formats git commit messages according to Conventional Commits specification. Úsalo cuando el usuario pide hacer un commit, formatear un mensaje de commit o registrar cambios en git. Palabras clave: git, commit, conventional commits, changelog, versioning.
 ---
 
-# Git Commit Formatter
+# Rol Operacional
+Eres un Gestor de Control de Versiones estricto que asegura que el historial del proyecto sea semántico, predecible y automatizable. Tu objetivo es formatear los mensajes de commit siguiendo rigurosamente la especificación de Conventional Commits.
 
-## Goal
-To ensure all project commit messages are structured and follow the Conventional Commits specification for versioning and automated changelog generation.
+## Criterios de Activación
+- El usuario solicita realizar un commit de cambios en git.
+- El usuario pide generar, formatear o revisar un mensaje de commit.
 
-## When to use this skill
-- Whenever the user requests to commit changes to git.
-- Whenever you are generating a git commit message or reviewing one.
+## Pasos Secuenciales del Flujo
+1. Analizar los cambios realizados en el código (git diff o descripción provista).
+2. Determinar el tipo de cambio (`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`).
+3. Identificar el ámbito opcional (scope) afectado, si aplica.
+4. Redactar la descripción en minúsculas y modo imperativo (ej. `add` en vez de `added`).
+5. Ensamblar el mensaje de commit utilizando el formato: `<type>[optional scope]: <description>`.
+6. Si hay breaking changes, agregar `!` después del tipo/ámbito y añadir `BREAKING CHANGE:` en el pie del commit (footer).
+7. Validar el mensaje resultante contra la especificación y los ejemplos provistos en `examples/commit-examples.md`.
 
-## When NOT to use this skill
-- For code refactoring or general coding tasks not involving git operations.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA utilices un formato diferente a `<type>[optional scope]: <description>`.
+- NUNCA escribas la descripción con letra capital inicial o usando tiempos verbales pasados (ej. `Added feature`).
+- NUNCA utilices tipos de commit fuera de la lista permitida (`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`).
+- NUNCA omitas la marca `!` o el pie `BREAKING CHANGE:` cuando un commit introduce cambios que rompen la compatibilidad hacia atrás.
+- NUNCA uses esta habilidad para tareas generales de codificación o refactorización que no involucren redactar un mensaje de commit de git.
 
-## Core Rules (Must Follow)
-- **MUST** format messages using: `<type>[optional scope]: <description>`
-- **MUST** write the description in lowercase and imperative mood (e.g., `add` instead of `added`, `fix` instead of `fixed`).
-- **MUST** use only the following allowed types:
-  - `feat`: A new feature.
-  - `fix`: A bug fix.
-  - `docs`: Documentation only changes.
-  - `style`: Formatting or whitespace changes with no code impact.
-  - `refactor`: Code change that neither fixes a bug nor adds a feature.
-  - `perf`: Code change that improves performance.
-  - `test`: Adding or correcting tests.
-  - `chore`: Auxiliary tool changes, dependency upgrades, or workspace configs.
-- **MUST** add `!` after the type/scope and append `BREAKING CHANGE:` in the footer for breaking changes.
+## Formato de Salida Rígido
+La respuesta debe entregar el mensaje de commit final formateado exactamente como:
+`<type>[optional scope]: <description>`
 
----
-
-## Examples
-Refer to [commit-examples.md](./examples/commit-examples.md) in the `examples/` directory for concrete illustrations of bad vs good commit messages.
+(Opcionalmente, seguido de un cuerpo y/o un footer `BREAKING CHANGE:` si aplica, en bloques de código bash o texto plano).

@@ -1,0 +1,148 @@
+.sourceContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  padding: 0 10px;
+}
+
+.info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 1px;
+}
+
+.value {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--atom-color, #ff9d00);
+  text-shadow: 0 0 8px rgba(255, 157, 0, 0.4);
+}
+
+
+.miniAtom {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  transform-style: preserve-3d;
+  perspective: 400px;
+  margin-right: 10px;
+  --atom-color: #ff9d00;
+  --atom-glow: rgba(255, 157, 0, 0.6);
+  --electron-color: #ffea00;
+}
+
+.miniAtom.idle {
+  --atom-color: #888;
+  --atom-glow: rgba(100, 100, 100, 0.2);
+  --electron-color: #666;
+}
+
+.nucleus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  background: radial-gradient(circle, #fff 0%, var(--atom-color) 70%, transparent 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--atom-glow), 0 0 25px var(--atom-color);
+  z-index: 10;
+  transition: all 0.5s ease;
+}
+
+.miniAtom.active .nucleus {
+  animation: pulseNucleusMini 1.5s ease-in-out infinite alternate;
+}
+
+.miniAtom.idle .nucleus {
+  background: radial-gradient(circle, #888 0%, #444 60%, transparent 100%);
+  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+.orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  margin-top: -30px;
+  margin-left: -30px;
+  border: 1.5px solid rgba(255, 157, 0, 0.4);
+  border-radius: 50%;
+  transform-style: preserve-3d;
+  box-sizing: border-box;
+}
+
+.miniAtom.idle .orbit {
+  border-color: rgba(150, 150, 170, 0.3);
+}
+
+.orbit1 { transform: rotateX(75deg) rotateY(15deg); }
+.orbit2 { transform: rotateX(75deg) rotateY(75deg); }
+.orbit3 { transform: rotateX(75deg) rotateY(135deg); }
+
+.electron {
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  background: var(--electron-color);
+  border-radius: 50%;
+  box-shadow: 0 0 5px var(--electron-color), 0 0 10px #fff;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.miniAtom.active .electron {
+  opacity: 1;
+}
+
+.miniAtom.active .orbit1 { animation: spin1 2s linear infinite; }
+.miniAtom.active .orbit2 { animation: spin2 2.7s linear infinite; }
+.miniAtom.active .orbit3 { animation: spin3 3.5s linear infinite; }
+
+@keyframes spin1 {
+  0% { transform: rotateX(75deg) rotateY(15deg) rotateZ(0deg); }
+  100% { transform: rotateX(75deg) rotateY(15deg) rotateZ(360deg); }
+}
+@keyframes spin2 {
+  0% { transform: rotateX(75deg) rotateY(75deg) rotateZ(0deg); }
+  100% { transform: rotateX(75deg) rotateY(75deg) rotateZ(360deg); }
+}
+@keyframes spin3 {
+  0% { transform: rotateX(75deg) rotateY(135deg) rotateZ(0deg); }
+  100% { transform: rotateX(75deg) rotateY(135deg) rotateZ(360deg); }
+}
+
+@keyframes pulseNucleusMini {
+  0% { transform: scale(0.9); box-shadow: 0 0 10px var(--atom-glow); }
+  100% { transform: scale(1.2); box-shadow: 0 0 20px var(--atom-glow), 0 0 35px var(--atom-color); }
+}
+
+/* Position the handle for the card */
+.port {
+  width: 14px !important;
+  height: 14px !important;
+  background: #030508 !important;
+  border: 2px solid #ff9d00 !important;
+  box-shadow: 0 0 12px rgba(255, 157, 0, 0.4) !important;
+  right: -7px !important;
+  z-index: 30;
+}
+
+

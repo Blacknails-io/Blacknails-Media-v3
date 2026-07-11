@@ -2,7 +2,7 @@ import { IPeopleUseCase, PersonDTO } from '../ports/in/IPeopleUseCase.js';
 import { IFaceRepository } from '../ports/out/IFaceRepository.js';
 import { IAssetRepository } from '../ports/out/IAssetRepository.js';
 import { GetAssetsUseCase } from './GetAssetsUseCase.js';
-import { AssetDto } from '../ports/in/IGetAssetsQuery.js';
+import { ThinAssetDto } from '../ports/in/IGetAssetsQuery.js';
 
 export class PeopleUseCase implements IPeopleUseCase {
   constructor(
@@ -48,9 +48,9 @@ export class PeopleUseCase implements IPeopleUseCase {
     return this.faceRepository.deletePersonAndFaces(personId);
   }
 
-  public async getPersonAssets(personId: string): Promise<AssetDto[]> {
+  public async getPersonAssets(personId: string): Promise<ThinAssetDto[]> {
     const assets = await this.assetRepository.getAssetsByPersonId(personId);
-    return Promise.all(assets.map(a => this.getAssetsUseCase.mapToDto(a)));
+    return Promise.all(assets.map(a => this.getAssetsUseCase.mapToThinDto(a)));
   }
 
   public async deleteOrphanPersons(): Promise<number> {

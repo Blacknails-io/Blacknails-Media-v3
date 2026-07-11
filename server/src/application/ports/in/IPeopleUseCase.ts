@@ -1,4 +1,4 @@
-import { AssetDto } from './IGetAssetsQuery.js';
+import { ThinAssetDto } from './IGetAssetsQuery.js';
 
 export interface PersonDTO {
   id: string;
@@ -18,7 +18,7 @@ export interface IPeopleUseCase {
   getPeople(): Promise<PersonDTO[]>;
   renamePerson(personId: string, name: string): Promise<void>;
   dismissPerson(personId: string): Promise<number>;
-  getPersonAssets(personId: string): Promise<AssetDto[]>;
+  getPersonAssets(personId: string): Promise<ThinAssetDto[]>;
   deleteOrphanPersons(): Promise<number>;
 }
 

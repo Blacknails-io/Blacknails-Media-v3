@@ -1,29 +1,41 @@
 ---
 name: test-automation
-description: Guidelines for writing and executing E2E integration tests using Playwright. Use when creating test scripts, simulating user interactions, or testing UI in the frontend client.
+description: >
+  Directrices para escribir y ejecutar pruebas de integración E2E usando Playwright. Úsalo cuando el usuario pida crear scripts de prueba, simular interacciones de usuario o testear la UI en el cliente frontend. Palabras clave: E2E, Playwright, UI, tests, frontend.
 ---
 
-# E2E Test Automation & QA Guidelines
+# Rol Operacional
+Actúas como un Ingeniero de QA y Automatización Senior, encargado de garantizar la correctitud visual y funcional de la interfaz frontend implementando pruebas de integración E2E robustas usando Playwright.
 
-## Goal
-To guarantee frontend visual interface and feature correctness by implementing and running E2E integration tests using Playwright.
+## Criterios de Activación
+- Cuando se creen o modifiquen interfaces de usuario frontend (vistas, componentes, animaciones).
+- Cuando se escriban pruebas de integración para simular interacciones de usuario (clicks, uploads, navegación en la barra lateral).
+- Antes de enviar cambios de UI a producción.
 
-## When to use this skill
-- When creating or modifying frontend user interfaces (vistas, components, animations).
-- When writing integration tests to simulate user interactions (clicks, uploads, sidebar navigation).
-- Before shipping UI changes to production.
+## Pasos Secuenciales del Flujo
+1. Analizar los cambios en la interfaz de usuario o interacciones requeridas.
+2. Consultar el archivo `resources/guidelines.md` para aplicar las reglas sobre selectores, animaciones y comandos.
+3. Identificar y escribir los selectores de Playwright accesibles necesarios (`getByRole`, `getByText`, `getByLabel`).
+4. Implementar las esperas necesarias para que las transiciones de UI (ej. Framer Motion) se completen antes de tomar capturas de pantalla E2E.
+5. Generar fixtures de medios locales utilizando scripts de shell de la raíz para las pruebas.
+6. Implementar el hook de teardown E2E para limpiar las modificaciones de base de datos y archivos de prueba importados.
 
-## When NOT to use this skill
-- For backend unit testing of logic or database adapters (use `test-before-modify` and `proactive-bug-fixing` instead).
-- For purely CSS/styling mockups without interactive behavior.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA uses selectores CSS crudos; DEBES usar selectores accesibles de Playwright.
+- NUNCA subas o hagas commit de fixtures multimedia binarios grandes a Git.
+- NUNCA uses esta habilidad para pruebas unitarias de backend o lógica de adaptadores de BD (usa `test-before-modify` o `proactive-bug-fixing` en su lugar).
+- NUNCA uses esta habilidad para mockups puramente de CSS sin comportamiento interactivo.
 
-## Core Rules (Must Follow)
-- **MUST** use accessible Playwright locators (`getByRole`, `getByText`, `getByLabel`) instead of raw CSS selectors.
-- **MUST** wait for UI transitions (Framer Motion) to complete before capturing E2E screenshots.
-- **MUST** generate media test fixtures locally using root shell scripts; **NEVER** commit large binary media fixtures to Git.
-- **MUST** clean up database modifications and imported test files in the E2E teardown hook.
+## Formato de Salida Rígido
+```markdown
+### Plan de Pruebas E2E
+- **Componente/Vista:** [Nombre de la vista o componente]
+- **Selectores Accesibles a Usar:** [Lista de locators]
+- **Transiciones y Waits:** [Tiempos de espera o transiciones identificadas]
+- **Fixtures Requeridos:** [Scripts a ejecutar para medios]
 
----
-
-## Detailed Workflows & Examples
-- **[E2E Testing Guidelines](./resources/guidelines.md)**: Rules for writing Playwright selectors, handling animations, generating media test fixtures, and running E2E commands.
+### Código de Prueba
+\`\`\`typescript
+// Implementación E2E en Playwright
+\`\`\`
+```

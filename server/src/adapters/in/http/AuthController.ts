@@ -67,14 +67,15 @@ export class AuthController {
       const username = req.body.username;
       console.log(`[AuthController] Intentando POST /login para el usuario: '${username}'`);
       try {
-        const { password } = req.body;
+        const { password, rememberMe } = req.body;
         if (!username || !password) {
           return res.status(400).json({ error: 'Faltan campos requeridos: username, password' });
         }
 
         const result = await this.loginUseCase.execute({
           username,
-          passwordRaw: password
+          passwordRaw: password,
+          rememberMe: !!rememberMe
         });
 
         console.log(`[AuthController] Login EXITOSO para: '${username}'`);

@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-07-11T16:21:14Z",
+  "scope": "backend import pipeline and mobile sync orientation",
+  "sourceFileCount": 135,
+  "primaryEntrypoints": [
+    "server/src/index.ts",
+    "server/src/adapters/in/http/AuthController.ts",
+    "server/src/adapters/in/http/auth.ts",
+    "server/src/application/workers/ImportTaskRunner.ts",
+    "server/src/application/use_cases/ImportMediaUseCase.ts"
+  ],
+  "testEntrypoints": [
+    "server/tests/integration/import-pipeline.test.ts",
+    "server/tests/helpers/test-environment.ts",
+    "server/tests/unit/auth-session-cookie.test.ts"
+  ],
+  "readiness": "PREPARATION_NEEDED"
+}

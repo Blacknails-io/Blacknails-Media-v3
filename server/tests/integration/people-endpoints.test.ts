@@ -15,7 +15,7 @@ describe('People and Face Clustering Endpoints', () => {
     try {
       const faceRepo = new SqliteFaceRepository(env.db);
       const mediaRepo = new SqliteMediaFileRepository(env.db);
-      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, env.originalsDir, env.storageDir);
+      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, faceRepo, env.originalsDir, env.storageDir);
       const peopleUseCase = new PeopleUseCase(faceRepo, env.assetRepo, getAssetsUseCase);
 
       // 1. Create a dummy photo asset
@@ -73,7 +73,7 @@ describe('People and Face Clustering Endpoints', () => {
     try {
       const faceRepo = new SqliteFaceRepository(env.db);
       const mediaRepo = new SqliteMediaFileRepository(env.db);
-      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, env.originalsDir, env.storageDir);
+      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, faceRepo, env.originalsDir, env.storageDir);
       const peopleUseCase = new PeopleUseCase(faceRepo, env.assetRepo, getAssetsUseCase);
 
       const asset = new MediaPhoto({
@@ -127,7 +127,7 @@ describe('People and Face Clustering Endpoints', () => {
     try {
       const faceRepo = new SqliteFaceRepository(env.db);
       const mediaRepo = new SqliteMediaFileRepository(env.db);
-      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, env.originalsDir, env.storageDir);
+      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, faceRepo, env.originalsDir, env.storageDir);
       const peopleUseCase = new PeopleUseCase(faceRepo, env.assetRepo, getAssetsUseCase);
 
       const asset = new MediaPhoto({
@@ -171,7 +171,7 @@ describe('People and Face Clustering Endpoints', () => {
     try {
       const faceRepo = new SqliteFaceRepository(env.db);
       const mediaRepo = new SqliteMediaFileRepository(env.db);
-      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, env.originalsDir, env.storageDir);
+      const getAssetsUseCase = new GetAssetsUseCase(env.assetRepo, mediaRepo, faceRepo, env.originalsDir, env.storageDir);
       const peopleUseCase = new PeopleUseCase(faceRepo, env.assetRepo, getAssetsUseCase);
 
       // 1. Create a person with a face associated
@@ -226,4 +226,3 @@ describe('People and Face Clustering Endpoints', () => {
     }
   });
 });
-

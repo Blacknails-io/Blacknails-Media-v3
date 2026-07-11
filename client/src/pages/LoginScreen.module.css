@@ -1,0 +1,382 @@
+.loginWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background: transparent !important; 
+  position: relative;
+  z-index: 10;
+}
+
+/* Corner Brackets Wrapper */
+.loginCardWrapper {
+  position: relative;
+  padding: 8px;
+}
+
+.cornerBracket {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-color: var(--color-neon-cyan);
+  border-style: solid;
+  pointer-events: none;
+  transition: all var(--transition-fast) var(--ease-cyber);
+  filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.5));
+}
+
+.cornerBracket.topLeft {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 12px;
+}
+.cornerBracket.topRight {
+  top: 0;
+  right: 0;
+  border-width: 2px 2px 0 0;
+  border-top-right-radius: 12px;
+}
+.cornerBracket.bottomLeft {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 2px 2px;
+  border-bottom-left-radius: 12px;
+}
+.cornerBracket.bottomRight {
+  bottom: 0;
+  right: 0;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 12px;
+}
+
+/* Red brackets on error */
+.loginCardWrapper.cardHasError .cornerBracket {
+  border-color: var(--color-neon-red);
+  filter: drop-shadow(0 0 5px rgba(255, 42, 42, 0.6));
+}
+
+/* Clase genérica con los Design Tokens de profundidad */
+.loginCard {
+  background: rgba(5, 10, 15, 0.4) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: var(--border-radius-card);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8),
+              inset 0 0 15px rgba(0, 240, 255, 0.05);
+  width: 100%;
+  max-width: 440px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  z-index: 10;
+  transition: all var(--transition-slow) var(--ease-cyber);
+}
+
+.loginCard.cardError {
+  border-color: var(--color-neon-red);
+  box-shadow: 0 0 35px rgba(255, 42, 42, 0.22), inset 0 0 15px rgba(255, 42, 42, 0.05);
+  animation: login-shake 0.3s ease-in-out;
+}
+
+.loginCard.cardRegister {
+  border-color: var(--color-neon-purple);
+  box-shadow: 0 0 35px rgba(168, 85, 247, 0.22), inset 0 0 15px rgba(168, 85, 247, 0.05);
+}
+
+@keyframes login-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+
+.glassLoginCard.cardError .logoTextSub {
+  color: var(--color-neon-red);
+  text-shadow: 0 0 12px rgba(255, 42, 42, 0.3);
+}
+
+.loginHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.loginTitle {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.loginSubtitle {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Input Fields Styling */
+.loginInputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loginInputLabel {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.loginInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.loginInputIcon {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: all var(--transition-fast) var(--ease-cyber);
+}
+
+.loginInput {
+  width: 100%;
+  padding: 14px 16px 14px 44px;
+  background: rgba(4, 6, 10, 0.75);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: var(--border-radius-input);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  transition: border-color var(--transition-fast) var(--ease-cyber), box-shadow var(--transition-fast) var(--ease-cyber), background var(--transition-fast) var(--ease-cyber);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+}
+
+.loginInput:focus {
+  outline: none;
+  border-color: var(--color-neon-cyan);
+  box-shadow: 0 0 10px var(--color-neon-cyan), inset 0 0 6px rgba(0, 240, 255, 0.05);
+  background: rgba(4, 6, 10, 0.9);
+}
+
+.loginInput:focus + .loginInputIcon {
+  color: var(--color-neon-cyan);
+}
+
+/* Toggle visibility password button */
+.loginInputToggleBtn {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast) var(--ease-cyber);
+}
+
+.loginInputToggleBtn:hover {
+  color: var(--text-primary);
+}
+
+/* Red error states for input wrappers */
+.glassLoginCard.cardError .loginInput {
+  border-color: rgba(255, 42, 42, 0.35);
+}
+
+.glassLoginCard.cardError .loginInput:focus {
+  border-color: var(--color-neon-red);
+  box-shadow: 0 0 12px rgba(255, 42, 42, 0.25), inset 0 0 6px rgba(255, 42, 42, 0.05);
+}
+
+.glassLoginCard.cardError .loginInput:focus + .loginInputIcon {
+  color: var(--color-neon-red);
+}
+
+/* Login Action Button */
+.loginSubmitBtn {
+  width: 100%;
+  padding: 15px;
+  background: var(--color-neon-cyan);
+  border: none;
+  border-radius: var(--border-radius-input);
+  color: #030508;
+  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all var(--transition-fast) var(--ease-cyber);
+  box-shadow: 0 0 10px var(--color-neon-cyan), 0 0 20px var(--color-neon-cyan);
+}
+
+.loginSubmitBtn:hover {
+  background: #33f3ff;
+  box-shadow: 0 0 15px var(--color-neon-cyan), 0 0 30px var(--color-neon-cyan);
+}
+
+.loginSubmitBtn:active {
+  transform: scale(0.99);
+}
+
+.loginSubmitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Error Banner Card Alert */
+.loginErrorBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255, 42, 42, 0.08);
+  border: 1px solid rgba(255, 42, 42, 0.25);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--color-neon-red);
+  font-size: 0.775rem;
+  line-height: 1.45;
+  animation: banner-fade-in 0.3s ease-out;
+}
+
+@keyframes banner-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Login Options Row (Remember me & forgot password) */
+.loginOptionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.775rem;
+  margin-bottom: 8px;
+}
+
+.loginCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-body);
+}
+
+.loginCheckbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 3px;
+  background: rgba(4, 6, 10, 0.8);
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast) var(--ease-cyber);
+}
+
+.loginCheckbox:checked {
+  background: var(--color-neon-cyan);
+  border-color: var(--color-neon-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.loginCheckbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 7px;
+  border: solid #030508;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.loginOptionsLink {
+  color: var(--color-neon-cyan);
+  text-decoration: none;
+  transition: all var(--transition-fast) var(--ease-cyber);
+  font-family: var(--font-body);
+}
+
+.loginOptionsLink:hover {
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  color: #fff;
+}
+
+/* Login Footer links */
+.loginFooter {
+  display: flex;
+  justify-content: center;
+  font-size: 0.775rem;
+  margin-top: 12px;
+}
+
+.loginFooterLink {
+  color: var(--color-neon-cyan);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: all var(--transition-fast) var(--ease-cyber);
+  font-family: var(--font-body);
+}
+
+.loginFooterLink:hover {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* Circular HUD Radar Glow behind Login Card */
+.loginCardWrapper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 530px;
+  height: 530px;
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.06) 0%, transparent 70%);
+  border: 1px solid rgba(0, 240, 255, 0.05);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.loginCardWrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 470px;
+  height: 470px;
+  border: 1px dashed rgba(0, 240, 255, 0.03);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}

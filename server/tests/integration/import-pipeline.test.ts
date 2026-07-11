@@ -165,7 +165,7 @@ test('rejects unsupported files and records a pipeline event', async () => {
   }
 });
 
-test('skips duplicates and keeps a single imported record', async () => {
+test('detects duplicate source files and stacks them with a stable hash', async () => {
   const env = await createPipelineTestEnvironment();
   try {
     const sourceFixture = join(env.rootDir, 'fixtures', 'duplicate.jpg');
@@ -179,7 +179,8 @@ test('skips duplicates and keeps a single imported record', async () => {
     await env.importWorker.trigger();
 
     const mediaFiles = await env.mediaRepo.getOrphans();
-    assert.equal(mediaFiles.length, 1);
+    assert.equal(mediaFiles.length, 2);
+    assert.equal(new Set(mediaFiles.map((file) => file.fileHash)).size, 1);
     assert.ok(env.eventBus.events.some((event) => event.action === 'DUPLICATED'));
   } finally {
     await env.cleanup();

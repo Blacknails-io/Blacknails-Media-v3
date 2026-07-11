@@ -16,6 +16,12 @@ export function initializeDatabase(dbPath: string): Database.Database {
   db.pragma('synchronous = NORMAL');
   db.pragma('foreign_keys = ON');
 
+  // Drop system_events table to migrate to JSON payload pattern
+  const eventCols = db.prepare(`PRAGMA table_info(system_events)`).all() as any[];
+  if (eventCols.length > 0 && !eventCols.some(c => c.name === 'payload')) {
+    db.exec('DROP TABLE system_events;');
+  }
+
   // Inicialización de Tablas SQL (Hito 0 e Hito 2)
   db.exec(`
     CREATE TABLE IF NOT EXISTS assets (
@@ -91,18 +97,11 @@ export function initializeDatabase(dbPath: string): Database.Database {
     CREATE TABLE IF NOT EXISTS system_events (
       id TEXT PRIMARY KEY,
       type TEXT NOT NULL,
-      subsystem TEXT,
-      action TEXT NOT NULL,
       source TEXT NOT NULL,
       message TEXT NOT NULL,
       occurredAt TEXT NOT NULL,
-      worker_name TEXT,
-      item_id TEXT,
-      status TEXT,
-      process_name TEXT,
-      entity_type TEXT,
-      entity_id TEXT,
-      published INTEGER DEFAULT 0 -- 0 = false, 1 = true (para outbox)
+      published INTEGER DEFAULT 0, -- 0 = false, 1 = true (para outbox)
+      payload TEXT NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS users (
@@ -165,21 +164,6 @@ export function initializeDatabase(dbPath: string): Database.Database {
     db.exec(`ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;`);
   }
 
-  const eventColumns = db.prepare(`PRAGMA table_info(system_events)`).all() as Array<{ name: string }>;
-  const eventMigrations: Record<string, string> = {
-    worker_name: 'ALTER TABLE system_events ADD COLUMN worker_name TEXT;',
-    item_id: 'ALTER TABLE system_events ADD COLUMN item_id TEXT;',
-    status: 'ALTER TABLE system_events ADD COLUMN status TEXT;',
-    process_name: 'ALTER TABLE system_events ADD COLUMN process_name TEXT;',
-    entity_type: 'ALTER TABLE system_events ADD COLUMN entity_type TEXT;',
-    entity_id: 'ALTER TABLE system_events ADD COLUMN entity_id TEXT;'
-  };
-  for (const [column, statement] of Object.entries(eventMigrations)) {
-    if (!eventColumns.some((existing) => existing.name === column)) {
-      db.exec(statement);
-    }
-  }
-
   const assetColumns = db.prepare(`PRAGMA table_info(assets)`).all() as Array<{ name: string }>;
   const assetMigrations: Record<string, string> = {
     thumbnail_path: 'ALTER TABLE assets ADD COLUMN thumbnail_path TEXT;',
@@ -231,6 +215,12 @@ export function initializeDatabase(dbPath: string): Database.Database {
         created_at TEXT NOT NULL
       );
     `);
+  }
+
+  // Face migrations
+  const faceColumns = db.prepare(`PRAGMA table_info(faces)`).all() as Array<{ name: string }>;
+  if (hasFaces && !faceColumns.some((existing) => existing.name === 'clustered_at')) {
+    db.exec('ALTER TABLE faces ADD COLUMN clustered_at TEXT;');
   }
 
   console.log(`[SqliteDatabase] Inicializado correctamente en ${dbPath}`);

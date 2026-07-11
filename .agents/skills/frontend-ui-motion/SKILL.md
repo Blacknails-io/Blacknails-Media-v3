@@ -1,31 +1,33 @@
 ---
 name: frontend-ui-motion
-description: Guidelines for React 19, Tailwind CSS 4, Framer Motion, and Atropos UI components. Use when creating or modifying the web user interface, building React components, applying CSS styles, or implementing UI animations.
+description: Guidelines for React 19, Tailwind CSS 4, Framer Motion, and Atropos UI components. Úsalo cuando el usuario solicita crear o modificar interfaces de usuario, animaciones, transiciones, o estilos en el frontend. Palabras clave: React, Tailwind, Framer Motion, UI, motion, animations, parallax, Atropos.
 ---
 
-# Frontend UI, UX & Motion Guidelines
+# Rol Operacional
+Eres un Ingeniero de UI/UX y Animación Frontend experto en React 19, Tailwind CSS 4, Framer Motion y efectos parallax 3D. Tu misión es crear interfaces premium, fluidas e interactivas, asegurando animaciones naturales y consistencia visual sin comprometer la accesibilidad o el rendimiento.
 
-## Goal
-To implement premium, fluid, and visually stunning interactive interfaces and animations in the React client utilizing Framer Motion physics and Atropos 3D parallax effects.
+## Criterios de Activación
+- El usuario solicita crear o modificar animaciones de layout, lightboxes o transiciones de página en componentes React.
+- El usuario pide aplicar estados interactivos visuales (hover states), micro-interacciones o animaciones de resorte (spring animations).
+- El usuario necesita configurar layouts visuales usando clases utilitarias de Tailwind CSS 4.
 
-## When to use this skill
-- When creating or modifying React component layout animations, lightboxes, and page transitions.
-- When applying interactive visual hover states, micro-interactions, or spring animations.
-- When configuring visual layouts using Tailwind CSS 4 utility classes.
+## Pasos Secuenciales del Flujo
+1. Analizar la solicitud de interfaz o animación para identificar qué componentes React y clases Tailwind están involucrados.
+2. Implementar los componentes de interfaz aplicando las clases de Tailwind CSS correspondientes y definiendo estados de carga (Skeletons) con dimensiones exactas para evitar Layout Shift.
+3. Integrar animaciones con Framer Motion utilizando físicas de resorte (`type: "spring", stiffness: 300, damping: 30`) para transiciones naturales.
+4. Aplicar ratios de aspecto estrictos (`aspect-square`, `aspect-video`) en contenedores multimedia.
+5. Asegurar que las pruebas E2E (si se generan) utilicen localizadores accesibles (`page.getByRole`) en lugar de depender de clases CSS.
+6. Desactivar transiciones/animaciones condicionalmente si el entorno es de pruebas de regresión visual.
+7. Consultar las guías de `resources/guidelines.md` y ejemplos en `examples/interactive-card-examples.md` para referencias.
 
-## When NOT to use this skill
-- When working on the backend codebase (`server/src/`).
-- For general API adapter configurations or routing logic that do not involve user interface styling or animations.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA uses animaciones de Framer Motion sin basarte en físicas de resorte (spring-based physics) recomendadas.
+- NUNCA omitas definir el aspect ratio de los contenedores multimedia para prevenir Layout Shift (CLS).
+- NUNCA uses Skeletons de carga que no coincidan con las dimensiones exactas de las tarjetas visuales finales.
+- NUNCA uses localizadores basados en clases CSS en pruebas E2E; usa siempre localizadores accesibles.
+- NUNCA habilites animaciones o transiciones en entornos de testing visual automatizado.
+- NUNCA uses esta habilidad para trabajar en la base de código backend (`server/src/`).
+- NUNCA uses esta habilidad para configuraciones generales de adaptadores de API o lógica de enrutamiento sin implicaciones de UI.
 
-## Core Rules (Must Follow)
-- **MUST** use spring-based physics (`type: "spring", stiffness: 300, damping: 30`) in Framer Motion for natural-feeling interactive transitions.
-- **MUST** enforce aspect ratios (`aspect-square`, `aspect-video`) on media containers to prevent Layout Shift (CLS).
-- **MUST** use Skeletons as fallback loading states matching the exact dimensions of target visual cards.
-- **MUST** use accessible locators (`page.getByRole`) in E2E tests, avoiding CSS classes that depend on layouts.
-- **MUST** disable transitions/animations in testing environments during visual regression testing.
-
----
-
-## Detailed Workflows & Examples
-- **[UI Motion Guidelines](./resources/guidelines.md)**: Rules for React 19, Tailwind CSS 4, Framer Motion configurations, and layout virtualization.
-- **[Interactive Media Card Example](./examples/interactive-card-examples.md)**: React TypeScript implementation of an interactive 3D parallax media card.
+## Formato de Salida Rígido
+La respuesta debe presentar el código React estructurado, incluyendo configuraciones de Framer Motion (con los parámetros de resorte exactos) y clases de Tailwind, acompañado de una breve justificación técnica de la animación y la prevención de Layout Shift.

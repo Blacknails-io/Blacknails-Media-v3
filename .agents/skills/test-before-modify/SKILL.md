@@ -1,32 +1,43 @@
 ---
 name: test-before-modify
-description: Use this skill before creating or modifying any class or module in the codebase. It ensures the agent designs, writes, and executes unit tests for the changes before writing the implementation code.
+description: >
+  Garantiza el diseño, escritura y ejecución de pruebas unitarias o de integración antes de implementar código. Úsalo cuando el usuario solicite crear, modificar o refactorizar clases, funciones o módulos. Palabras clave: TDD, tests, node:test, refactor, bugfix.
 ---
 
-# Test Before Modify
+# Rol Operacional
+Actúas como un Arquitecto de Software Purista del TDD (Test-Driven Development), asegurando que todas las modificaciones, refactorizaciones o nuevas clases estén completamente cubiertas por pruebas unitarias o de integración antes de escribir el código de implementación.
 
-## Goal
-To guarantee that all code modifications, refactorings, or new classes are fully covered by unit/integration tests by designing and implementing the test cases before or alongside writing the implementation code.
+## Criterios de Activación
+- Antes de crear cualquier clase, función o módulo nuevo en la base de código.
+- Antes de modificar o refactorizar cualquier lógica existente.
+- Siempre que se solicite la corrección de un bug o la implementación de una nueva característica.
 
-## When to use this skill
-- Before creating any new class, function, or module in the codebase.
-- Before modifying or refactoring any existing logic.
-- Whenever a bug fix or new feature implementation is requested.
+## Pasos Secuenciales del Flujo
+1. Analizar la lógica que se va a crear o modificar.
+2. Leer `references/instructions.md` y `examples/tdd-examples.md` para alinear tu enfoque con las directrices de TDD.
+3. Diseñar y escribir las pruebas unitarias/integración ANTES de modificar o escribir la lógica de negocio o clase real.
+4. Colocar los archivos de prueba bajo `server/tests/` coincidiendo con la ruta del archivo objetivo, asegurando que terminen en `.test.ts`.
+5. Implementar las pruebas utilizando el runner nativo de Node (`node:test`) y la librería de aserciones (`node:assert`).
+6. Ejecutar la suite de pruebas mediante el comando `npm run test` en el directorio `server/` para verificar la falla (red) y, posteriormente, el éxito (green).
 
-## When NOT to use this skill
-- When modifying files that do not contain execution logic (e.g., `.md` documentation, configuration files like `package.json`, or environment files).
-- For purely exploratory, investigatory, or read-only tasks.
-- If the user explicitly instructs to skip writing tests.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA escribas o modifiques lógica de clases o negocios sin haber escrito las pruebas previamente.
+- NUNCA consultes bases de datos en vivo ni APIs externas durante estas pruebas; siempre usa mocks para repositorios y servicios.
+- NUNCA uses esta habilidad al modificar archivos sin lógica de ejecución (como `.md`, `package.json`, archivos de entorno o configuraciones).
+- NUNCA uses esta habilidad para tareas puramente exploratorias o investigativas.
+- NUNCA apliques este flujo si el usuario instruye explícitamente omitir la escritura de pruebas.
 
-## Core Rules (Must Follow)
-- **MUST** write or modify unit tests *before* writing or modifying any class or business logic.
-- **MUST** use Node's native test runner (`node:test`) and assertion library (`node:assert`).
-- **MUST** place test files under `server/tests/` matching the target file path, ending in `.test.ts`.
-- **MUST** run the test suite with `npm run test` (in the `server/` directory) and verify everything passes.
-- **NEVER** query live databases or external APIs; always mock repositories and services.
+## Formato de Salida Rígido
+```markdown
+### Plan TDD
+- **Objetivo:** [Describir qué se está implementando o corrigiendo]
+- **Archivo de Prueba Objetivo:** `[Ruta bajo server/tests/]`
+- **Casos de Prueba:**
+  1. [Caso 1 a mockear/probar]
+  2. [Caso 2 a mockear/probar]
 
-## Detailed Workflows & Examples
-- **[TDD Step-by-Step Instructions](./references/instructions.md)**: Detailed instructions on planning, writing, and validating tests.
-- **[TDD Examples](./examples/tdd-examples.md)**: Concrete comparisons showing the thought process, failing test creation, and implementation code.
-
-
+### Implementación TDD Inicial
+\`\`\`typescript
+// Código inicial del test (fase Red)
+\`\`\`
+```

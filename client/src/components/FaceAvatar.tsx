@@ -20,7 +20,6 @@ export const FaceAvatar = ({ thumbnailUrl, bbox, size = 64, className = '' }: Fa
     const img = new Image();
     img.src = thumbnailUrl;
     img.onload = () => {
-      // Calculate crop scale based on container size and face bounding box width
       const scale = size / Math.max(1, bbox.width);
       setStyles({
         position: 'absolute',
@@ -41,10 +40,10 @@ export const FaceAvatar = ({ thumbnailUrl, bbox, size = 64, className = '' }: Fa
   return (
     <div 
       className={`relative rounded-full overflow-hidden bg-surface-panel dark:bg-surface-panel border border-[rgba(var(--lab-surface-rgb-edge),0.5)] dark:border-[rgba(var(--lab-surface-rgb-edge),0.5)] flex items-center justify-center ${className}`} 
-      style={{ width: `${size}px`, height: `${size}px`, flexShrink: 0 }}
+      style={{ width: `${size}px`, height: `${size}px`, flexShrink: 0, position: 'relative', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)' }}
     >
       {error ? (
-        <span className="text-secondary dark:text-secondary font-bold text-xs">?</span>
+        <span className="text-secondary dark:text-secondary font-bold text-xs" style={{ color: 'var(--text-secondary)' }}>?</span>
       ) : (
         <img src={thumbnailUrl} alt="Face Crop" style={styles} />
       )}

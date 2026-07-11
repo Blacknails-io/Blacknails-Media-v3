@@ -1,43 +1,24 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { GalleryCard } from './components/GalleryCard.js';
-import { useGlobalHologram } from './hooks/useGlobalHologram.js';
-import type { AppEvent } from '@blacknails/shared';
-import { useAuth } from './context/AuthContext.js';
-import { Login } from './presentation/views/auth/Login/index.js';
-import { AdminUsersPanel } from './presentation/views/users/AdminUsersPanel/index.js';
-import { AdminImportPanel } from './presentation/views/import/AdminImportPanel/index.js';
-import { AdminPeoplePanel } from './presentation/views/people/AdminPeoplePanel/index.js';
-import { backendEventsController } from './controllers/BackendEventsController.js';
+import { useState, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { Image, Search, Activity, Users, Shield, LogOut, Terminal } from 'lucide-react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useGlobalHologram } from './hooks/useGlobalHologram';
+import { backendEventsController } from './controllers/BackendEventsController';
+import Login from './pages/Login';
+import Gallery from './pages/Gallery';
+import Admin from './pages/Admin';
+import { Pipeline } from './pages/Admin/Pipeline';
+import People from './pages/People';
+import UsersPage from './pages/Admin/Users';
+import Console from './pages/Admin/Console';
 
-import './App.css';
+function AppContent() {
+  const auth = useAuth();
+  const { user, isInitializing, isSystemOffline, logout, updateAvatar } = auth;
 
-import type { MediaAsset } from './types/MediaAsset.js';
-import { MediaModal } from './components/MediaModal.js';
-import type { MouseEvent } from 'react';
-
-type ReprocessJob = 'description' | 'nsfw' | 'faces';
-type GallerySort = 'NEWEST' | 'OLDEST' | 'TITLE_ASC' | 'TYPE_ASC';
-
-export default function App() {
-  const { token, isLoggedIn, user, isInitializing, logout, updateAvatar } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
-
-  const [activeTab, setActiveTab] = useState<'gallery' | 'console' | 'users' | 'pipeline' | 'people'>('gallery');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [logs, setLogs] = useState<AppEvent[]>([]);
   const [sseStatus, setSseStatus] = useState<'CONNECTING' | 'CONNECTED' | 'DISCONNECTED'>('DISCONNECTED');
-  const previousSseStatusRef = useRef<'CONNECTING' | 'CONNECTED' | 'DISCONNECTED'>('DISCONNECTED');
-  const galleryRefreshTimeoutRef = useRef<number | null>(null);
-  const consoleRef = useRef<HTMLDivElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const [isConsolePaused, setIsConsolePaused] = useState(false);
-  const [consoleFilter, setConsoleFilter] = useState('');
-  const [eventTypeFilter, setEventTypeFilter] = useState('ALL');
-  const [categoryFilter, setCategoryFilter] = useState('ALL');
-  const [actionFilter, setActionFilter] = useState('ALL');
-  const queuedLogsRef = useRef<AppEvent[]>([]);
-  const isConsolePausedRef = useRef(false);
-
+  
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('theme');
     return (saved as 'light' | 'dark') || 'dark';
@@ -52,115 +33,23 @@ export default function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleConsolePause = useCallback(() => {
-    const newState = !isConsolePaused;
-    setIsConsolePaused(newState);
-    isConsolePausedRef.current = newState;
-    if (!newState && queuedLogsRef.current.length > 0) {
-      setLogs(prev => [...queuedLogsRef.current.reverse(), ...prev].slice(0, 500));
-      queuedLogsRef.current = [];
-    }
-  }, [isConsolePaused]);
+  useGlobalHologram();
 
   useEffect(() => {
-    if (activeTab === 'console' && consoleRef.current && !isConsolePaused) {
-      consoleRef.current.scrollTop = 0;
-    }
-  }, [logs, activeTab]);
-
-  // Fetch from API
-  const [assets, setAssets] = useState<MediaAsset[]>([]);
-  const [isLoadingAssets, setIsLoadingAssets] = useState(true);
-  const [assetLoadError, setAssetLoadError] = useState<string | null>(null);
-
-  const loadAssets = useCallback(async () => {
-    setIsLoadingAssets(true);
-    setAssetLoadError(null);
-    try {
-      const res = await fetch('/api/assets', {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      if (!res.ok) {
-        throw new Error(`Error ${res.status} al cargar la biblioteca.`);
-      }
-      const data = await res.json();
-      setAssets(Array.isArray(data) ? data : []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'No se pudo cargar la biblioteca.';
-      console.error('Error fetching assets:', err);
-      setAssetLoadError(message);
-      setAssets([]);
-    } finally {
-      setIsLoadingAssets(false);
-    }
-  }, [token]);
-
-  const scheduleGalleryRefresh = useCallback(() => {
-    if (galleryRefreshTimeoutRef.current !== null) {
-      window.clearTimeout(galleryRefreshTimeoutRef.current);
-    }
-    galleryRefreshTimeoutRef.current = window.setTimeout(() => {
-      void loadAssets();
-    }, 250);
-  }, [loadAssets]);
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      setAssets([]);
-      setAssetLoadError(null);
-      setIsLoadingAssets(false);
+    if (!user) {
+      backendEventsController.stop();
       return;
     }
-    void loadAssets();
-  }, [isLoggedIn, loadAssets]);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    if (activeTab !== 'gallery') return;
-    void loadAssets();
-  }, [activeTab, isLoggedIn, loadAssets]);
-
-  // Gallery Interactive States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'PHOTO' | 'VIDEO'>('ALL');
-  const [gallerySort, setGallerySort] = useState<GallerySort>('NEWEST');
-  const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
-  const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null);
-  const [bulkActionFeedback, setBulkActionFeedback] = useState<string | null>(null);
-  const [isReprocessDialogOpen, setIsReprocessDialogOpen] = useState(false);
-  const [isReprocessingAssets, setIsReprocessingAssets] = useState(false);
-  const [reprocessJobs, setReprocessJobs] = useState<Record<ReprocessJob, boolean>>({
-    description: true,
-    nsfw: true,
-    faces: false
-  });
-
-  useEffect(() => {
-    if (!isAdmin && (activeTab === 'users' || activeTab === 'pipeline')) {
-      setActiveTab('gallery');
-    }
-  }, [activeTab, isAdmin]);
-
-  const toggleAssetSelection = useCallback((id: string) => {
-    setSelectedAssets(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+    const unsubscribeStatus = backendEventsController.subscribeStatus((status) => {
+      setSseStatus(status);
     });
-  }, []);
+    backendEventsController.start();
 
-  const handleToggleSelect = (id: string, e: MouseEvent) => {
-    e.stopPropagation();
-    setBulkActionFeedback(null);
-    toggleAssetSelection(id);
-  };
-
-  useEffect(() => {
-    if (selectedAssets.size === 0) {
-      setBulkActionFeedback(null);
-    }
-  }, [selectedAssets.size]);
+    return () => {
+      unsubscribeStatus();
+      backendEventsController.stop();
+    };
+  }, [user]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -174,732 +63,188 @@ export default function App() {
     }
   };
 
-  // Inicializar holograma global
-  useGlobalHologram();
-
-  // Conexión reactiva por controlador central de eventos del backend
-  useEffect(() => {
-    if (!isLoggedIn) {
-      backendEventsController.stop();
-      return;
-    }
-    const unsubscribeStatus = backendEventsController.subscribeStatus((status) => {
-      const previous = previousSseStatusRef.current;
-      setSseStatus(status);
-
-      if (previous === 'DISCONNECTED' && status === 'CONNECTED') {
-        void loadAssets();
-      }
-
-      previousSseStatusRef.current = status;
-    });
-    const unsubscribeEvents = backendEventsController.subscribeEvents((event) => {
-      if (isConsolePausedRef.current) {
-        queuedLogsRef.current.push(event);
-      } else {
-        setLogs((prevLogs) => [event, ...prevLogs].slice(0, 500));
-      }
-
-      // El BaseEvent tiene subsystem y action como opcionales en Typescript si lo forzamos a un custom event
-      const ev = event as any;
-      if (ev.subsystem === 'INDEX' && ev.source === 'IndexMediaUseCase' && ev.action === 'SUCCESS') {
-        scheduleGalleryRefresh();
-      }
-    });
-    backendEventsController.start();
-
-    return () => {
-      unsubscribeStatus();
-      unsubscribeEvents();
-      if (galleryRefreshTimeoutRef.current !== null) {
-        window.clearTimeout(galleryRefreshTimeoutRef.current);
-        galleryRefreshTimeoutRef.current = null;
-      }
-      backendEventsController.stop();
-    };
-  }, [isLoggedIn, loadAssets, scheduleGalleryRefresh]);
-
-
-
-  // -- RENDER CONDICIONAL (Auth) --
   if (isInitializing) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-surface-base text-secondary font-mono">
+      <div className="h-screen w-full flex items-center justify-center bg-surface-base text-secondary font-mono" style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         INICIALIZANDO SISTEMA...
       </div>
     );
   }
 
-  if (!isLoggedIn) {
+  if (isSystemOffline) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center font-mono" style={{ height: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#300', color: '#f00', fontSize: '2rem', fontWeight: 'bold' }}>
+        SYSTEM OFFLINE
+      </div>
+    );
+  }
+
+  if (!user) {
     return <Login />;
   }
 
-  // -- FILTRADO LOCAL --
-  const filteredAssets = assets.filter(a => {
-    if (activeFilter === 'PHOTO' && a.type !== 'PHOTO') return false;
-    if (activeFilter === 'VIDEO' && a.type !== 'VIDEO') return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const tagsMatch = a.tags?.some(t => t.toLowerCase().includes(q));
-      const descMatch = a.description?.toLowerCase().includes(q);
-      const titleMatch = a.title?.toLowerCase().includes(q);
-      if (!tagsMatch && !descMatch && !titleMatch) return false;
-    }
-    return true;
-  }).sort((a, b) => {
-    if (gallerySort === 'TITLE_ASC') {
-      return a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
-    }
-    if (gallerySort === 'TYPE_ASC') {
-      const typeCompare = a.type.localeCompare(b.type, 'es', { sensitivity: 'base' });
-      return typeCompare || b.date.localeCompare(a.date) || a.title.localeCompare(b.title, 'es', { sensitivity: 'base' });
-    }
-    return gallerySort === 'OLDEST' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
-  });
-
-  const selectedAssetList = filteredAssets.filter(asset => selectedAssets.has(asset.id));
-  const selectedCountLabel = selectedAssetList.length === 1 ? '1 seleccionado' : `${selectedAssetList.length} seleccionados`;
-
-  const handleOpenFirstSelected = () => {
-    if (selectedAssetList[0]) {
-      setPreviewAsset(selectedAssetList[0]);
-    }
-  };
-
-  const handleClearSelection = () => {
-    setSelectedAssets(new Set());
-    setBulkActionFeedback(null);
-    setIsReprocessDialogOpen(false);
-  };
-
-  const copyBulkText = async (label: string, value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setBulkActionFeedback(`${label} copiados`);
-    } catch (error) {
-      console.error('Error copying bulk selection:', error);
-      setBulkActionFeedback('No se pudo copiar');
-    }
-  };
-
-  const handleCopySelectedIds = () => {
-    void copyBulkText('IDs', selectedAssetList.map(asset => asset.id).join('\n'));
-  };
-
-  const handleCopySelectedOriginalUrls = () => {
-    void copyBulkText('Rutas', selectedAssetList.map(asset => asset.originalUrl).join('\n'));
-  };
-
-  const handleToggleReprocessJob = (job: ReprocessJob) => {
-    setReprocessJobs(prev => ({ ...prev, [job]: !prev[job] }));
-  };
-
-  const handleSubmitReprocess = async () => {
-    const jobs = (Object.entries(reprocessJobs) as Array<[ReprocessJob, boolean]>)
-      .filter(([, enabled]) => enabled)
-      .map(([job]) => job);
-
-    if (jobs.length === 0) {
-      setBulkActionFeedback('Selecciona al menos un análisis');
-      return;
-    }
-
-    setIsReprocessingAssets(true);
-    setBulkActionFeedback(null);
-    try {
-      const res = await fetch('/api/admin/assets/reprocess', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({
-          assetIds: selectedAssetList.map(asset => asset.id),
-          jobs
-        })
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(typeof data.error === 'string' ? data.error : 'No se pudo reencolar el análisis.');
-      }
-
-      const accepted = typeof data.accepted === 'number' ? data.accepted : selectedAssetList.length;
-      const missing = Array.isArray(data.missing) ? data.missing.length : 0;
-      setBulkActionFeedback(missing > 0 ? `${accepted} reencolados, ${missing} no encontrados` : `${accepted} reencolados`);
-      setIsReprocessDialogOpen(false);
-      void loadAssets();
-    } catch (error) {
-      console.error('Error reprocessing assets:', error);
-      setBulkActionFeedback(error instanceof Error ? error.message : 'No se pudo reencolar el análisis.');
-    } finally {
-      setIsReprocessingAssets(false);
-    }
-  };
-  const photoCount = assets.filter(asset => asset.type === 'PHOTO').length;
-  const videoCount = assets.filter(asset => asset.type === 'VIDEO').length;
-  const hasActiveFilters = activeFilter !== 'ALL' || searchQuery.trim().length > 0;
-  const clearGalleryFilters = () => {
-    setSearchQuery('');
-    setActiveFilter('ALL');
-  };
-
-
   return (
-    <div className="app-layout">
-      {/* ── HEADER GLOBAL ── */}
-      <header className="app-global-header">
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="p-1 text-secondary hover:text-primary dark:hover:text-primary transition-colors"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
-          <div className={`font-bold tracking-wide flex items-center gap-2 transition-colors duration-300 animate-pulse ${sseStatus === 'CONNECTED' ? 'text-accent-lime' : 'text-accent-ruby'}`}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="1.5"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            BLACKNAILS
+    <Router>
+      <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <header className="app-global-header" style={{ padding: '0.5rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ fontWeight: 'bold', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem', color: sseStatus === 'CONNECTED' ? 'var(--accent-lime, #4ade80)' : 'var(--accent-ruby, #f87171)' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              BLACKNAILS
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="p-1.5 rounded-lg text-secondary hover:text-primary dark:text-secondary dark:hover:text-primary hover:bg-surface-panel dark:hover:bg-surface-panel transition-colors"
-            title={theme === 'light' ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro'}
-          >
-            {theme === 'light' ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" />
-                <line x1="12" y1="21" x2="12" y2="23" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                <line x1="1" y1="12" x2="3" y2="12" />
-                <line x1="21" y1="12" x2="23" y2="12" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-              </svg>
-            )}
-          </button>
-
-          {/* Perfil Usuario */}
-          {user && (
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-8 h-8 rounded-full bg-accent-cyan text-surface-base flex items-center justify-center text-xs font-bold text-white cursor-pointer overflow-hidden border border-[rgba(var(--lab-surface-rgb-edge),0.5)] hover:border-primary transition-colors"
-                title="Cambiar Avatar"
-                onClick={() => avatarInputRef.current?.click()}
-              >
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  user.username.substring(0, 2).toUpperCase()
-                )}
-              </div>
-              <input 
-                type="file" 
-                accept="image/*,video/*"
-                className="hidden"
-                ref={avatarInputRef}
-                onChange={handleAvatarChange}
-                onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
-              />
-              <div className="flex flex-col text-left hidden sm:flex">
-                <span className="text-sm font-semibold">{user.username}</span>
-                <span className="text-xs text-secondary">{user.role}</span>
-              </div>
-              <button onClick={logout} className="ml-2 text-secondary hover:text-primary dark:hover:text-primary" title="Cerrar sesión">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              style={{ padding: '0.375rem', borderRadius: '0.5rem', color: 'var(--text-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+              title={theme === 'light' ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro'}
+            >
+              {theme === 'light' ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div className="app-window">
-        {/* ── BARRA LATERAL (Sidebar) ── */}
-        <aside className={`app-sidebar ${isSidebarCollapsed ? 'w-16' : 'w-64'}`}>
-          {/* Navegación */}
-        <nav className="app-sidebar-nav">
-          <button 
-            className={`app-menu-item ${activeTab === 'gallery' ? 'active' : ''}`}
-            onClick={() => setActiveTab('gallery')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <circle cx="8.5" cy="8.5" r="2"></circle>
-              <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            {!isSidebarCollapsed && <span>Galería</span>}
-          </button>
-
-          <button 
-            className={`app-menu-item ${activeTab === 'people' ? 'active' : ''}`}
-            onClick={() => setActiveTab('people')}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            {!isSidebarCollapsed && <span>Personas</span>}
-          </button>
-          
-          {isAdmin && (
-            <>
-              {!isSidebarCollapsed && (
-                <div className="mt-6 mb-2 px-3 text-xs font-semibold tracking-wider text-secondary uppercase">
-                  Administración
-                </div>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
               )}
-              <button 
-                className={`app-menu-item ${activeTab === 'console' ? 'active' : ''}`}
-                onClick={() => setActiveTab('console')}
-                data-instance-id="console-menu-item"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="4 17 10 11 4 5"></polyline>
-                  <line x1="12" y1="19" x2="20" y2="19"></line>
-                </svg>
-                {!isSidebarCollapsed && <span>Event Logs</span>}
-              </button>
-              <button 
-                className={`app-menu-item ${activeTab === 'users' ? 'active' : ''}`}
-                onClick={() => setActiveTab('users')}
-                data-instance-id="users-menu-item"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="11" cy="7" r="4"></circle>
-                  <path d="M20 8v6"></path>
-                  <path d="M23 11h-6"></path>
-                </svg>
-                {!isSidebarCollapsed && <span>Usuarios</span>}
-              </button>
-              <button 
-                className={`app-menu-item ${activeTab === 'pipeline' ? 'active' : ''}`}
-                onClick={() => setActiveTab('pipeline')}
-                data-instance-id="pipeline-menu-item"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2v6"></path>
-                  <path d="M12 16v6"></path>
-                  <path d="M4.93 4.93l4.24 4.24"></path>
-                  <path d="M14.83 14.83l4.24 4.24"></path>
-                  <path d="M2 12h6"></path>
-                  <path d="M16 12h6"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                {!isSidebarCollapsed && <span>Workers</span>}
-              </button>
-            </>
-          )}
-        </nav>
+            </button>
 
-        </aside>
-
-      {/* ── AREA PRINCIPAL ── */}
-      <main className="app-main">
-        
-        {/* Topbar Contextual */}
-        <header className="app-topbar">
-          {activeTab === 'gallery' ? (
-            <>
-              <div className="flex bg-surface-panel dark:bg-surface-panel rounded-lg p-1">
-                {([
-                  { value: 'ALL', label: 'Todo', count: assets.length },
-                  { value: 'PHOTO', label: 'Fotos', count: photoCount },
-                  { value: 'VIDEO', label: 'Vídeos', count: videoCount }
-                ] as const).map(filter => (
-                  <button
-                    key={filter.value}
-                    className={`app-filter-pill ${activeFilter === filter.value ? 'active' : ''}`}
-                    onClick={() => setActiveFilter(filter.value)}
-                  >
-                    <span>{filter.label}</span>
-                    <strong>{filter.count}</strong>
-                  </button>
-                ))}
-              </div>
-              <div className="flex-1 flex items-center gap-2 min-w-0">
-                 <input 
-                    type="text" 
-                    className="w-full max-w-md bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-4 py-2 text-sm text-primary dark:text-primary"
-                    placeholder="Buscar por título, tags o descripción..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                 />
-                 <select
-                    className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-2 text-sm text-primary dark:text-primary"
-                    value={gallerySort}
-                    onChange={(e) => setGallerySort(e.target.value as GallerySort)}
-                    aria-label="Ordenar galería"
-                    data-instance-id="gallery-sort-select"
-                 >
-                    <option value="NEWEST">Recientes</option>
-                    <option value="OLDEST">Antiguos</option>
-                    <option value="TITLE_ASC">Título A-Z</option>
-                    <option value="TYPE_ASC">Tipo</option>
-                 </select>
-                 {hasActiveFilters && (
-                    <button
-                      type="button"
-                      className="app-clear-filters-btn"
-                      onClick={clearGalleryFilters}
-                      data-instance-id="gallery-clear-filters"
-                    >
-                      Limpiar
-                    </button>
-                 )}
-              </div>
-            </>
-          ) : activeTab === 'console' ? (
-            <div className="flex items-center gap-2 flex-wrap w-full">
-              <select
-                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
-                value={eventTypeFilter}
-                onChange={(e) => setEventTypeFilter(e.target.value)}
-              >
-                <option value="ALL">Todos los Tipos</option>
-                <option value="SYSTEM">Sistema</option>
-                <option value="PROCESS">Proceso</option>
-                <option value="DOMAIN">Dominio</option>
-              </select>
-
-              <select
-                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                <option value="ALL">Todas las Categorías</option>
-                <option value="APPLICATION">Aplicación (SYSTEM)</option>
-                <option value="DATABASE">Base de Datos (SYSTEM)</option>
-                <option value="KAFKA">Kafka (SYSTEM)</option>
-                <option value="AUTH">Autenticación (SYSTEM)</option>
-                <option value="IMPORT">Importación (PROCESS)</option>
-                <option value="INDEX">Indexación (PROCESS)</option>
-                <option value="AI">IA (PROCESS)</option>
-                <option value="Asset">Asset (DOMAIN)</option>
-                <option value="Face">Face (DOMAIN)</option>
-                <option value="MediaFile">MediaFile (DOMAIN)</option>
-                <option value="Session">Session (DOMAIN)</option>
-                <option value="User">User (DOMAIN)</option>
-              </select>
-
-              <select
-                className="bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
-                value={actionFilter}
-                onChange={(e) => setActionFilter(e.target.value)}
-              >
-                <option value="ALL">Todas las Acciones</option>
-                <option value="STARTED">STARTED</option>
-                <option value="COMPLETED">COMPLETED / FINISHED</option>
-                <option value="FAILED">FAILED / ERROR</option>
-                <option value="SUCCESS">SUCCESS / PROCESSED</option>
-                <option value="DUPLICATED">DUPLICATED</option>
-                <option value="REJECTED">REJECTED</option>
-                <option value="LOGIN">LOGIN</option>
-                <option value="LOGOUT">LOGOUT</option>
-                <option value="CREATED">CREATED</option>
-                <option value="DELETED">DELETED</option>
-                <option value="DETECTED">DETECTED</option>
-                <option value="GROUPED">GROUPED</option>
-              </select>
-
-
-              <input
-                type="text"
-                className="w-full max-w-xs bg-surface-panel dark:bg-surface-panel border-transparent focus:border-accent-cyan focus:ring-1 focus:ring-accent-cyan rounded-lg px-3 py-1.5 text-xs text-primary dark:text-primary"
-                placeholder="Filtrar texto..."
-                value={consoleFilter}
-                onChange={(e) => setConsoleFilter(e.target.value)}
-              />
-              <button
-                onClick={toggleConsolePause}
-                className={`px-3 py-1.5 rounded text-sm font-semibold flex items-center gap-2 ${isConsolePaused ? 'bg-accent-amber/20 text-accent-amber' : 'bg-surface-panel dark:bg-surface-panel text-secondary dark:text-secondary hover:bg-surface-panel dark:hover:bg-surface-panel'}`}
-              >
-                {isConsolePaused ? '▶ Reanudar' : '⏸ Pausar'}
-                {isConsolePaused && queuedLogsRef.current.length > 0 && (
-                  <span className="bg-accent-amber text-surface-base text-white text-xs px-1.5 rounded-full">{queuedLogsRef.current.length}</span>
-                )}
-              </button>
-            </div>
-          ) : (
-            <h1 className="text-lg font-semibold text-primary dark:text-primary">
-              {activeTab === 'users' && 'Gestión de Usuarios'}
-              {activeTab === 'pipeline' && 'Gestión de Workers'}
-            </h1>
-          )}
-        </header>
-
-        {/* Contenido */}
-        <div className={`app-content ${activeTab === 'console' ? 'app-content--console' : ''}`}>
-          {activeTab === 'gallery' && (
-            <div className="app-gallery-shell">
-              <section className="app-gallery-stage">
-                <div className="app-gallery-heading">
-                  <div>
-                    <p className="app-kicker">Library // {filteredAssets.length.toLocaleString()} visibles de {assets.length.toLocaleString()} // Local DB</p>
-                    <h1>Cinematic Media Vault</h1>
-                  </div>
-                  <div className="app-gallery-status-strip">
-                    <span>Fotos <strong>{photoCount}</strong></span>
-                    <span>Vídeos <strong>{videoCount}</strong></span>
-                    <span>Pipeline: {sseStatus === 'CONNECTED' ? 'Idle' : 'Offline'}</span>
-                    <span>{selectedAssets.size} selected</span>
-                  </div>
-                </div>
-
-                {selectedAssetList.length > 0 && (
-                  <div className="app-bulk-toolbar" data-instance-id="bulk-selection-toolbar">
-                    <div className="app-bulk-summary">
-                      <strong>{selectedCountLabel}</strong>
-                      <span>{selectedAssetList[0]?.title}</span>
-                    </div>
-                    <div className="app-bulk-actions">
-                      <button type="button" onClick={handleOpenFirstSelected} data-instance-id="bulk-open-first">Abrir primero</button>
-                      <button type="button" onClick={handleCopySelectedIds} data-instance-id="bulk-copy-ids">Copiar IDs</button>
-                      <button type="button" onClick={handleCopySelectedOriginalUrls} data-instance-id="bulk-copy-paths">Copiar rutas</button>
-                      {isAdmin && (
-                        <button type="button" onClick={() => setIsReprocessDialogOpen(true)} data-instance-id="bulk-open-reprocess">Reanalizar IA</button>
-                      )}
-                      <button type="button" className="subtle" onClick={handleClearSelection} data-instance-id="bulk-clear-selection">Limpiar</button>
-                    </div>
-                    {bulkActionFeedback && <span className="app-bulk-feedback">{bulkActionFeedback}</span>}
-                  </div>
-                )}
-
-                <div className="app-gallery-grid">
-                  {isLoadingAssets ? (
-                    Array.from({ length: 8 }).map((_, index) => (
-                      <div key={index} className="app-gallery-skeleton" />
-                    ))
-                  ) : assetLoadError ? (
-                    <div className="app-empty-state app-empty-state-rich">
-                      <strong>No se pudo cargar la biblioteca</strong>
-                      <span>{assetLoadError}</span>
-                      <button type="button" onClick={() => void loadAssets()}>Reintentar</button>
-                    </div>
-                  ) : filteredAssets.length === 0 ? (
-                    <div className="app-empty-state app-empty-state-rich">
-                      <strong>{assets.length === 0 ? 'Biblioteca sin media indexada' : 'No hay resultados para este filtro'}</strong>
-                      <span>{assets.length === 0 ? 'Cuando el pipeline importe e indexe archivos aparecerán aquí.' : 'Ajusta búsqueda o tipo de media para ampliar la vista.'}</span>
-                      {hasActiveFilters && (
-                        <button type="button" onClick={clearGalleryFilters}>Limpiar filtros</button>
-                      )}
-                    </div>
+            {user && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div 
+                  style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--accent-cyan, #06b6d4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: 'white', cursor: 'pointer', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}
+                  title="Cambiar Avatar"
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  {(user as any).avatarUrl ? (
+                    <img src={(user as any).avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    filteredAssets.map((asset) => (
-                      <GalleryCard
-                        key={asset.id}
-                        asset={asset}
-                        isSelected={selectedAssets.has(asset.id)}
-                        onToggleSelect={handleToggleSelect}
-                        onClick={(a) => setPreviewAsset(a)}
-                      />
-                    ))
+                    user.username.substring(0, 2).toUpperCase()
                   )}
                 </div>
-              </section>
-
-            </div>
-          )}
-
-          {activeTab === 'console' && (
-             <div className="app-console-panel" ref={consoleRef} data-instance-id="event-log-panel">
-                {logs.length === 0 ? (
-                  <div className="text-secondary">Esperando eventos del sistema...</div>
-                ) : (
-                  logs.filter(log => {
-                    // 1. Event Type filter
-                    if (eventTypeFilter !== 'ALL' && log.type !== eventTypeFilter) {
-                      return false;
-                    }
-
-                    // 2. Category (subsystem/processName/entityType) filter
-                    if (categoryFilter !== 'ALL') {
-                      let logCategory = '';
-                      if (log.type === 'SYSTEM') {
-                        logCategory = (log as any).subsystem || '';
-                      } else if (log.type === 'DOMAIN') {
-                        logCategory = (log as any).entityType || '';
-                      } else if (log.type === 'PROCESS') {
-                        logCategory = (log as any).processName || '';
-                      }
-                      if (logCategory.toUpperCase() !== categoryFilter.toUpperCase()) {
-                        return false;
-                      }
-                    }
-
-                    // 3. Action filter
-                    if (actionFilter !== 'ALL') {
-                      const logAction = String((log as any).action || '').toUpperCase();
-                      if (logAction !== actionFilter.toUpperCase()) {
-                        if (actionFilter === 'COMPLETED' && logAction === 'FINISHED') {
-                          // allow
-                        } else if (actionFilter === 'SUCCESS' && logAction === 'PROCESSED') {
-                          // allow
-                        } else if (actionFilter === 'FAILED' && logAction === 'ERROR') {
-                          // allow
-                        } else {
-                          return false;
-                        }
-                      }
-                    }
-
-                    // 4. Free text search filter
-                    if (!consoleFilter) return true;
-                    const term = consoleFilter.toLowerCase();
-                    const msg = String(log?.message || '').toLowerCase();
-                    const src = String((log as any)?.source || (log as any)?.subsystem || (log as any)?.processName || '').toLowerCase();
-                    return msg.includes(term) || src.includes(term);
-                  })
-                  .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
-                  .map((log) => {
-                    const typeTag = `[${log.type}]`;
-                    let subTag = '';
-                    if (log.type === 'SYSTEM') {
-                      subTag = ` [${String((log as any).subsystem || '').toUpperCase()}]`;
-                    } else if (log.type === 'DOMAIN') {
-                      subTag = ` [${String((log as any).entityType || '').toUpperCase()}]`;
-                    } else if (log.type === 'PROCESS') {
-                      subTag = ` [${String((log as any).processName || '').toUpperCase()}]`;
-                    }
-                    const actionTag = ` [${String((log as any).action || '').toUpperCase()}]`;
-
-                    const action = String((log as any)?.action || '').toLowerCase();
-                    const status = String((log as any)?.status || '').toLowerCase();
-                    const lowerMsg = String(log?.message || '').toLowerCase();
-
-                    // Prefix tags color (determined by event type)
-                    let tagColorClass = 'text-secondary dark:text-secondary';
-                    if (log.type === 'SYSTEM') {
-                      tagColorClass = 'text-accent-ruby dark:text-accent-ruby font-semibold';
-                    } else if (log.type === 'PROCESS') {
-                      tagColorClass = 'text-accent-cyan dark:text-accent-cyan font-semibold';
-                    } else if (log.type === 'DOMAIN') {
-                      tagColorClass = 'text-accent-lime dark:text-accent-lime font-semibold';
-                    }
-
-                    // Message text color (determined by action outcome/status/content success or failure)
-                    let msgColorClass = 'text-primary dark:text-secondary';
-                    if (action === 'error' || status === 'error' || lowerMsg.includes('error') || lowerMsg.includes('falló')) {
-                      msgColorClass = 'text-accent-ruby dark:text-red-400';
-                    } else if (
-                      action === 'success' ||
-                      status === 'processed' ||
-                      action === 'completed' ||
-                      status === 'completed' ||
-                      action === 'connected' ||
-                      action === 'login' ||
-                      action === 'detected' ||
-                      action === 'grouped' ||
-                      action === 'created'
-                    ) {
-                      msgColorClass = 'text-accent-lime dark:text-accent-lime';
-                    } else if (action === 'started' || action === 'startup' || status === 'running') {
-                      msgColorClass = 'text-accent-cyan dark:text-accent-cyan';
-                    } else if (
-                      action === 'duplicated' ||
-                      action === 'rejected' ||
-                      lowerMsg.includes('duplicado') ||
-                      lowerMsg.includes('saltado') ||
-                      lowerMsg.includes('rechazado')
-                    ) {
-                      msgColorClass = 'text-accent-amber dark:text-amber-400';
-                    }
-
-                    return (
-                      <div key={log.id} className="flex items-start gap-2 mb-1 text-secondary dark:text-secondary">
-                        <span className="text-secondary whitespace-nowrap flex-shrink-0 text-xs select-none">
-                          [{new Date(log.occurredAt).toLocaleTimeString(undefined, { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
-                        </span>
-                        <span className={`${tagColorClass} font-mono flex-shrink-0 select-none text-xs`}>
-                          {typeTag}{subTag}{actionTag} |
-                        </span>
-                        <span className={`break-words flex-1 text-xs font-mono ${msgColorClass}`}>
-                          {String(log?.message || '').replace(/^\[.*?\]\s*/, '')}
-                        </span>
-                      </div>
-                    );
-                  })
-                )}
-             </div>
-          )}
-
-          {activeTab === 'users' && isAdmin && <AdminUsersPanel />}
-          {activeTab === 'pipeline' && isAdmin && <AdminImportPanel />}
-          {activeTab === 'people' && <AdminPeoplePanel onSelectAsset={setPreviewAsset} />}
-        </div>
-      </main>
-
-      </div> {/* fin app-window */}
-
-      {isReprocessDialogOpen && (
-        <div className="app-reprocess-backdrop" role="dialog" aria-modal="true" aria-labelledby="reprocess-dialog-title">
-          <div className="app-reprocess-dialog">
-            <header>
-              <div>
-                <p className="app-kicker">Pipeline // Selección</p>
-                <h2 id="reprocess-dialog-title">Reanalizar IA</h2>
+                <input 
+                  type="file" 
+                  accept="image/*,video/*"
+                  style={{ display: 'none' }}
+                  ref={avatarInputRef}
+                  onChange={handleAvatarChange}
+                  onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
+                />
+                <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: '600' }}>{user.username}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{user.role}</span>
+                </div>
+                <button onClick={logout} style={{ marginLeft: '0.5rem', color: 'var(--text-secondary)', background: 'transparent', border: 'none', cursor: 'pointer' }} title="Cerrar sesión">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </button>
               </div>
-              <button type="button" onClick={() => setIsReprocessDialogOpen(false)} aria-label="Cerrar reanálisis">×</button>
-            </header>
-            <p className="app-reprocess-copy">{selectedCountLabel}. Los workers volverán a procesar los campos marcados cuando estén activos.</p>
-            <div className="app-reprocess-options">
-              <label>
-                <input type="checkbox" checked={reprocessJobs.description} onChange={() => handleToggleReprocessJob('description')} />
-                <span>Descripción, tags y título</span>
-              </label>
-              <label>
-                <input type="checkbox" checked={reprocessJobs.nsfw} onChange={() => handleToggleReprocessJob('nsfw')} />
-                <span>Clasificación NSFW</span>
-              </label>
-              <label>
-                <input type="checkbox" checked={reprocessJobs.faces} onChange={() => handleToggleReprocessJob('faces')} />
-                <span>Detección de caras</span>
-              </label>
-            </div>
-            <footer>
-              <button type="button" className="subtle" onClick={() => setIsReprocessDialogOpen(false)}>Cancelar</button>
-              <button type="button" onClick={() => void handleSubmitReprocess()} disabled={isReprocessingAssets} data-instance-id="bulk-submit-reprocess">
-                {isReprocessingAssets ? 'Reencolando...' : 'Reencolar análisis'}
-              </button>
-            </footer>
+            )}
           </div>
-        </div>
-      )}
+        </header>
 
-      {/* Modal / Sidebar derecho de imagen */}
-      <MediaModal
-        asset={previewAsset}
-        assets={filteredAssets}
-        isSelected={previewAsset ? selectedAssets.has(previewAsset.id) : false}
-        onClose={() => setPreviewAsset(null)}
-        onNavigate={setPreviewAsset}
-        onToggleSelected={(assetId) => {
-          setBulkActionFeedback(null);
-          toggleAssetSelection(assetId);
-        }}
-      />
-    </div>
+        <div className="app-container" style={{ flex: 1, overflow: 'hidden' }}>
+          <nav className="glass-nav">
+            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ 
+                width: '40px', height: '40px', 
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: 'var(--shadow-glow)'
+              }}>
+                <Image color="white" size={20} />
+              </div>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '-0.5px', margin: 0 }}>
+                Blacknails<span style={{ color: 'var(--accent-primary)' }}>V3</span>
+              </h2>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+              <NavLink to="/" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`} end>
+                <Image size={18} />
+                <span>Gallery</span>
+              </NavLink>
+              
+              <NavLink to="/people" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`}>
+                <Users size={18} />
+                <span>People</span>
+              </NavLink>
+              
+              <div style={{ margin: '1rem 0 0.5rem 0', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Administration
+              </div>
+
+              <NavLink to="/admin/console" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`}>
+                <Terminal size={18} />
+                <span>Live Console</span>
+              </NavLink>
+
+              <NavLink to="/admin/pipeline" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`}>
+                <Activity size={18} />
+                <span>Pipeline Canvas</span>
+              </NavLink>
+
+              <NavLink to="/admin/users" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`}>
+                <Shield size={18} />
+                <span>User Management</span>
+              </NavLink>
+            </div>
+            
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem' }}>
+                 <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                   {user.username.charAt(0).toUpperCase()}
+                 </div>
+                 <div style={{ flex: 1, fontSize: '0.85rem' }}>
+                   <div style={{ fontWeight: 600 }}>{user.username}</div>
+                   <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{user.role}</div>
+                 </div>
+                 <button onClick={logout} className="btn-ghost" style={{ padding: '0.5rem', background: 'transparent' }} title="Logout">
+                   <LogOut size={16} />
+                 </button>
+              </div>
+            </div>
+          </nav>
+
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Gallery />} />
+              <Route path="/people" element={<People />} />
+              <Route path="/admin/console" element={<Console />} />
+              <Route path="/admin/pipeline" element={<Pipeline />} />
+              <Route path="/admin/jobs" element={<Admin />} />
+              <Route path="/admin/users" element={<UsersPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </Router>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }

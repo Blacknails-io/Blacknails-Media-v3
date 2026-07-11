@@ -47,6 +47,14 @@ client/playwright-report/
 playwright-report/
 client/artifacts/
 
+# Xcode local state
+ios/BlacknailsSync/install.env
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+DerivedData/
+*.xcarchive
+
 # Temporary AI / Pipeline outputs
 outputs/
 

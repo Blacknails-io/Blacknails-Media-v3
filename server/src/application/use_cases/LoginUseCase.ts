@@ -26,8 +26,9 @@ export class LoginUseCase implements ILoginUseCase {
       throw new Error('Credenciales incorrectas.');
     }
 
-    // Session duration: 24 hours
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    // Session duration: 30 days if rememberMe, otherwise 24 hours
+    const durationDays = request.rememberMe ? 30 : 1;
+    const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString();
     const session = new Session({
       userId: user.id,
       expiresAt

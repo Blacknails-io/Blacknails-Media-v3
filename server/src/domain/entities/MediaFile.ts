@@ -1,4 +1,5 @@
 import { Resolution } from './ValueObjects.js';
+import { randomUUID } from 'crypto';
 
 export type MediaRole = 'ORIGINAL' | 'THUMBNAIL' | 'PREVIEW' | 'SIDECAR';
 
@@ -20,7 +21,7 @@ export abstract class MediaFile {
     extension: string;
     createdAt?: string;
   }) {
-    this.id = props.id || (globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Math.random().toString(36).substring(2));
+    this.id = props.id || randomUUID();
     this.assetId = props.assetId;
     this.currentPath = props.currentPath;
     this.fileSize = props.fileSize;

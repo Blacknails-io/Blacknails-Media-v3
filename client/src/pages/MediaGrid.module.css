@@ -1,0 +1,164 @@
+.mediaCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+}
+
+.mediaCardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mediaCard {
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+
+.mediaCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.mediaCardThumbWrapper {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.mediaCardThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.mediaCard:hover .mediaCardThumb {
+  transform: scale(1.05);
+}
+
+.mediaCardOverlay {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.formatBadge {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.mediaDuration {
+  background: rgba(0, 0, 0, 0.7);
+  color: var(--text-primary);
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.playOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mediaCard:hover .playOverlay {
+  opacity: 1;
+}
+
+.playBtnCircle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-online);
+  color: #0b0f19;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4);
+}
+
+.mediaCardMeta {
+  padding: 12px;
+}
+
+.mediaCardTitle {
+  font-family: var(--font-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mediaCardSubinfo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.725rem;
+  color: var(--text-muted);
+}
+
+/* Card in duplicate state warning */
+.mediaCard.duplicate {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.duplicateBadge {
+  background: rgba(245, 158, 11, 0.9);
+  color: #000000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* List view variations */
+.mediaCardListLayout {
+  display: flex;
+  flex-direction: row;
+  height: 80px;
+}
+
+.mediaCardListLayout .mediaCardThumbWrapper {
+  width: 120px;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.mediaCardListLayout .mediaCardMeta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 16px;
+}

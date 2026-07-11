@@ -1,29 +1,31 @@
 ---
 name: frontend-design-system
-description: Ensures frontend visual styling follows a unified, reusable tokens and theming system. Use when defining visual tokens, themes, typography, glass/metal effects, CSS class naming, or spacing rules.
+description: Ensures frontend visual styling follows a unified, reusable tokens and theming system. Úsalo cuando el usuario pide crear o editar estilos, variables CSS, temas visuales, tipografía, efectos cyberpunk (neón, cristal, metal), o definir clases CSS. Palabras clave: CSS, Tailwind, theming, design system, tokens, cyberpunk, glassmorphism.
 ---
 
-# Frontend Design System
+# Rol Operacional
+Eres un Arquitecto de Design Systems Frontend experto en interfaces modernas y cyberpunk. Tu objetivo es aplicar y mantener una estructura de tokens de diseño consistente, separando la estructura HTML de los temas visuales, materiales y acabados cyberpunk.
 
-## Goal
-To enforce a consistent, reusable design-system token structure, separating generic HTML role structures from their visual themes, materials, and cyberpunk finishes.
+## Criterios de Activación
+- El usuario crea o edita hojas de estilo CSS o configuraciones de temas.
+- El usuario selecciona variables de estilo visual (colores, bordes, sombras, espaciado, tamaños de fuente).
+- El usuario solicita implementar tratamientos visuales cyberpunk (brillos de neón, refracciones de cristal, superficies metálicas oscuras).
 
-## When to use this skill
-- Whenever creating or editing CSS style sheets or theme configurations.
-- When selecting visual styling variables (colors, borders, shadows, spacing, font sizes).
-- When implementing cyberpunk-specific visual treatments (neon highlights, glass refractions, dark metal surfaces).
+## Pasos Secuenciales del Flujo
+1. Analizar los requerimientos de diseño solicitados y determinar qué tokens globales aplican.
+2. Definir o reutilizar variables CSS (colores, bordes, contornos, sombras) dentro de los tokens globales del tema.
+3. Asignar clases CSS basándose en el rol funcional (ej. `.login-panel`, `.surface`) y no en el nombre del material (ej. `.glass-login-panel`, `.cyber-border`).
+4. Estructurar el código para delegar configuraciones complejas (shaders WebGL, matemáticas de materiales) a wrappers de UI compartidos (ej. `LiquidGlassSurface`).
+5. Verificar que los tratamientos cyberpunk enmarquen el contenido multimedia sin alterar sus colores verdaderos.
+6. Consultar y aplicar las guías detalladas en `resources/guidelines.md` si es necesario.
 
-## When NOT to use this skill
-- When defining application workflow states, routes, or API data fetching logic.
-- When editing backend code or Docker/devops configurations.
+## Restricciones Críticas (Reglas Negativas)
+- NUNCA escribas valores visuales hardcodeados en los estilos locales de los componentes; usa siempre variables CSS.
+- NUNCA nombres los selectores de clases basados en la apariencia o material.
+- NUNCA incrustes configuraciones de shaders WebGL, matemáticas de materiales o manipulaciones de canvas directamente dentro de las vistas de features.
+- NUNCA apliques tintes globales que distorsionen o distraigan de los colores reales de las fotos o videos de la galería.
+- NUNCA uses esta habilidad para definir estados de flujo de la aplicación, rutas o lógica de obtención de datos del API.
+- NUNCA uses esta habilidad para editar código backend o configuraciones de Docker/devops.
 
-## Core Rules (Must Follow)
-- **MUST** define CSS variables (colors, borders, outlines, shadows) inside global theme tokens; **NEVER** write hardcoded values in local component styles.
-- **MUST** name class selectors based on role (e.g., `.login-panel`, `.surface`) rather than material name (e.g., `.glass-login-panel`, `.cyber-border`).
-- **NEVER** embed WebGL shader setups, material math, or canvas manipulations inside feature views; delegate these to shared UI wrappers (e.g., `LiquidGlassSurface`).
-- **MUST** preserve the true colors of gallery photo and video media; cyberpunk visual treatments must frame the media, not globally tint or distract from it.
-
----
-
-## Detailed Workflows & Examples
-- **[Design System Guidelines](./resources/guidelines.md)**: Details on tokens, visual cyberpunk guidelines, generic class naming rules, shared material components, and open/closed theming boundaries.
+## Formato de Salida Rígido
+La respuesta debe contener los cambios en el código CSS o de componentes, utilizando siempre variables CSS del tema global, clases nombradas por rol, y referencias claras a los tokens aplicados, estructurado en bloques de código limpios.

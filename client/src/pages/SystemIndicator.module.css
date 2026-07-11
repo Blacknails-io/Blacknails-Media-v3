@@ -1,0 +1,104 @@
+.sidebarContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.statusCard {
+  padding: 20px;
+}
+
+.statusCard h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.statusRow:last-child {
+  border-bottom: none;
+}
+
+.statusLabel {
+  font-size: 0.925rem;
+  color: var(--text-secondary);
+}
+
+.statusValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 0.925rem;
+}
+
+/* Pulse Animation indicator */
+.pulseDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.pulseDot.online {
+  background-color: var(--color-online);
+  box-shadow: 0 0 8px var(--color-online);
+}
+
+.pulseDot.online::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-online);
+  animation: pulse-ring 1.8s infinite ease-in-out;
+  opacity: 0.6;
+}
+
+.pulseDot.offline {
+  background-color: var(--color-offline);
+  box-shadow: 0 0 8px var(--color-offline);
+}
+
+.pulseDot.offline::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-offline);
+  animation: pulse-ring 1.8s infinite ease-in-out;
+  opacity: 0.6;
+  animation-delay: 0.5s;
+}
+
+.pulseDot.warning {
+  background-color: var(--color-warning);
+  box-shadow: 0 0 8px var(--color-warning);
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}

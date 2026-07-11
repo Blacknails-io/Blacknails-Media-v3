@@ -8,6 +8,7 @@ import { OutboxDispatcher } from './adapters/out/database/OutboxDispatcher.js';
 import { SqliteUnitOfWork } from './adapters/out/database/SqliteUnitOfWork.js';
 import { SqliteAssetRepository } from './adapters/out/database/SqliteAssetRepository.js';
 import { GetAssetsUseCase } from './application/use_cases/GetAssetsUseCase.js';
+import { GetAssetDetailsUseCase } from './application/use_cases/GetAssetDetailsUseCase.js';
 import { AssetController } from './adapters/in/http/AssetController.js';
 import { Photo } from './domain/entities/Asset.js';
 import { ImportMediaUseCase } from './application/use_cases/ImportMediaUseCase.js';
@@ -37,6 +38,7 @@ import { PeopleController } from './adapters/in/http/PeopleController.js';
 import { ReprocessAssetsUseCase } from './application/use_cases/ReprocessAssetsUseCase.js';
 import { ReprocessAssetsController } from './adapters/in/http/ReprocessAssetsController.js';
 import { requireAdmin, requireUser } from './adapters/in/http/auth.js';
+import { MobileUploadController } from './adapters/in/http/MobileUploadController.js';
 
 // Módulo de Autenticación
 import { SqliteUserRepository } from './adapters/out/database/SqliteUserRepository.js';
@@ -179,8 +181,10 @@ seedUsers();
 const sharedUow = new SqliteUnitOfWork(db);
 const assetRepository = new SqliteAssetRepository(db);
 const mediaRepository = sharedUow.mediaFiles;
-const getAssetsUseCase = new GetAssetsUseCase(assetRepository, mediaRepository, ORIGINALS_DIR, STORAGE_DIR);
-const assetController = new AssetController(getAssetsUseCase);
+const faceRepository = new SqliteFaceRepository(db);
+const getAssetsUseCase = new GetAssetsUseCase(assetRepository, mediaRepository, faceRepository, ORIGINALS_DIR, STORAGE_DIR);
+const getAssetDetailsUseCase = new GetAssetDetailsUseCase(assetRepository, getAssetsUseCase);
+const assetController = new AssetController(getAssetsUseCase, getAssetDetailsUseCase);
 const reprocessAssetsUseCase = new ReprocessAssetsUseCase(assetRepository);
 const reprocessAssetsController = new ReprocessAssetsController(getSessionUserUseCase, reprocessAssetsUseCase);
 
@@ -188,7 +192,6 @@ const processingService = new CommandLineMediaProcessingService(ARCHIVE_DIR);
 const ollamaService = new OllamaService(OLLAMA_URL, OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL, OLLAMA_VISION_CONCURRENCY, OLLAMA_TEXT_CONCURRENCY, OLLAMA_KEEP_ALIVE);
 const sidecarService = new XmlSidecarService(SIDECARS_DIR);
 const faceDetectionService = new PythonFaceDetectionService(FACE_PYTHON_BIN);
-const faceRepository = new SqliteFaceRepository(db);
 const vectorMemoryService = QDRANT_URL ? new QdrantVectorMemoryService(QDRANT_URL) : new NoopVectorMemoryService();
 const pipelineWorkerManager = new PipelineCoordinatorService(sharedUow, faceRepository, IMPORT_DIR, THUMBNAILS_DIR, ORIGINALS_DIR, eventBus);
 const importMediaUseCase = new ImportMediaUseCase(sharedUow, eventBus, processingService, ORIGINALS_DIR, 'move');
@@ -209,6 +212,7 @@ const faceClusterWorker = new FaceClusterTaskRunner(eventBus, sharedUow, faceRep
 const pipelineController = new PipelineController(getSessionUserUseCase, pipelineWorkerManager);
 const peopleUseCase = new PeopleUseCase(faceRepository, assetRepository, getAssetsUseCase);
 const peopleController = new PeopleController(peopleUseCase);
+const mobileUploadController = new MobileUploadController(getSessionUserUseCase, IMPORT_DIR);
 
 pipelineWorkerManager.register(importWorker);
 pipelineWorkerManager.register(indexWorker);
@@ -234,6 +238,10 @@ if (INDEX_SCHEDULER_ENABLED) {
 app.get('/api/assets', async (req, res) => {
   if (!(await requireUser(req, res, getSessionUserUseCase))) return;
   await assetController.getAssets(req, res);
+});
+app.get('/api/assets/:id', async (req, res) => {
+  if (!(await requireUser(req, res, getSessionUserUseCase))) return;
+  await assetController.getAssetDetails(req, res);
 });
 app.get('/api/people', async (req, res) => {
   if (!(await requireUser(req, res, getSessionUserUseCase))) return;
@@ -269,6 +277,7 @@ app.use('/static/users', async (req, res, next) => {
   next();
 }, express.static(path.resolve('./data/users')));
 app.use('/api/auth', authController.router);
+app.use('/api/mobile', mobileUploadController.router);
 app.use('/api/admin', adminUsersController.router);
 app.use('/api/admin', reprocessAssetsController.router);
 app.use('/api/admin/pipeline', pipelineController.router);
