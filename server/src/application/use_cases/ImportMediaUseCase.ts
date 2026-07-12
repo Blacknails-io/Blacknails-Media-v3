@@ -46,34 +46,7 @@ export class ImportMediaUseCase {
     const fileHash = createHash('sha1').update(sourceContent).digest('hex');
 
     let processedPath = sourcePath;
-    try {
-      processedPath = await this.mediaProcessing.optimizeAndArchive(sourcePath);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`[ImportMediaUseCase] Error optimizando archivo ${path.basename(sourcePath)}: ${errorMessage}`);
-      await this.eventBus.publish(new ImportFailedEvent(
-        'ImportMediaUseCase',
-        `No se pudo procesar el archivo porque está corrupto o es inválido: ${path.basename(sourcePath)}`
-      ));
-      return { imported: false, skippedReason: 'processing-error' };
-    }
-
     const stat = await fs.stat(processedPath);
-    const existing = await this.uow.mediaFiles.getByFileHash(fileHash);
-    
-    let assetId: string | null = null;
-    let isDuplicate = false;
-
-    if (existing) {
-      isDuplicate = true;
-      assetId = existing.assetId;
-      await this.eventBus.publish(new ImportDuplicateEvent(
-        'ImportMediaUseCase',
-        `Archivo duplicado detectado (Hash). Apilando bajo el mismo Asset: ${path.basename(sourcePath)}`,
-        path.basename(sourcePath)
-      ));
-      // Ya NO abortamos ni borramos el archivo. Lo apilamos (Stack).
-    }
 
     const dateInfo = await this.mediaProcessing.getDateWithSource(processedPath);
     const dateTaken = dateInfo.dateTaken;
@@ -84,6 +57,20 @@ export class ImportMediaUseCase {
       String(dateTaken.getMonth() + 1).padStart(2, '0')
     );
     
+    // Deduplicación estricta
+    const existingMedia = await this.uow.mediaFiles.getByFileHash(fileHash);
+    if (existingMedia) {
+      console.log(`[ImportMediaUseCase] Duplicado detectado por hash: ${path.basename(sourcePath)}. Saltando movimiento a bóveda.`);
+      // Si el archivo ya existía, lo eliminamos de la carpeta de importación
+      await import('fs/promises').then(fs => fs.rm(sourcePath, { force: true }));
+      return {
+        imported: true,
+        mediaFileId: existingMedia.id,
+        fileHash,
+        vaultPath: existingMedia.currentPath
+      };
+    }
+    
     // Para evitar colisiones de nombre si hay hashes idénticos en la misma fecha, añadimos un pequeño sufijo
     const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
     const vaultPath = path.join(vaultFolder, `${dateStr}_${fileHash.slice(0, 8).toUpperCase()}_${randomSuffix}${path.extname(processedPath).toLowerCase()}`);
@@ -92,14 +79,15 @@ export class ImportMediaUseCase {
     await this.moveOrCopy(processedPath, vaultPath);
 
     const mediaFile = new OriginalFile({
-      assetId: assetId, // STACKING: Si existía, se vincula al mismo Asset
+      assetId: null,
       currentPath: vaultPath,
       fileSize: stat.size,
       fileHash,
       extension: path.extname(processedPath).toLowerCase(),
       createdAt: new Date().toISOString(),
       sourceDevice: 'import-folder',
-      importDate: new Date().toISOString()
+      importDate: new Date().toISOString(),
+      originalFilename: path.basename(sourcePath)
     });
 
     await this.uow.runTransaction(async (tx) => {
@@ -108,7 +96,7 @@ export class ImportMediaUseCase {
 
     await this.eventBus.publish(new MediaImportedEvent(
       'ImportMediaUseCase',
-      isDuplicate ? `Archivo duplicado apilado en la bóveda: ${path.basename(sourcePath)}` : `Archivo importado a originals: ${path.basename(sourcePath)}`,
+      `Archivo importado a originals: ${path.basename(sourcePath)}`,
       path.basename(sourcePath)
     ));
 

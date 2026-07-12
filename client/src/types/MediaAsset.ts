@@ -21,4 +21,7 @@ export interface MediaAsset {
   originalUrl: string;
   clearance: SecurityClearance;
   metadata: AssetMetadata;
+  isNsfw?: boolean;
+  nsfwReason?: string;
+  people?: { id: string; name: string | null; label: string }[];
 }

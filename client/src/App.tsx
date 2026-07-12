@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Image, Search, Activity, Users, Shield, LogOut, Terminal } from 'lucide-react';
+import { Image, Activity, Users, Shield, Terminal } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useGlobalHologram } from './hooks/useGlobalHologram';
 import { backendEventsController } from './controllers/BackendEventsController';
 import Login from './pages/Login';
 import Gallery from './pages/Gallery';
 import Admin from './pages/Admin';
-import { Pipeline } from './pages/Admin/Pipeline';
+import { PipelineControlCenter as Pipeline } from './pages/PipelineControlCenter';
 import People from './pages/People';
 import UsersPage from './pages/Admin/Users';
 import Console from './pages/Admin/Console';
@@ -85,8 +85,8 @@ function AppContent() {
 
   return (
     <Router>
-      <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <header className="app-global-header" style={{ padding: '0.5rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="app-layout" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <header className="app-global-header" style={{ padding: '0.5rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', position: 'sticky', top: 0, zIndex: 100, background: 'var(--bg-glass)', backdropFilter: 'blur(16px)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div style={{ fontWeight: 'bold', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '0.5rem', color: sseStatus === 'CONNECTED' ? 'var(--accent-lime, #4ade80)' : 'var(--accent-ruby, #f87171)' }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -160,22 +160,9 @@ function AppContent() {
           </div>
         </header>
 
-        <div className="app-container" style={{ flex: 1, overflow: 'hidden' }}>
+        <div className="app-container" style={{ flex: 1 }}>
           <nav className="glass-nav">
-            <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ 
-                width: '40px', height: '40px', 
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: 'var(--shadow-glow)'
-              }}>
-                <Image color="white" size={20} />
-              </div>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, letterSpacing: '-0.5px', margin: 0 }}>
-                Blacknails<span style={{ color: 'var(--accent-primary)' }}>V3</span>
-              </h2>
-            </div>
+
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
               <NavLink to="/" className={({ isActive }) => `btn-ghost ${isActive ? 'active' : ''}`} end>
@@ -206,21 +193,6 @@ function AppContent() {
                 <Shield size={18} />
                 <span>User Management</span>
               </NavLink>
-            </div>
-            
-            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', marginBottom: '0.5rem' }}>
-                 <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                   {user.username.charAt(0).toUpperCase()}
-                 </div>
-                 <div style={{ flex: 1, fontSize: '0.85rem' }}>
-                   <div style={{ fontWeight: 600 }}>{user.username}</div>
-                   <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{user.role}</div>
-                 </div>
-                 <button onClick={logout} className="btn-ghost" style={{ padding: '0.5rem', background: 'transparent' }} title="Logout">
-                   <LogOut size={16} />
-                 </button>
-              </div>
             </div>
           </nav>
 

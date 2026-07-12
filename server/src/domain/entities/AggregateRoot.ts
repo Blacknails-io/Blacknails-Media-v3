@@ -7,6 +7,10 @@ export abstract class AggregateRoot {
     this.domainEvents.push(event);
   }
 
+  public recordDomainEvent(event: AppEvent): void {
+    this.addDomainEvent(event);
+  }
+
   public getDomainEvents(): AppEvent[] {
     return [...this.domainEvents];
   }

@@ -36,6 +36,7 @@ export abstract class MediaFile {
 export class OriginalFile extends MediaFile {
   public sourceDevice: string;
   public importDate: string;
+  public originalFilename?: string;
 
   constructor(props: {
     id?: string;
@@ -47,10 +48,12 @@ export class OriginalFile extends MediaFile {
     createdAt?: string;
     sourceDevice?: string;
     importDate?: string;
+    originalFilename?: string;
   }) {
     super(props);
     this.sourceDevice = props.sourceDevice || 'unknown';
     this.importDate = props.importDate || new Date().toISOString();
+    this.originalFilename = props.originalFilename;
   }
 
   public get role(): MediaRole {

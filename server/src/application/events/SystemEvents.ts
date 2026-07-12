@@ -251,6 +251,23 @@ export class MediaIndexedEvent implements ProcessEvent {
   ) {}
 }
 
+export class IndexRejectedEvent implements ProcessEvent {
+  public readonly id = randomUUID();
+  public readonly type = 'PROCESS';
+  public readonly processName = 'INDEX';
+  public readonly subsystem = 'INDEX';
+  public readonly action = 'REJECTED';
+  public readonly occurredAt = new Date().toISOString();
+
+  constructor(
+    public readonly source: string,
+    public readonly message: string,
+    public readonly itemId: string,
+    public readonly workerName?: string,
+    public readonly status?: string
+  ) {}
+}
+
 // --- AI PROCESS EVENTS ---
 
 function getAiProcessName(workerName?: string): 'AI' | 'TAGS' | 'TITLE' | 'DESCRIPTION' | 'NSFW' | 'FACE_DETECTION' | 'FACE_CLUSTERING' | 'THUMBNAIL' {

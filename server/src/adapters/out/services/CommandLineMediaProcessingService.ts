@@ -14,62 +14,33 @@ const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.avi', '.mkv', '.webm', '.3gp', '.3g2']);
 
 export class CommandLineMediaProcessingService implements IMediaProcessingService {
-  constructor(private readonly archiveBasePath: string) {}
-
-  public async optimizeAndArchive(sourcePath: string): Promise<string> {
-    const extension = path.extname(sourcePath).toLowerCase();
-    if (extension === '.webp' || extension === '.mp4') {
-      return sourcePath;
-    }
-
-    const optimizedPath = IMAGE_EXTENSIONS.has(extension)
-      ? sourcePath.replace(/\.[^.]+$/, '.webp')
-      : VIDEO_EXTENSIONS.has(extension)
-        ? sourcePath.replace(/\.[^.]+$/, '.mp4')
-        : sourcePath;
-
-    if (optimizedPath === sourcePath) {
-      return sourcePath;
-    }
-
-    try {
-      const dateResult = await this.getDateWithSource(sourcePath);
-
-      if (IMAGE_EXTENSIONS.has(extension)) {
-        await this.convertImageToWebp(sourcePath, optimizedPath);
-        await this.copyMetadataFromOriginal(sourcePath, optimizedPath);
-      } else if (VIDEO_EXTENSIONS.has(extension)) {
-        await this.convertVideoToMp4(sourcePath, optimizedPath);
-      }
-
-      await this.setMTime(optimizedPath, dateResult.dateTaken);
-      await this.archiveOriginal(sourcePath);
-      return optimizedPath;
-    } catch (error) {
-      if (optimizedPath !== sourcePath) {
-        await this.removeFileIfExists(optimizedPath);
-      }
-      throw error;
-    }
-  }
+  constructor() {}
 
   public async getDateWithSource(sourcePath: string): Promise<MediaDateResult> {
     const extension = path.extname(sourcePath).toLowerCase();
 
     if (IMAGE_EXTENSIONS.has(extension)) {
       const fields = ['DateTimeOriginal', 'CreateDate', 'ModifyDate'];
-      const raw = await this.readExifTag(sourcePath, fields);
-      const parsed = this.parseLooseDate(raw);
-      if (parsed) {
-        return { dateTaken: parsed, source: 'exif' };
+      try {
+        const raw = await this.readExifTag(sourcePath, fields);
+        const parsed = this.parseLooseDate(raw);
+        if (parsed) {
+          return { dateTaken: parsed, source: 'exif' };
+        }
+      } catch (e) {
+        // Fallback to next method
       }
     }
 
     if (VIDEO_EXTENSIONS.has(extension)) {
-      const raw = await this.readVideoCreationTime(sourcePath);
-      const parsed = this.parseLooseDate(raw);
-      if (parsed) {
-        return { dateTaken: parsed, source: 'creation_time' };
+      try {
+        const raw = await this.readVideoCreationTime(sourcePath);
+        const parsed = this.parseLooseDate(raw);
+        if (parsed) {
+          return { dateTaken: parsed, source: 'creation_time' };
+        }
+      } catch (e) {
+        // Fallback to next method
       }
     }
 
@@ -137,6 +108,28 @@ export class CommandLineMediaProcessingService implements IMediaProcessingServic
       latitude: exifMetadata.GPSLatitude !== undefined ? Number(exifMetadata.GPSLatitude) : undefined,
       longitude: exifMetadata.GPSLongitude !== undefined ? Number(exifMetadata.GPSLongitude) : undefined
     };
+  }
+
+  public async extractFullMetadata(sourcePath: string): Promise<Record<string, any>> {
+    const extension = path.extname(sourcePath).toLowerCase();
+    if (VIDEO_EXTENSIONS.has(extension)) {
+      try {
+        const raw = await execFileAsync('ffprobe', [
+          '-v', 'quiet',
+          '-print_format', 'json',
+          '-show_format',
+          '-show_streams',
+          sourcePath
+        ]);
+        const parsed = JSON.parse(raw.stdout || '{}');
+        const exif = await this.readExifJson(sourcePath).catch(() => ({}));
+        return { ffprobe: parsed, exif };
+      } catch (e) {
+        return { error: 'Failed to extract video metadata', details: String(e) };
+      }
+    } else {
+      return this.readExifJson(sourcePath).catch(() => ({}));
+    }
   }
 
   private async convertImageToWebp(sourcePath: string, optimizedPath: string): Promise<void> {
@@ -227,37 +220,6 @@ export class CommandLineMediaProcessingService implements IMediaProcessingServic
     return data?.format?.tags?.creation_time || undefined;
   }
 
-  private async archiveOriginal(sourcePath: string): Promise<void> {
-    const sourceName = path.basename(sourcePath);
-    const archivePath = path.join(this.archiveBasePath, sourceName);
-    await fs.mkdir(this.archiveBasePath, { recursive: true });
-
-    let finalPath = archivePath;
-    let counter = 1;
-    while (await this.exists(finalPath)) {
-      finalPath = path.join(
-        this.archiveBasePath,
-        `${path.parse(sourceName).name}_${counter}${path.parse(sourceName).ext}`
-      );
-      counter += 1;
-    }
-
-    try {
-      await fs.rename(sourcePath, finalPath);
-    } catch (error: any) {
-      if (error?.code === 'EXDEV') {
-        await fs.copyFile(sourcePath, finalPath);
-        await fs.unlink(sourcePath);
-        return;
-      }
-      throw error;
-    }
-  }
-
-  private async setMTime(filePath: string, date: Date): Promise<void> {
-    await fs.utimes(filePath, date, date);
-  }
-
   private parseLooseDate(raw?: string): Date | null {
     if (!raw) return null;
     const trimmed = raw.trim();
@@ -324,7 +286,16 @@ export class CommandLineMediaProcessingService implements IMediaProcessingServic
   }
 
   public async generateImagePreview(sourcePath: string, outputPath: string): Promise<void> {
-    await execFileAsync('ffmpeg', ['-v', 'error', '-y', '-i', sourcePath, '-vf', 'scale=640:-2', '-frames:v', '1', outputPath]);
+    try {
+      const sharp = (await import('sharp')).default;
+      await sharp(sourcePath)
+        .resize(640, null, { withoutEnlargement: true })
+        .webp({ quality: 80 })
+        .toFile(outputPath);
+    } catch (error) {
+      console.warn(`[CommandLineMediaProcessingService] Sharp failed for ${sourcePath}, falling back to ffmpeg...`, error);
+      await execFileAsync('ffmpeg', ['-v', 'error', '-y', '-i', sourcePath, '-vf', 'scale=640:-2', '-frames:v', '1', outputPath]);
+    }
   }
 
   public async generateVideoPreview(sourcePath: string, outputPath: string): Promise<void> {

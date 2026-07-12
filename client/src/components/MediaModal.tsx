@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './MediaModal.css';
 import type { MediaAsset } from '../types/MediaAsset.js';
 
@@ -91,7 +92,7 @@ export const MediaModal = ({
   const copyLabel = copyState === 'copied' ? 'Copiado' : copyState === 'failed' ? 'No copiado' : 'Copiar ruta';
   const originalUrl = fullAsset?.originalUrl || asset.originalUrl || asset.imageUrl;
 
-  return (
+  return createPortal(
     <div
       className="prosumer-modal-backdrop"
       role="dialog"
@@ -249,6 +250,7 @@ export const MediaModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

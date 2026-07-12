@@ -8,7 +8,8 @@ export type PipelineNodeVisualProps = {
   status?: NodeStatus;
   isActive?: boolean;
   isCore?: boolean;
-  errorCount?: number;
+  pendingItems?: number;
+  currentlyProcessing?: number;
   showExecutionData?: boolean;
   selected?: boolean;
   onToggle?: () => void;
@@ -22,7 +23,8 @@ export const PipelineNodeVisual: React.FC<PipelineNodeVisualProps> = ({
   status = 'idle',
   isActive = true,
   isCore = false,
-  errorCount = 0,
+  pendingItems = 0,
+  currentlyProcessing = 0,
   showExecutionData = true,
   selected = false,
   onToggle,
@@ -78,10 +80,16 @@ export const PipelineNodeVisual: React.FC<PipelineNodeVisualProps> = ({
                     <span className={styles.statLabel}>STATUS</span>
                     <span className={styles.statStatus}>{status.toUpperCase()}</span>
                   </div>
-                  {errorCount > 0 && (
+                  {pendingItems > 0 && (
                     <div className={styles.statGroup}>
-                      <span className={styles.statLabel}>ERRORS</span>
-                      <span className={styles.statError}>{errorCount} detected</span>
+                      <span className={styles.statLabel}>QUEUE</span>
+                      <span className={styles.statError}>{pendingItems} items</span>
+                    </div>
+                  )}
+                  {currentlyProcessing > 0 && (
+                    <div className={styles.statGroup}>
+                      <span className={styles.statLabel}>ACTIVE</span>
+                      <span className={styles.statValue} style={{ color: '#00ffff' }}>{currentlyProcessing} processing</span>
                     </div>
                   )}
                 </div>

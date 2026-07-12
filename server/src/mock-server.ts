@@ -57,21 +57,32 @@ import { UpdateAvatarUseCase } from './application/use_cases/UpdateAvatarUseCase
 import { LocalAvatarStorageService } from './adapters/out/services/LocalAvatarStorageService.js';
 
 
+import * as os from 'os';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const APP_ROOT = process.env.APP_ROOT || path.resolve(__dirname, '../../');
-const LIBRARY_DIR = process.env.LIBRARY_DIR || path.join(APP_ROOT, 'library');
 
-const DB_PATH = process.env.DATABASE_PATH || path.join(APP_ROOT, 'data/blacknails.db');
-const IMPORT_DIR = process.env.IMPORT_DIR || path.join(LIBRARY_DIR, 'import');
-const ORIGINALS_DIR = process.env.ORIGINALS_DIR || path.join(LIBRARY_DIR, 'originals');
-const ARCHIVE_DIR = process.env.ARCHIVE_DIR || path.join(LIBRARY_DIR, 'archive');
-const STORAGE_DIR = process.env.STORAGE_DIR || path.join(LIBRARY_DIR, 'storage');
-const THUMBNAILS_DIR = process.env.THUMBNAILS_DIR || path.join(STORAGE_DIR, 'thumbnails');
-const SIDECARS_DIR = process.env.SIDECARS_DIR || path.join(STORAGE_DIR, 'sidecars');
+const mockLibraryPath = path.join(APP_ROOT, '.mock-library');
+if (fs.existsSync(mockLibraryPath)) {
+  fs.rmSync(mockLibraryPath, { recursive: true, force: true });
+}
+fs.mkdirSync(mockLibraryPath, { recursive: true });
+
+console.log(`[MockServer] Iniciando servidor mock con datos en: ${mockLibraryPath}`);
+
+const LIBRARY_DIR = path.join(mockLibraryPath, 'library');
+const DB_PATH = path.join(mockLibraryPath, 'blacknails.db');
+
+const IMPORT_DIR = path.join(LIBRARY_DIR, 'import');
+const ORIGINALS_DIR = path.join(LIBRARY_DIR, 'originals');
+const ARCHIVE_DIR = path.join(LIBRARY_DIR, 'archive');
+const STORAGE_DIR = path.join(LIBRARY_DIR, 'storage');
+const THUMBNAILS_DIR = path.join(STORAGE_DIR, 'thumbnails');
+const SIDECARS_DIR = path.join(STORAGE_DIR, 'sidecars');
 
 const REQUIRED_DIRECTORIES = [
   path.dirname(DB_PATH),
@@ -82,6 +93,12 @@ const REQUIRED_DIRECTORIES = [
   THUMBNAILS_DIR,
   SIDECARS_DIR
 ];
+
+for (const dir of REQUIRED_DIRECTORIES) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
 
 const IMPORT_INTERVAL_MS = Number(process.env.IMPORT_INTERVAL_MS || 10000);
 const INDEX_INTERVAL_MS = Number(process.env.INDEX_INTERVAL_MS || 15000);
@@ -141,41 +158,19 @@ const deleteUserUseCase = new DeleteUserUseCase(userRepository);
 const updateUserActiveUseCase = new UpdateUserActiveUseCase(userRepository);
 const adminUsersController = new AdminUsersController(getSessionUserUseCase, listUsersUseCase, updateUserRoleUseCase, deleteUserUseCase, updateUserActiveUseCase);
 
-// Sincronización de usuarios por defecto (Seeding)
 const seedUsers = async () => {
   try {
-    const adminUserVar = process.env.ADMIN_USER;
-    const adminPassVar = process.env.ADMIN_PASS;
-    const partnerUserVar = process.env.PARTNER_USER;
-    const partnerPassVar = process.env.PARTNER_PASS;
-
-    if (adminUserVar && adminPassVar) {
-      const existingAdmin = await userRepository.findByUsername(adminUserVar);
-      if (!existingAdmin) {
-        await registerUseCase.execute({
-          username: adminUserVar,
-          passwordRaw: adminPassVar,
-          role: 'ADMIN'
-        });
-        console.log(`[Seed] Administrador '${adminUserVar}' sembrado con éxito.`);
-      }
-    } else {
-      console.warn('[Seed] ADMIN_USER/ADMIN_PASS no definidos; no se sembrará administrador por defecto.');
-    }
-
-    if (partnerUserVar && partnerPassVar) {
-      const existingPartner = await userRepository.findByUsername(partnerUserVar);
-      if (!existingPartner) {
-        await registerUseCase.execute({
-          username: partnerUserVar,
-          passwordRaw: partnerPassVar,
-          role: 'VIEWER'
-        });
-        console.log(`[Seed] Partner '${partnerUserVar}' sembrado con éxito.`);
-      }
+    const existingAdmin = await userRepository.findByUsername('admin');
+    if (!existingAdmin) {
+      await registerUseCase.execute({
+        username: 'admin',
+        passwordRaw: 'admin',
+        role: 'ADMIN'
+      });
+      console.log(`[Seed] Administrador 'admin' con password 'admin' sembrado con éxito en MOCK.`);
     }
   } catch (err: any) {
-    console.warn(`[Bootstrap] Error al sembrar los usuarios iniciales: ${err.message}`);
+    console.warn(`[Bootstrap] Error al sembrar administrador mock: ${err.message}`);
   }
 };
 seedUsers();
@@ -192,7 +187,17 @@ const reprocessAssetsUseCase = new ReprocessAssetsUseCase(assetRepository);
 const reprocessAssetsController = new ReprocessAssetsController(getSessionUserUseCase, reprocessAssetsUseCase);
 
 const processingService = new CommandLineMediaProcessingService();
-const ollamaService = new OllamaService(OLLAMA_URL, OLLAMA_VISION_MODEL, OLLAMA_TEXT_MODEL, OLLAMA_VISION_CONCURRENCY, OLLAMA_TEXT_CONCURRENCY, OLLAMA_KEEP_ALIVE);
+class MockOllamaService {
+  async queryVision(model: string, prompt: string, imagesBase64: string[]): Promise<string> {
+    return '{"credits": false, "graphic": false, "faces": [{"id": 1, "description": "Mocked face from mock server"}]}';
+  }
+  async queryText(model: string, prompt: string): Promise<string> {
+    if (prompt.includes('título')) return '"Mock Title"';
+    if (prompt.includes('etiquetas') || prompt.includes('conceptos')) return '["mock", "test"]';
+    return 'Mocked description from mock server.';
+  }
+}
+const ollamaService = new MockOllamaService() as any;
 const sidecarService = new XmlSidecarService(SIDECARS_DIR);
 const faceDetectionService = new PythonFaceDetectionService(FACE_PYTHON_BIN);
 const vectorMemoryService = QDRANT_URL ? new QdrantVectorMemoryService(QDRANT_URL) : new NoopVectorMemoryService();

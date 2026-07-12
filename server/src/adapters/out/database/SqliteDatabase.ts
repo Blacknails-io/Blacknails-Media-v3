@@ -83,6 +83,7 @@ export function initializeDatabase(dbPath: string): Database.Database {
       -- Campos específicos del archivo
       source_device TEXT,
       import_date TEXT,
+      original_filename TEXT,
       width INTEGER,
       height INTEGER,
       webp_quality INTEGER,
@@ -162,6 +163,11 @@ export function initializeDatabase(dbPath: string): Database.Database {
   const userColumns = db.prepare(`PRAGMA table_info(users)`).all() as Array<{ name: string }>;
   if (!userColumns.some((column) => column.name === 'is_active')) {
     db.exec(`ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1;`);
+  }
+
+  const mediaFileColumns = db.prepare(`PRAGMA table_info(media_files)`).all() as Array<{ name: string }>;
+  if (!mediaFileColumns.some((column) => column.name === 'original_filename')) {
+    db.exec(`ALTER TABLE media_files ADD COLUMN original_filename TEXT;`);
   }
 
   const assetColumns = db.prepare(`PRAGMA table_info(assets)`).all() as Array<{ name: string }>;

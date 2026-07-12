@@ -19,7 +19,8 @@ export class MediaFileMapper {
         return new OriginalFile({
           ...baseProps,
           sourceDevice: row.source_device || undefined,
-          importDate: row.import_date || undefined
+          importDate: row.import_date || undefined,
+          originalFilename: row.original_filename || undefined
         });
       case 'THUMBNAIL':
         const resolution: Resolution | undefined = row.width !== null && row.height !== null
@@ -59,6 +60,7 @@ export class MediaFileMapper {
       created_at: entity.createdAt,
       source_device: null,
       import_date: null,
+      original_filename: null,
       width: null,
       height: null,
       webp_quality: null,
@@ -71,6 +73,7 @@ export class MediaFileMapper {
     if (entity instanceof OriginalFile) {
       row.source_device = (entity as OriginalFile).sourceDevice;
       row.import_date = (entity as OriginalFile).importDate;
+      row.original_filename = (entity as OriginalFile).originalFilename;
     } else if (entity instanceof ThumbnailFile) {
       const res = (entity as ThumbnailFile).resolution;
       row.width = res?.width ?? null;

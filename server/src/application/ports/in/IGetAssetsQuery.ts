@@ -24,6 +24,7 @@ export interface AssetDto {
 export interface ThinAssetDto {
   id: string;
   title: string;
+  description: string;
   type: 'PHOTO' | 'VIDEO';
   date: string;
   imageUrl: string;

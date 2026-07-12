@@ -121,7 +121,9 @@ export const GalleryCard = ({
 
           {/* Información y Metadatos Inferiores */}
           <div className="prosumer-card-content">
-            <h3 className="prosumer-card-title" data-atropos-offset="4">{asset.title}</h3>
+            <h3 className="prosumer-card-title" data-atropos-offset="4">
+              {asset.description || asset.title}
+            </h3>
             <div className="prosumer-card-meta" data-atropos-offset="2">
               <span>{asset.metadata.resolution || asset.metadata.fileSize || 'Unknown Size'}</span>
               <span>•</span>

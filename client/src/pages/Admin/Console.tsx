@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { AppEvent } from '@blacknails/shared';
 import { backendEventsController } from '../../controllers/BackendEventsController';
 import { Search, Pause, Play, Terminal } from 'lucide-react';

@@ -4,6 +4,7 @@ import type { AssetReprocessJob } from '../in/IReprocessAssetsUseCase.js';
 export interface IAssetRepository {
   save(asset: Asset): Promise<void>;
   getById(id: string): Promise<Asset | null>;
+  getByDateTaken(dateTaken: string): Promise<Asset | null>;
   getByOriginalFileHash(fileHash: string): Promise<Asset | null>;
   getAll(): Promise<Asset[]>;
   delete(id: string): Promise<void>;

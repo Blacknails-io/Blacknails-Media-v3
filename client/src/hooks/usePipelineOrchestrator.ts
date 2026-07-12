@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo } from 'react';
+import { backendEventsController } from '../controllers/BackendEventsController.js';
 import {
   useNodesState,
   useEdgesState,
@@ -10,8 +11,8 @@ const Y_SPACING = 150;
 const X_SPACING = 300;
 
 export const usePipelineOrchestrator = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge({ ...params, type: 'smoothstep' }, eds)),
@@ -52,7 +53,8 @@ export const usePipelineOrchestrator = () => {
               title: worker.label,
               status: worker.isRunning ? 'running' : 'off',
               isActive: worker.isRunning,
-              errorCount: worker.pendingItems || 0, // Using errorCount visually to show pending backlog
+              pendingItems: worker.pendingItems || 0,
+              currentlyProcessing: worker.currentlyProcessing || 0,
               isCore: true
             }
           });
@@ -81,8 +83,24 @@ export const usePipelineOrchestrator = () => {
     };
 
     fetchWorkers();
-    const interval = setInterval(fetchWorkers, 3000);
-    return () => clearInterval(interval);
+    
+    let fetchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const unsubscribe = backendEventsController.subscribeEvents(() => {
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+      fetchTimeout = setTimeout(() => {
+        fetchWorkers();
+      }, 500);
+    });
+
+    return () => {
+      unsubscribe();
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+    };
   }, [setNodes, setEdges]);
 
   const nodesWithToggle = useMemo(() => nodes.map(n => ({

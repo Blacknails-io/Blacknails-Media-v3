@@ -28,9 +28,10 @@ abstract class MediaDerivativeTaskRunner extends BaseAssetWorker {
     uow: IUnitOfWork,
     protected readonly mediaProcessingService: IMediaProcessingService,
     public readonly intervalMs: number,
-    protected readonly thumbsDir: string
+    protected readonly thumbsDir: string,
+    batchSize = 20
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected async getOriginal(asset: Asset) {

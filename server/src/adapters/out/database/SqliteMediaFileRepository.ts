@@ -12,10 +12,10 @@ export class SqliteMediaFileRepository implements IMediaFileRepository {
     this.db.prepare(`
       INSERT INTO media_files (
         id, asset_id, role, current_path, file_size_bytes, file_hash, extension, created_at,
-        source_device, import_date, width, height, webp_quality, fps, loop_duration_ms, schema_version, xml_namespace
+        source_device, import_date, original_filename, width, height, webp_quality, fps, loop_duration_ms, schema_version, xml_namespace
       ) VALUES (
         @id, @asset_id, @role, @current_path, @file_size_bytes, @file_hash, @extension, @created_at,
-        @source_device, @import_date, @width, @height, @webp_quality, @fps, @loop_duration_ms, @schema_version, @xml_namespace
+        @source_device, @import_date, @original_filename, @width, @height, @webp_quality, @fps, @loop_duration_ms, @schema_version, @xml_namespace
       )
       ON CONFLICT(id) DO UPDATE SET
         asset_id=excluded.asset_id,
@@ -27,6 +27,7 @@ export class SqliteMediaFileRepository implements IMediaFileRepository {
         created_at=excluded.created_at,
         source_device=excluded.source_device,
         import_date=excluded.import_date,
+        original_filename=excluded.original_filename,
         width=excluded.width,
         height=excluded.height,
         webp_quality=excluded.webp_quality,

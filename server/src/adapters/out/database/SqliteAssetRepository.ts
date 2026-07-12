@@ -58,6 +58,12 @@ export class SqliteAssetRepository implements IAssetRepository {
     return AssetMapper.toDomain(row);
   }
 
+  public async getByDateTaken(dateTaken: string): Promise<Asset | null> {
+    const row = this.db.prepare('SELECT * FROM assets WHERE date_taken = ? LIMIT 1').get(dateTaken);
+    if (!row) return null;
+    return AssetMapper.toDomain(row);
+  }
+
   public async getByOriginalFileHash(fileHash: string): Promise<Asset | null> {
     const row = this.db.prepare(`
       SELECT a.* FROM assets a

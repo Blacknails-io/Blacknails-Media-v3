@@ -190,6 +190,7 @@ export default function People() {
     }
   }, [selectedPerson]);
 
+  // @ts-ignore
   const handleCleanOrphans = useCallback(async () => {
     if (!confirm('¿Limpiar caras huérfanas (sin fotos asociadas)?')) return;
     try {

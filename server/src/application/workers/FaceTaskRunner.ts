@@ -54,9 +54,10 @@ export class FaceTaskRunner extends BaseAssetWorker {
     private readonly faceRepository: IFaceRepository,
     private readonly detector: IFaceDetectionService,
     private readonly vectorMemory: IVectorMemoryService,
-    private readonly ollama?: IOllamaService
+    private readonly ollama?: IOllamaService,
+    batchSize = 10
   ) {
-    super(eventBus, uow);
+    super(eventBus, uow, batchSize);
   }
 
   protected acquireResources(): boolean {

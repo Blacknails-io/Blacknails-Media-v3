@@ -89,10 +89,10 @@ test('purges missing original files and deletes their assets/thumbnails', async 
   const env = await createPipelineTestEnvironment();
   try {
     const fsPromises = (await import('fs/promises'));
-    // 1. Create a dummy original file physically
+    // 1. Create a valid original file physically
     const sourceFile = join(env.originalsDir, 'to-be-deleted.jpg');
     await fsPromises.mkdir(env.originalsDir, { recursive: true });
-    await fsPromises.writeFile(sourceFile, 'dummy image content');
+    await createImageFixture(sourceFile, '2024:07:04 12:34:56');
 
     const bytes = await fsPromises.readFile(sourceFile);
     const fileHash = createHash('sha1').update(bytes).digest('hex');
@@ -156,4 +156,3 @@ test('purges missing original files and deletes their assets/thumbnails', async 
     await env.cleanup();
   }
 });
-

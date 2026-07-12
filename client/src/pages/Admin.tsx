@@ -1,5 +1,6 @@
 import { Play, Pause, RefreshCw, Cpu, Server } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { backendEventsController } from '../controllers/BackendEventsController.js';
 
 export default function Admin() {
   const [workers, setWorkers] = useState<any[]>([]);
@@ -20,8 +21,24 @@ export default function Admin() {
 
   useEffect(() => {
     fetchWorkers();
-    const interval = setInterval(fetchWorkers, 5000);
-    return () => clearInterval(interval);
+    
+    let fetchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    const unsubscribe = backendEventsController.subscribeEvents(() => {
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+      fetchTimeout = setTimeout(() => {
+        fetchWorkers();
+      }, 500);
+    });
+
+    return () => {
+      unsubscribe();
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout);
+      }
+    };
   }, []);
 
   const handleAction = async (workerId: string, action: string) => {

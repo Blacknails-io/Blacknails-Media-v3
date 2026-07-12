@@ -10,11 +10,13 @@ export type PipelineNodeData = {
   status: NodeStatus;
   isActive: boolean;
   isCore?: boolean;
+  pendingItems?: number;
+  currentlyProcessing?: number;
   onToggle?: (id: string, active: boolean) => void;
 };
 
 export const PipelineNode: React.FC<any> = ({ id, data, isConnectable, selected }) => {
-  const { title, status, isActive, isCore = false, onToggle } = data as PipelineNodeData;
+  const { title, status, isActive, isCore = false, pendingItems = 0, currentlyProcessing = 0, onToggle } = data as PipelineNodeData;
 
   return (
     <div data-testid={`pipeline-node-${id}`}>
@@ -24,6 +26,8 @@ export const PipelineNode: React.FC<any> = ({ id, data, isConnectable, selected 
         status={status}
         isActive={isActive}
         isCore={isCore}
+        pendingItems={pendingItems}
+        currentlyProcessing={currentlyProcessing}
         showExecutionData={true}
         selected={selected}
         onToggle={() => onToggle && onToggle(id, status === 'running')}

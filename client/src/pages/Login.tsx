@@ -60,7 +60,7 @@ export default function Login() {
         </div>
 
         {error && (
-          <div style={{ 
+          <div data-testid="login-error-message" style={{ 
             padding: '0.75rem', 
             borderRadius: 'var(--radius-md)', 
             background: 'rgba(239, 68, 68, 0.1)', 

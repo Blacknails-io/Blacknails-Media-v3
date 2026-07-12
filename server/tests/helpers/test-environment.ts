@@ -60,9 +60,9 @@ export async function createPipelineTestEnvironment(options: { action?: 'move' |
   const assetRepo = new SqliteAssetRepository(db);
   const mediaRepo = new SqliteMediaFileRepository(db);
   const eventBus = new RecordingEventBus();
-  const processingService = new CommandLineMediaProcessingService(archiveDir);
+  const processingService = new CommandLineMediaProcessingService();
   const importUseCase = new ImportMediaUseCase(uow, eventBus, processingService, originalsDir, options.action || 'move');
-  const indexUseCase = new IndexMediaUseCase(uow, processingService, eventBus);
+  const indexUseCase = new IndexMediaUseCase(uow, processingService, eventBus, path.join(storageDir, 'sidecars'));
   const faceRepo = new SqliteFaceRepository(db);
   const purgeUseCase = new PurgeMediaUseCase(uow, faceRepo, eventBus);
   const importWorker = new ImportTaskRunner(eventBus, importUseCase, importDir, 0);

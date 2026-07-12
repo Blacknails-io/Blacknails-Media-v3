@@ -83,13 +83,7 @@ export class Photo extends Asset {
   public resolution?: Resolution;
   public exif?: ExifData;
 
-  constructor(props: {
-    id?: string;
-    dateTaken?: string;
-    timezoneOffset?: string;
-    location?: Location;
-    indexedAt?: string;
-    aiProcessedAt?: string;
+  constructor(props: ConstructorParameters<typeof Asset>[0] & {
     resolution?: Resolution;
     exif?: ExifData;
   }) {
@@ -110,13 +104,7 @@ export class Video extends Asset {
   public videoCodec?: string;
   public audioCodec?: string;
 
-  constructor(props: {
-    id?: string;
-    dateTaken?: string;
-    timezoneOffset?: string;
-    location?: Location;
-    indexedAt?: string;
-    aiProcessedAt?: string;
+  constructor(props: ConstructorParameters<typeof Asset>[0] & {
     resolution?: Resolution;
     durationSeconds?: number;
     framerate?: number;

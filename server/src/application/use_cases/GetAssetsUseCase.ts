@@ -35,14 +35,15 @@ export class GetAssetsUseCase implements IGetAssetsQuery {
         resolution = `${video.resolution.width}x${video.resolution.height}`;
       }
     }
-
-    const imageUrl = this.resolvePathUrl(asset.aiThumbnailPath || asset.thumbnailPath || '');
-    const videoPreviewUrl = this.resolveVideoPreviewUrl(asset.videoPreviewPath);
+    const imageUrl = `/api/assets/${asset.id}/media?type=thumbnail`;
+    const videoPreviewUrl = type === 'VIDEO' ? `/api/assets/${asset.id}/media?type=preview` : undefined;
     const title = asset.title?.trim() || `${type === 'PHOTO' ? 'Foto' : 'Video'} ${asset.dateTaken.slice(0, 10)}`;
+    const description = asset.aiDescription?.trim() || '';
 
     return {
       id: asset.id,
       title,
+      description,
       type,
       date: asset.dateTaken,
       imageUrl,
@@ -79,9 +80,9 @@ export class GetAssetsUseCase implements IGetAssetsQuery {
       : undefined;
     const mediaFiles = await this.mediaFileRepository.getByAssetId(asset.id);
     const original = mediaFiles.find((media) => media.role === 'ORIGINAL');
-    const imageUrl = this.resolveImageUrl(asset, original?.currentPath);
-    const videoPreviewUrl = this.resolveVideoPreviewUrl(asset.videoPreviewPath);
-    const originalUrl = this.resolveOriginalUrl(original?.currentPath);
+    const imageUrl = `/api/assets/${asset.id}/media?type=thumbnail`;
+    const videoPreviewUrl = type === 'VIDEO' ? `/api/assets/${asset.id}/media?type=preview` : undefined;
+    const originalUrl = `/api/assets/${asset.id}/media?type=original`;
     const title = asset.title?.trim() || `${type === 'PHOTO' ? 'Foto' : 'Video'} ${asset.dateTaken.slice(0, 10)}`;
     const description = asset.aiDescription?.trim() || `Indexado: ${asset.indexedAt || 'N/A'}`;
     const tags = asset.tags?.length ? asset.tags : [type.toLowerCase()];

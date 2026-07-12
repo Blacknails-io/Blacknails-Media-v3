@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, MouseEvent } from 'react';
-import { Search, Filter, Play, RefreshCw, Upload, CheckSquare, Square, Download, Trash2, X, Plus } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import type { MouseEvent } from 'react';
+import { Search, X } from 'lucide-react';
 import { GalleryCard } from '../components/GalleryCard.js';
 import { MediaModal } from '../components/MediaModal.js';
 import type { MediaAsset } from '../types/MediaAsset.js';
@@ -27,12 +28,23 @@ export default function Gallery() {
     try {
       const res = await fetch('/api/assets');
       if (!res.ok) {
-        throw new Error(`Error ${res.status} al cargar la biblioteca.`);
+        let errorMsg = 'No pudimos conectar con el servidor. Por favor, inténtalo de nuevo más tarde.';
+        try {
+          const errorData = await res.json();
+          if (errorData.error) errorMsg = errorData.error;
+        } catch (_) {}
+        
+        if (res.status >= 500) {
+          errorMsg = 'Nuestros servidores están teniendo un momento de debilidad. Estamos trabajando en ello.';
+        } else if (res.status === 401 || res.status === 403) {
+          errorMsg = 'Tu sesión parece haber expirado. Por favor, vuelve a iniciar sesión.';
+        }
+        throw new Error(errorMsg);
       }
       const data = await res.json();
       const loadedAssets = Array.isArray(data) ? data : (data.items || []);
       
-      const mapped = loadedAssets.map((photo: any) => ({
+      const mapped: MediaAsset[] = loadedAssets.map((photo: any) => ({
         ...photo,
         id: photo.id,
         type: (photo.type === 'PHOTO' || photo.type === 'IMAGE' || !photo.videoPreviewUrl) ? 'PHOTO' : 'VIDEO',
@@ -62,11 +74,13 @@ export default function Gallery() {
 
   useEffect(() => {
     const unsubscribe = backendEventsController.subscribeEvents((event) => {
-      if (event.type === 'DOMAIN:Asset:CREATED') {
-        const payload = event.payload;
+      const e = event as any;
+      if (e.type === 'DOMAIN:Asset:CREATED') {
+        const payload = e.payload;
         setAssets(prev => {
           // Prevent duplicates if already loaded
           if (prev.some(a => a.id === payload.id)) return prev;
+          
           const newAsset: MediaAsset = {
             ...payload,
             id: payload.id,
@@ -81,10 +95,34 @@ export default function Gallery() {
           };
           return [newAsset, ...prev];
         });
-      } else if (event.type === 'DOMAIN:Asset:UPDATED') {
-        setAssets(prev => prev.map(a => a.id === event.payload.id ? { ...a, ...event.payload } : a));
+      } else if (e.type === 'DOMAIN:Asset:UPDATED') {
+        setAssets(prev => prev.map(a => a.id === e.payload.id ? { ...a, ...e.payload } : a));
+      } else if (e.type === 'PROCESS' && e.payload?.status === 'PROCESSED') {
+        const assetId = e.payload.itemId;
+        if (assetId) {
+          // Fetch the updated asset
+          fetch(`/api/assets/${assetId}`)
+            .then(res => res.json())
+            .then(updatedAsset => {
+              setAssets(prev => prev.map(a => a.id === assetId ? {
+                ...a,
+                ...updatedAsset,
+                id: updatedAsset.id,
+                type: (updatedAsset.type === 'PHOTO' || updatedAsset.type === 'IMAGE' || !updatedAsset.videoPreviewUrl) ? 'PHOTO' : 'VIDEO',
+                imageUrl: updatedAsset.imageUrl || `/api/media/originals/${updatedAsset.id}`,
+                originalUrl: updatedAsset.originalUrl || `/api/media/originals/${updatedAsset.id}`,
+                videoPreviewUrl: updatedAsset.videoPreviewUrl ? `/api/media/originals/${updatedAsset.videoPreviewUrl}` : undefined,
+                title: updatedAsset.title || updatedAsset.id,
+                description: updatedAsset.description || '',
+                date: updatedAsset.date || new Date().toISOString().split('T')[0],
+                tags: updatedAsset.tags || [],
+              } : a));
+            })
+            .catch(err => console.error('Failed to fetch updated asset', err));
+        }
       }
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -221,6 +259,16 @@ export default function Gallery() {
                 outline: 'none', width: '100%', fontSize: '0.9rem' 
               }}
             />
+            {searchQuery && (
+              <X 
+                size={18} 
+                color="var(--text-secondary)" 
+                style={{ marginLeft: '0.5rem', cursor: 'pointer', transition: 'color 0.2s' }} 
+                onClick={() => setSearchQuery('')}
+                onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+                onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+              />
+            )}
           </div>
 
           <select
@@ -242,26 +290,6 @@ export default function Gallery() {
             <option value="TITLE_ASC" style={{ color: 'black' }}>Título A-Z</option>
             <option value="TYPE_ASC" style={{ color: 'black' }}>Tipo</option>
           </select>
-          
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearGalleryFilters}
-              style={{ 
-                padding: '0.75rem 1rem', 
-                color: 'var(--text-secondary)',
-                background: 'transparent',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-            >
-              Limpiar
-            </button>
-          )}
         </div>
       </div>
 
